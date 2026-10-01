@@ -15,6 +15,7 @@ dependencies = [
     "arq>=0.26",
     "redis>=5.0",
     "pyyaml>=6.0",
+    "argon2-cffi>=23.1",
 ]
 
 [dependency-groups]
@@ -26,6 +27,7 @@ dev = [
     "mypy>=1.11",
     "types-pyyaml>=6.0",
     "testcontainers[postgres]>=4.8",
+    "fakeredis>=2.26",
 ]
 
 [tool.uv]
@@ -40,7 +42,7 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "ASYNC"]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]  # assert is the point of a test
+"tests/**" = ["S101", "S105", "S106"]  # asserts and fixture passwords are the point
 "migrations/**" = ["E501"]
 
 [tool.mypy]

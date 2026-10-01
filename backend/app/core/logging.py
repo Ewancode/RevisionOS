@@ -32,11 +32,17 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, default=str)
 
 
+class _AppHandler(logging.StreamHandler):  # type: ignore[type-arg]
+    """Marks the handler this module installs, so reconfiguring replaces only it."""
+
+
 def configure_logging(level: str) -> None:
-    handler = logging.StreamHandler(sys.stdout)
+    handler = _AppHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     root = logging.getLogger()
-    root.handlers[:] = [handler]
+    for existing in [h for h in root.handlers if isinstance(h, _AppHandler)]:
+        root.removeHandler(existing)
+    root.addHandler(handler)
     root.setLevel(level)
     # Our middleware writes one structured access line per request.
     logging.getLogger("uvicorn.access").disabled = True

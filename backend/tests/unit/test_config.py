@@ -16,9 +16,9 @@ def _shipped(name: str) -> dict[str, Any]:
     return data
 
 
-def _write(tmp_path: Path, learning: dict[str, Any], ai: dict[str, Any]) -> Path:
-    (tmp_path / "learning.yaml").write_text(yaml.safe_dump(learning), encoding="utf-8")
-    (tmp_path / "ai.yaml").write_text(yaml.safe_dump(ai), encoding="utf-8")
+def _write(tmp_path: Path, files: dict[str, dict[str, Any]]) -> Path:
+    for name, data in files.items():
+        (tmp_path / f"{name}.yaml").write_text(yaml.safe_dump(data), encoding="utf-8")
     return tmp_path
 
 
@@ -26,13 +26,22 @@ def test_shipped_config_is_valid() -> None:
     config = load_config(CONFIG_DIR)
     assert config.learning.mastery.half_life_days == 21
     assert config.learning.mastery.difficulty_weights.exam == 1.7
-    assert config.ai.routing["proof_marking"].escalate_to == "opus"
+    escalation = config.ai.routing["proof_marking"].escalate_to
+    assert escalation is not None
+    assert (escalation.model, escalation.effort) == ("opus", "high")
+
+
+def test_budget_is_ten_pounds_a_month_with_conservative_conversion() -> None:
+    budget = load_config(CONFIG_DIR).ai.budget
+    assert (budget.currency, budget.monthly_cap) == ("GBP", 10.0)
+    assert budget.from_usd(10.0) == 8.0
 
 
 def test_every_route_resolves_to_a_model() -> None:
     ai = load_config(CONFIG_DIR).ai
     for route in ai.routing.values():
-        assert route.model in ai.models
+        for step in route.steps():
+            assert step.model in ai.models
 
 
 @pytest.mark.parametrize(
@@ -46,21 +55,41 @@ def test_every_route_resolves_to_a_model() -> None:
         ("learning", ["mistakes", "categories"], ["a", "a"], "must be unique"),
         ("learning", ["mastery", "half_lfe_days"], 21, "Extra inputs are not permitted"),
         ("ai", ["routing", "tutoring", "model"], "gpt", "unknown model alias 'gpt'"),
-        ("ai", ["routing", "tutoring", "escalate_to"], "nope", "unknown model alias 'nope'"),
-        ("ai", ["budget", "daily_usd_cap"], 50.0, "cannot exceed monthly_usd_cap"),
+        (
+            "ai",
+            ["routing", "tutoring", "escalate_to"],
+            {"model": "nope"},
+            "unknown model alias 'nope'",
+        ),
+        ("ai", ["routing", "tutoring", "effort"], None, "model 'sonnet' needs an effort"),
+        ("ai", ["routing", "query_rewrite", "effort"], "low", "'haiku' does not accept an effort"),
+        ("ai", ["routing", "tutoring", "effort"], "extreme", "Input should be 'low'"),
+        ("ai", ["models", "sonnet", "effort_levels"], ["low"], "effort 'medium' not available"),
+        (
+            "ai",
+            ["routing", "tutoring", "escalate_to"],
+            {"model": "sonnet", "effort": "medium"},
+            "escalation must differ",
+        ),
+        ("ai", ["budget", "daily_cap"], 50.0, "daily_cap cannot exceed monthly_cap"),
+        ("ai", ["budget", "currency"], "JPY", "Input should be 'GBP'"),
+        ("ai", ["budget", "usd_to_currency"], 0, "greater than 0"),
         ("ai", ["budget", "warn_fraction"], 1.0, "less than 1"),
         ("ai", ["models", "haiku", "pricing", "input"], -1.0, "greater than or equal to 0"),
+        ("platform", ["auth", "session_idle_hours"], 10_000, "cannot exceed session_absolute"),
+        ("platform", ["auth", "password_min_length"], 4, "greater than or equal to 8"),
+        ("platform", ["rate_limits", "login", "max_attempts"], 0, "greater than 0"),
     ],
 )
 def test_invalid_values_are_rejected(
     tmp_path: Path, file: str, path: list[str], value: Any, expected: str
 ) -> None:
-    data = {"learning": _shipped("learning.yaml"), "ai": _shipped("ai.yaml")}
+    data = {name: _shipped(f"{name}.yaml") for name in ("learning", "ai", "platform")}
     node = data[file]
     for key in path[:-1]:
         node = node[key]
     node[path[-1]] = value
-    config_dir = _write(tmp_path, data["learning"], data["ai"])
+    config_dir = _write(tmp_path, data)
 
     with pytest.raises(ConfigError, match=re.escape(expected)) as exc_info:
         load_config(config_dir)

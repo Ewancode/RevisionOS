@@ -17,6 +17,7 @@ x-backend: &backend
     - ../backend/app:/app/app:ro
     - ../backend/config:/app/config:ro
     - ../backend/migrations:/app/migrations:ro
+    - ../backend/scripts:/app/scripts:ro
   depends_on:
     db: { condition: service_healthy }
     redis: { condition: service_healthy }

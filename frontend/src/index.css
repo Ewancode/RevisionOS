@@ -1,34 +1,71 @@
 @import "tailwindcss";
 
-/* Colour tokens. Light/dark/system and the accent picker build on these in
-   Phase 2 (ARCHITECTURE.md section 3). */
+/* Colour tokens (ARCHITECTURE.md §3). Light by default; dark follows the
+   system unless the user picked a theme, which sets data-theme on <html>. */
 :root {
   --color-bg: #ffffff;
-  --color-fg: #1a1a1a;
+  --color-surface: #f7f7f8;
+  --color-border: #e4e4e7;
+  --color-fg: #18181b;
   --color-muted: #5f6368;
   --color-success: #1e7a3c;
   --color-danger: #b3261e;
-  color-scheme: light dark;
+  --color-accent: #4f46e5;
+  --color-on-accent: #ffffff;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #121212;
-    --color-fg: #ececec;
+  :root:not([data-theme="light"]) {
+    --color-bg: #121214;
+    --color-surface: #1b1b1f;
+    --color-border: #2e2e33;
+    --color-fg: #ececf0;
     --color-muted: #a0a4a8;
     --color-success: #6fcf8f;
     --color-danger: #f28b82;
+    color-scheme: dark;
   }
 }
 
+:root[data-theme="dark"] {
+  --color-bg: #121214;
+  --color-surface: #1b1b1f;
+  --color-border: #2e2e33;
+  --color-fg: #ececf0;
+  --color-muted: #a0a4a8;
+  --color-success: #6fcf8f;
+  --color-danger: #f28b82;
+  color-scheme: dark;
+}
+
 @theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-border: var(--color-border);
+  --color-fg: var(--color-fg);
   --color-muted: var(--color-muted);
   --color-success: var(--color-success);
   --color-danger: var(--color-danger);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* One clear, consistent focus ring for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

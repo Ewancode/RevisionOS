@@ -11,6 +11,7 @@ from app.core.config import get_config
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.settings import Settings, get_settings
 from app.db.session import create_engine, create_session_factory
 
@@ -47,5 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     register_error_handlers(app)
     app.add_middleware(RequestContextMiddleware)
+    # Added last = outermost, so even last-resort 500 responses get the headers.
+    app.add_middleware(SecurityHeadersMiddleware, hsts=is_prod)
     app.include_router(v1_router)
     return app

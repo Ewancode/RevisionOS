@@ -10,38 +10,54 @@ models:
     id: claude-haiku-4-5-20251001
     context_window: 200000
     pricing: { input: 1.00, output: 5.00, cache_write: 1.25, cache_read: 0.10 }
+    effort_levels: []  # Haiku 4.5 rejects the effort parameter
   sonnet:
     id: claude-sonnet-5-5
     context_window: 1000000
     pricing: { input: 2.00, output: 10.00, cache_write: 2.50, cache_read: 0.20 }
+    effort_levels: [low, medium, high, xhigh, max]
   opus:
     id: claude-opus-5-5
     context_window: 1000000
     pricing: { input: 4.00, output: 20.00, cache_write: 5.00, cache_read: 0.20 }
+    effort_levels: [low, medium, high, xhigh, max]
 
-# Task type -> model alias (ARCHITECTURE.md section 8). Escalation is used on
-# validation failure, low marking confidence, or a disputed mark.
+# Task type -> model + effort (ARCHITECTURE.md section 8, ADR 0006).
+# Effort is required for models that support it, so API defaults (Opus 5.5
+# defaults to medium, Sonnet 5.5 to high) never decide cost silently.
+# Escalation runs on validation failure, low marking confidence, or a
+# disputed mark. Starting values; tuned against evals from Phase 5.
 routing:
   query_rewrite:        { model: haiku }
   classification:       { model: haiku }
   mistake_labelling:    { model: haiku }
-  flashcard_generation: { model: haiku, escalate_to: sonnet }
-  simple_question_generation: { model: haiku, escalate_to: sonnet }
-  simple_marking:       { model: haiku, escalate_to: sonnet }
-  maths_transcription:  { model: sonnet }
-  tutoring:             { model: sonnet }
-  explanation:          { model: sonnet }
-  revision_guide:       { model: sonnet }
-  document_analysis:    { model: sonnet }
-  proof_marking:        { model: sonnet, escalate_to: opus }
-  exam_question_generation: { model: sonnet, escalate_to: opus }
   plan_explanation:     { model: haiku }
+  flashcard_generation: { model: haiku, escalate_to: { model: sonnet, effort: low } }
+  simple_question_generation: { model: haiku, escalate_to: { model: sonnet, effort: medium } }
+  simple_marking:       { model: haiku, escalate_to: { model: sonnet, effort: medium } }
+  tutoring:             { model: sonnet, effort: medium }
+  explanation:          { model: sonnet, effort: medium }
+  revision_guide:       { model: sonnet, effort: medium }
+  document_analysis:    { model: sonnet, effort: medium }
+  maths_transcription:  { model: sonnet, effort: high }
+  proof_marking:        { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
+  exam_question_generation: { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
 
-# Spending guard (enforced from Phase 5). These are the section-18 "low hard
-# cap" defaults — raise them here or, later, in Settings.
+# Spending guard (enforced from Phase 5). Caps are in your currency; API
+# prices above are USD and are converted with usd_to_currency.
+#
+# usd_to_currency is deliberately on the high side (1 USD = 0.80 GBP), so
+# estimated costs in pounds run slightly high and the cap trips early rather
+# than late. Update it if the exchange rate moves a lot.
+#
+# For a hard ceiling outside the app too, load a matching amount of prepaid
+# credit in the Claude Console with auto-reload off.
 budget:
-  daily_usd_cap: 2.00
-  monthly_usd_cap: 10.00
+  currency: GBP
+  usd_to_currency: 0.80
+  monthly_cap: 10.00
+  # Stops one heavy day from using most of the month.
+  daily_cap: 2.00
   warn_fraction: 0.75
   # Jobs estimated above this many tokens ask for confirmation first.
   confirm_above_tokens: 100000

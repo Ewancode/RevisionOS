@@ -8,18 +8,22 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 1 (scaffold) — an empty app with health checks, config
-loading, migrations, tests and CI. Features arrive from Phase 2.
+**Status:** Phase 2 (foundation). Sign-in with secure sessions, academic
+years, modules and topic trees, theming and settings. Documents, search and
+Claude arrive in Phases 3–5.
 
 ## Layout
 
 ```
 backend/    FastAPI API + Arq worker (Python 3.12, uv)
-  app/        core/ (settings, config, logging, errors), db/, api/v1/, workers/
-  config/     learning.yaml, ai.yaml — every tunable number, validated at startup
+  app/        api/v1/ (routers) → services/ (rules) → repositories/ (user-scoped
+              data access) → models/; core/ (settings, config, security, errors)
+  config/     learning.yaml, ai.yaml, platform.yaml — every tunable number,
+              validated at startup
   migrations/ Alembic
   tests/      unit/, api/, db/
-frontend/   React 18 + TypeScript SPA (Vite, pnpm)
+frontend/   React 18 + TypeScript SPA (Vite, pnpm, TanStack Router + Query)
+  src/        app/ (router, shell), features/, components/, lib/ (API client)
 infra/      docker-compose.yml, backend.Dockerfile
 docs/       spec, architecture, ADRs
 ```
@@ -37,7 +41,11 @@ docs/       spec, architecture, ADRs
 ```bash
 cp .env.example .env        # then set POSTGRES_PASSWORD (and DATABASE_URL to match)
 make dev                    # db, redis, api, worker, frontend
+make create-user            # in a second terminal: your account (asks for a password)
 ```
+
+Registration is closed by design; `make create-user` is the only way to make
+an account. Sign in at http://localhost:5173.
 
 - App: http://localhost:5173
 - API docs (development only): http://localhost:8000/api/docs
@@ -72,6 +80,13 @@ PostgreSQL + pgvector: they start one with Testcontainers when Docker is
 running, or use `TEST_DATABASE_URL` if set. Without either they **skip** with
 a reason locally; in CI a skip fails the build.
 
+## Security model
+
+Session cookies are HttpOnly and `__Host-` prefixed; tokens are stored only
+as hashes; state-changing requests need a CSRF header; login is rate limited;
+another user's data returns 404. Deletes go to a 30-day trash (restore from
+Settings). Details: [ADR 7](docs/adr/0007-sessions-csrf-and-access-control.md).
+
 ## API conventions
 
 REST under `/api/v1`. Every error uses one envelope and never includes a stack
@@ -92,6 +107,11 @@ an endpoint, run `make api-client` and commit `frontend/openapi.json` and
 
 Tunable numbers live in `backend/config/*.yaml`, never in code, and are
 validated on startup (see [ADR 4](docs/adr/0004-validated-yaml-configuration.md)).
-Model IDs and per-token prices are in `ai.yaml`; update prices from
+Session lifetimes, login rate limits and trash retention are in
+`platform.yaml`. Model IDs, per-task effort levels
+([ADR 6](docs/adr/0006-per-task-effort-in-ai-routing.md)) and per-token prices
+are in `ai.yaml`; update prices from
 Anthropic's pricing page when they change. The AI spending caps there
-(`daily_usd_cap`, `monthly_usd_cap`) are enforced from Phase 5.
+(£10 a month, £2 a day, converted from USD at a deliberately cautious rate)
+are enforced from Phase 5. For a hard ceiling outside the app as well, load
+matching prepaid credit in the Claude Console with auto-reload off.

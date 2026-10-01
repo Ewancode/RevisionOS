@@ -16,7 +16,9 @@ def main(argv: list[str]) -> int:
         print("usage: python -m scripts.export_openapi <output.json>", file=sys.stderr)
         return 2
     schema = create_app().openapi()
-    Path(argv[0]).write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Always LF, so the committed file is identical on Windows and in CI.
+    text = json.dumps(schema, indent=2, sort_keys=True) + "\n"
+    Path(argv[0]).write_text(text, encoding="utf-8", newline="\n")
     return 0
 
 

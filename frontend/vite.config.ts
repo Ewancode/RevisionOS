@@ -19,6 +19,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // https, like the real app: Secure / __Host- cookies only work there.
+    environmentOptions: { jsdom: { url: "https://localhost/" } },
     setupFiles: ["./src/test/setup.ts"],
     restoreMocks: true,
   },

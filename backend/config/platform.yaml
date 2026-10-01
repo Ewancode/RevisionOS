@@ -1,0 +1,23 @@
+# Authentication, abuse limits and data-retention settings.
+# Validated on startup by app/core/config.py (ARCHITECTURE.md section 12).
+
+auth:
+  # A session ends after this long without a request...
+  session_idle_hours: 168        # 7 days
+  # ...and after this long regardless of activity.
+  session_absolute_days: 30
+  # last_seen_at is written at most this often per session.
+  session_touch_interval_seconds: 60
+  password_min_length: 12
+  password_max_length: 256
+
+rate_limits:
+  # Failed or successful login attempts, counted per client IP and per email.
+  login:
+    max_attempts: 5
+    window_seconds: 900
+
+trash:
+  # Soft-deleted modules and topics can be restored for this long; the purge
+  # job arrives with the scheduler.
+  retention_days: 30
