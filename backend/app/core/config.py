@@ -11,6 +11,7 @@ rejected so typos cannot go unnoticed.
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -112,6 +113,8 @@ class ModelSpec(_Strict):
     pricing: ModelPricing
     # Effort levels the API accepts for this model; empty if it takes none.
     effort_levels: tuple[Effort, ...] = ()
+    # Opt into the API's server-side fallback on safety-classifier refusals.
+    server_fallback: bool = False
 
 
 class Step(_Strict):
@@ -123,6 +126,7 @@ class Step(_Strict):
 
 class Route(Step):
     escalate_to: Step | None = None
+    max_tokens: Annotated[int, Field(gt=0, le=128_000)] | None = None
 
     def steps(self) -> tuple[Step, ...]:
         base = Step(model=self.model, effort=self.effort)
@@ -133,6 +137,7 @@ class BudgetConfig(_Strict):
     """Spending caps in the user's currency. The API bills in USD, so costs
     are converted with `usd_to_currency` before comparing against the caps."""
 
+    timezone: str
     currency: Literal["GBP", "USD", "EUR"]
     usd_to_currency: Positive
     daily_cap: Positive
@@ -146,6 +151,10 @@ class BudgetConfig(_Strict):
             raise ValueError("daily_cap cannot exceed monthly_cap")
         if self.currency == "USD" and self.usd_to_currency != 1:
             raise ValueError("usd_to_currency must be 1 when currency is USD")
+        try:
+            ZoneInfo(self.timezone)
+        except (ZoneInfoNotFoundError, ValueError) as exc:
+            raise ValueError(f"unknown timezone: {self.timezone}") from exc
         return self
 
     def from_usd(self, usd: float) -> float:
@@ -154,6 +163,7 @@ class BudgetConfig(_Strict):
 
 class AIConfig(_Strict):
     models: dict[str, ModelSpec]
+    default_max_tokens: Annotated[int, Field(gt=0, le=128_000)]
     routing: dict[str, Route]
     budget: BudgetConfig
 
@@ -218,10 +228,64 @@ class TrashConfig(_Strict):
     retention_days: PositiveInt
 
 
+class UploadSizes(_Strict):
+    pdf: PositiveInt
+    office: PositiveInt
+    image: PositiveInt
+    text: PositiveInt
+
+
+class UploadsConfig(_Strict):
+    max_megabytes: UploadSizes
+    max_image_pixels: PositiveInt
+    zip_max_entries: PositiveInt
+    zip_max_uncompressed_megabytes: PositiveInt
+    zip_max_compression_ratio: PositiveInt
+    max_pdf_pages: PositiveInt
+
+    @property
+    def largest_upload_bytes(self) -> int:
+        sizes = self.max_megabytes
+        return max(sizes.pdf, sizes.office, sizes.image, sizes.text) * 1024 * 1024
+
+
+class DamageSignals(_Strict):
+    maths_font: NonNegative
+    orphan_lines: NonNegative
+    operator_density: NonNegative
+    broken_glyphs: NonNegative
+
+
+class MathsDamageConfig(_Strict):
+    threshold: Annotated[float, Field(gt=0.0, le=1.0)]
+    weights: DamageSignals
+    saturation: DamageSignals
+
+    @model_validator(mode="after")
+    def _positive_saturation(self) -> Self:
+        if min(self.saturation.model_dump().values()) <= 0:
+            raise ValueError("every maths_damage saturation must be greater than 0")
+        return self
+
+
+class IngestionConfig(_Strict):
+    maths_damage: MathsDamageConfig
+    scanned_page_min_chars: PositiveInt
+    vision_render_dpi: Annotated[int, Field(ge=72, le=400)]
+    vision_max_long_edge_px: Annotated[int, Field(ge=256, le=8000)]
+    preview_dpi: Annotated[int, Field(ge=36, le=300)]
+    table_min_fill: Fraction
+    sheet_sample_rows: PositiveInt
+    job_timeout_seconds: PositiveInt
+    progress_poll_seconds: Annotated[float, Field(gt=0.0, le=30.0)]
+
+
 class PlatformConfig(_Strict):
     auth: AuthConfig
     rate_limits: RateLimitsConfig
     trash: TrashConfig
+    uploads: UploadsConfig
+    ingestion: IngestionConfig
 
 
 # --- loading -----------------------------------------------------------------

@@ -31,6 +31,11 @@ class Settings(BaseSettings):
 
     config_dir: Path = BACKEND_ROOT / "config"
 
+    # File storage (ARCHITECTURE.md section 6). "local" in development; an
+    # S3-compatible backend is added for deployment (Phase 13).
+    storage_backend: Literal["local"] = "local"
+    storage_local_root: Path = BACKEND_ROOT.parent / "data" / "storage"
+
     # Required from Phase 5; optional until the AI layer exists.
     anthropic_api_key: SecretStr | None = None
 

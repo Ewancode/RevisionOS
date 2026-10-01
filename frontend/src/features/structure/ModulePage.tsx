@@ -3,6 +3,7 @@ import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
+import { Materials } from "@/features/documents/Materials";
 
 import { EditModuleDialog } from "./forms";
 import { useDeleteModule, useModule, useUpdateModule } from "./queries";
@@ -61,7 +62,10 @@ export function ModulePage({ moduleId }: { moduleId: string }) {
       </header>
       <ErrorText error={update.error} />
 
-      <TopicTree moduleId={moduleId} />
+      <div className="grid gap-8 xl:grid-cols-2">
+        <TopicTree moduleId={moduleId} />
+        <Materials moduleId={moduleId} />
+      </div>
 
       {editing && <EditModuleDialog open={editing} onOpenChange={setEditing} module={m} />}
       <ConfirmDelete

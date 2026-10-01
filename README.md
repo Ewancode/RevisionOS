@@ -8,9 +8,11 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 2 (foundation). Sign-in with secure sessions, academic
-years, modules and topic trees, theming and settings. Documents, search and
-Claude arrive in Phases 3–5.
+**Status:** Phase 3 (files). Phase 2 brought sign-in with secure sessions,
+academic years, modules and topic trees, theming and settings. Phase 3 adds
+uploading lecture materials, which are turned into page-by-page Markdown with
+LaTeX maths; pages whose maths extracts badly are read by Claude, within a
+monthly budget. Search and asking Claude questions arrive in Phases 4–5.
 
 ## Layout
 
@@ -47,6 +49,34 @@ make create-user            # in a second terminal: your account (asks for a pas
 Registration is closed by design; `make create-user` is the only way to make
 an account. Sign in at http://localhost:5173.
 
+### Claude (maths transcription)
+
+Add your Anthropic API key to `.env` as `ANTHROPIC_API_KEY=...`, then run
+`make dev` again. Without a key everything still works: damaged maths pages
+are kept as extracted and flagged "needs review". Spending is capped at
+£10 a month (`backend/config/ai.yaml`); Settings → AI usage shows the total.
+
+Transcription costs roughly 0.5p per slide and 1.5p per dense page of notes,
+once per upload (a 110-page set of LaTeX notes is about £1.60). If the
+monthly cap is reached part-way through, the remaining pages are flagged
+"not transcribed: budget used up"; use **Reprocess** after it resets to finish
+them. Transcribed and corrected pages are never redone.
+
+### Uploading materials
+
+Open a module and drop files on **Materials**: PDF, Word, PowerPoint, Excel,
+CSV, text, Markdown, or photos (PNG, JPEG, WebP, HEIC). Each file is checked,
+stored privately and processed in the background. Open a document to see each
+page beside its transcription, correct anything by hand (corrections are
+never overwritten), or ask Claude to re-read a page.
+
+PowerPoint slides containing Office equation objects need LibreOffice to be
+transcribed. It is optional because it adds about 500 MB to the image:
+
+```bash
+WITH_LIBREOFFICE=true make dev
+```
+
 - App: http://localhost:5173
 - API docs (development only): http://localhost:8000/api/docs
 - Liveness: `GET /api/v1/health` · Readiness (database + Redis): `GET /api/v1/health/ready`
@@ -66,7 +96,7 @@ shell, Claude Code bills that key instead of your Pro plan.
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Database created by compose |
 | `DATABASE_URL` | Async SQLAlchemy URL used when running on the host |
 | `REDIS_URL` | Job queue and (later) rate limits |
-| `ANTHROPIC_API_KEY` | Needed from Phase 5 |
+| `ANTHROPIC_API_KEY` | Claude API key: maths transcription now, chat from Phase 5 (optional; see above) |
 
 ## Testing
 
@@ -74,6 +104,10 @@ shell, Claude Code bills that key instead of your Pro plan.
 make test           # backend + frontend
 make check          # lint + typecheck + tests (what CI runs)
 ```
+
+To check extraction on your own lecture files, put a few in `samples/`
+(git-ignored: they are university copyright and the repo is public), then
+`cd backend && uv run pytest -m samples -s`. This makes no AI calls.
 
 Backend directly: `cd backend && uv run pytest`. Database tests need real
 PostgreSQL + pgvector: they start one with Testcontainers when Docker is

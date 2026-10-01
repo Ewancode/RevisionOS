@@ -2,6 +2,7 @@ import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/re
 
 import { LoginPage } from "@/features/auth/LoginPage";
 import { Dashboard } from "@/features/dashboard/Dashboard";
+import { DocumentPage } from "@/features/documents/DocumentPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ModulePage } from "@/features/structure/ModulePage";
 
@@ -26,6 +27,15 @@ const moduleRoute = createRoute({
   },
 });
 
+const documentRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/doc/$documentId",
+  component: function DocumentRouteView() {
+    const { documentId } = documentRoute.useParams();
+    return <DocumentPage key={documentId} documentId={documentId} />;
+  },
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/settings",
@@ -34,7 +44,7 @@ const settingsRoute = createRoute({
 
 export const routeTree = rootRoute.addChildren([
   loginRoute,
-  appRoute.addChildren([dashboardRoute, moduleRoute, settingsRoute]),
+  appRoute.addChildren([dashboardRoute, moduleRoute, documentRoute, settingsRoute]),
 ]);
 
 export const router = createRouter({ routeTree });

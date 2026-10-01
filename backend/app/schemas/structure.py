@@ -140,7 +140,15 @@ class TrashedTopic(Output):
     deleted_at: datetime
 
 
+class TrashedDocument(Output):
+    id: uuid.UUID
+    module_id: uuid.UUID
+    original_filename: str
+    deleted_at: datetime
+
+
 class TrashOut(Output):
     retention_days: int
     modules: list[TrashedModule]
     topics: list[TrashedTopic]
+    documents: list[TrashedDocument]

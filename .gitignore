@@ -26,6 +26,10 @@ coverage/
 # Runtime data (uploads, local storage backend)
 data/
 
+# Your own lecture files for local checks: university copyright, never committed
+samples/*
+!samples/README.md
+
 # Editors / OS
 .vscode/
 .idea/

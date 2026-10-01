@@ -1,6 +1,54 @@
 {
   "components": {
     "schemas": {
+      "BudgetOut": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "daily_cap": {
+            "title": "Daily Cap",
+            "type": "number"
+          },
+          "exhausted": {
+            "title": "Exhausted",
+            "type": "boolean"
+          },
+          "monthly_cap": {
+            "title": "Monthly Cap",
+            "type": "number"
+          },
+          "spent_this_month": {
+            "title": "Spent This Month",
+            "type": "number"
+          },
+          "spent_today": {
+            "title": "Spent Today",
+            "type": "number"
+          },
+          "warning": {
+            "title": "Warning",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "currency",
+          "spent_today",
+          "spent_this_month",
+          "daily_cap",
+          "monthly_cap",
+          "warning",
+          "exhausted",
+          "configured"
+        ],
+        "title": "BudgetOut",
+        "type": "object"
+      },
       "ChangePasswordRequest": {
         "additionalProperties": false,
         "properties": {
@@ -22,6 +70,205 @@
           "new_password"
         ],
         "title": "ChangePasswordRequest",
+        "type": "object"
+      },
+      "DocumentOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "material_kind": {
+            "enum": [
+              "lecture",
+              "problem_sheet",
+              "solutions",
+              "past_paper",
+              "notes",
+              "other"
+            ],
+            "title": "Material Kind",
+            "type": "string"
+          },
+          "mime": {
+            "title": "Mime",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "original_filename": {
+            "title": "Original Filename",
+            "type": "string"
+          },
+          "page_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Count"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "integer"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "source_tier": {
+            "enum": [
+              "university",
+              "own"
+            ],
+            "title": "Source Tier",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "week": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "topic_id",
+          "original_filename",
+          "mime",
+          "size_bytes",
+          "source_tier",
+          "material_kind",
+          "week",
+          "status",
+          "stage",
+          "progress",
+          "error_code",
+          "page_count",
+          "created_at"
+        ],
+        "title": "DocumentOut",
+        "type": "object"
+      },
+      "DocumentUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "material_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lecture",
+                  "problem_sheet",
+                  "solutions",
+                  "past_paper",
+                  "notes",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Kind"
+          },
+          "source_tier": {
+            "anyOf": [
+              {
+                "enum": [
+                  "university",
+                  "own"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Tier"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "week": {
+            "anyOf": [
+              {
+                "maximum": 60.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week"
+          }
+        },
+        "title": "DocumentUpdate",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -300,6 +547,72 @@
           }
         },
         "title": "ModuleUpdate",
+        "type": "object"
+      },
+      "PageCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "markdown": {
+            "maxLength": 200000,
+            "title": "Markdown",
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "title": "PageCorrection",
+        "type": "object"
+      },
+      "PageOut": {
+        "properties": {
+          "extraction_method": {
+            "enum": [
+              "text",
+              "vision",
+              "corrected",
+              "unreadable"
+            ],
+            "title": "Extraction Method",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "maths_damage_score": {
+            "title": "Maths Damage Score",
+            "type": "number"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "page_no": {
+            "title": "Page No",
+            "type": "integer"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          }
+        },
+        "required": [
+          "page_no",
+          "markdown",
+          "extraction_method",
+          "maths_damage_score",
+          "needs_review",
+          "review_note"
+        ],
+        "title": "PageOut",
         "type": "object"
       },
       "ReadinessResponse": {
@@ -619,6 +932,13 @@
       },
       "TrashOut": {
         "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/TrashedDocument"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
           "modules": {
             "items": {
               "$ref": "#/components/schemas/TrashedModule"
@@ -641,9 +961,41 @@
         "required": [
           "retention_days",
           "modules",
-          "topics"
+          "topics",
+          "documents"
         ],
         "title": "TrashOut",
+        "type": "object"
+      },
+      "TrashedDocument": {
+        "properties": {
+          "deleted_at": {
+            "format": "date-time",
+            "title": "Deleted At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "original_filename": {
+            "title": "Original Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "original_filename",
+          "deleted_at"
+        ],
+        "title": "TrashedDocument",
         "type": "object"
       },
       "TrashedModule": {
@@ -892,6 +1244,28 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/ai/budget": {
+      "get": {
+        "operationId": "ai_budget_api_v1_ai_budget_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ai Budget",
+        "tags": [
+          "documents",
+          "ai"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "login_api_v1_auth_login_post",
@@ -999,6 +1373,685 @@
         "summary": "Session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/v1/documents": {
+      "get": {
+        "operationId": "list_documents_api_v1_documents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentOut"
+                  },
+                  "title": "Response List Documents Api V1 Documents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Documents",
+        "tags": [
+          "documents"
+        ]
+      },
+      "post": {
+        "description": "Upload a file as the raw request body (any Content-Type); metadata goes\nin the query string. Processing continues in the background: follow it\nwith GET /documents/{id}/events.",
+        "operationId": "upload_document_api_v1_documents_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filename",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Filename",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Module Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_tier",
+            "required": true,
+            "schema": {
+              "enum": [
+                "university",
+                "own"
+              ],
+              "title": "Source Tier",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "material_kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "lecture",
+                "problem_sheet",
+                "solutions",
+                "past_paper",
+                "notes",
+                "other"
+              ],
+              "title": "Material Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "topic_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "week",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 60,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}": {
+      "delete": {
+        "description": "Moves the document to the trash.",
+        "operationId": "delete_document_api_v1_documents__document_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Document",
+        "tags": [
+          "documents"
+        ]
+      },
+      "get": {
+        "operationId": "get_document_api_v1_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Document",
+        "tags": [
+          "documents"
+        ]
+      },
+      "patch": {
+        "operationId": "update_document_api_v1_documents__document_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/events": {
+      "get": {
+        "description": "Server-sent events with processing progress until ready or failed.",
+        "operationId": "document_events_api_v1_documents__document_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Document Events",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/file": {
+      "get": {
+        "description": "The original file, always as a download (never rendered inline by the API origin).",
+        "operationId": "download_document_api_v1_documents__document_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/pages": {
+      "get": {
+        "operationId": "list_pages_api_v1_documents__document_id__pages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PageOut"
+                  },
+                  "title": "Response List Pages Api V1 Documents  Document Id  Pages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Pages",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/pages/{page_no}": {
+      "put": {
+        "description": "Replace a page's text with a hand correction (kept on reprocessing).",
+        "operationId": "correct_page_api_v1_documents__document_id__pages__page_no__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "page_no",
+            "required": true,
+            "schema": {
+              "title": "Page No",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageCorrection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Page",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/pages/{page_no}/preview": {
+      "get": {
+        "operationId": "page_preview_api_v1_documents__document_id__pages__page_no__preview_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "page_no",
+            "required": true,
+            "schema": {
+              "title": "Page No",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/jpeg": {},
+              "image/png": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Page Preview",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/pages/{page_no}/retranscribe": {
+      "post": {
+        "operationId": "retranscribe_page_api_v1_documents__document_id__pages__page_no__retranscribe_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "page_no",
+            "required": true,
+            "schema": {
+              "title": "Page No",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Retranscribe Page Api V1 Documents  Document Id  Pages  Page No  Retranscribe Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retranscribe Page",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/reprocess": {
+      "post": {
+        "operationId": "reprocess_document_api_v1_documents__document_id__reprocess_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reprocess Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{document_id}/restore": {
+      "post": {
+        "operationId": "restore_document_api_v1_documents__document_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore Document",
+        "tags": [
+          "documents"
         ]
       }
     },

@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { Button, ErrorText, Field } from "@/components/ui";
 import { useChangePassword, useSession, useUpdateSettings } from "@/features/auth/session";
 import { useMakeYearCurrent, useRestore, useTrash, useYears } from "@/features/structure/queries";
+import { useBudget } from "@/features/documents/queries";
 import { SystemStatus } from "@/features/system/SystemStatus";
 import type { Theme } from "@/lib/theme";
 
@@ -115,6 +116,35 @@ function AcademicYears() {
   );
 }
 
+function AiBudget() {
+  const budget = useBudget();
+  const b = budget.data;
+  if (!b) return null;
+  const money = (n: number) =>
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: b.currency }).format(n);
+  return (
+    <Section title="AI usage">
+      {!b.configured && (
+        <p className="text-sm text-danger">
+          Claude is not configured. Add ANTHROPIC_API_KEY to .env and restart to enable maths transcription.
+        </p>
+      )}
+      <dl className="grid max-w-sm grid-cols-2 gap-y-1 text-sm">
+        <dt className="text-muted">Today</dt>
+        <dd>
+          {money(b.spent_today)} of {money(b.daily_cap)}
+        </dd>
+        <dt className="text-muted">This month</dt>
+        <dd>
+          {money(b.spent_this_month)} of {money(b.monthly_cap)}
+        </dd>
+      </dl>
+      {b.exhausted && <p className="text-sm text-danger">The budget is reached; AI features are paused until it resets.</p>}
+      <p className="text-xs text-muted">Caps are set in backend/config/ai.yaml. Costs are estimates from token counts.</p>
+    </Section>
+  );
+}
+
 function Security() {
   const change = useChangePassword();
   const [current, setCurrent] = useState("");
@@ -157,19 +187,21 @@ function TrashSection() {
   const items = [
     ...(trash.data?.modules.map((m) => ({ kind: "module" as const, id: m.id, label: `${m.code} ${m.title}`, deleted: m.deleted_at })) ?? []),
     ...(trash.data?.topics.map((t) => ({ kind: "topic" as const, id: t.id, label: t.title, deleted: t.deleted_at })) ?? []),
+    ...(trash.data?.documents.map((d) => ({ kind: "document" as const, id: d.id, label: d.original_filename, deleted: d.deleted_at })) ?? []),
   ].sort((a, b) => b.deleted.localeCompare(a.deleted));
+  const KIND_LABEL = { module: "Module", topic: "Topic", document: "File" } as const;
 
   return (
     <Section title="Trash">
       <p className="text-sm text-muted">
-        Deleted modules and topics are kept for {trash.data?.retention_days ?? 30} days.
+        Deleted modules, topics and files are kept for {trash.data?.retention_days ?? 30} days.
       </p>
       {items.length === 0 && <p className="text-sm">The trash is empty.</p>}
       <ul className="flex max-w-md flex-col gap-1">
         {items.map((item) => (
           <li key={item.id} className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-surface">
             <span className="text-sm">
-              <span className="text-muted">{item.kind === "module" ? "Module" : "Topic"}:</span> {item.label}
+              <span className="text-muted">{KIND_LABEL[item.kind]}:</span> {item.label}
             </span>
             <Button size="sm" disabled={restore.isPending} onClick={() => restore.mutate({ kind: item.kind, id: item.id })}>
               Restore
@@ -189,6 +221,7 @@ export function SettingsPage() {
       <Profile />
       <Appearance />
       <AcademicYears />
+      <AiBudget />
       <Security />
       <TrashSection />
       <SystemStatus />

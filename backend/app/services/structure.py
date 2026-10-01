@@ -4,15 +4,13 @@ import uuid
 from collections.abc import Sequence
 from datetime import timedelta
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import utcnow
 from app.core.config import TrashConfig
 from app.core.errors import AppError
-from app.models import AcademicYear, Module, Topic
-from app.repositories.identity import AuditRepository
-from app.repositories.structure import ModuleRepository, TopicRepository, YearRepository
+from app.models import AcademicYear, Document, Module, Topic
 from app.schemas.structure import (
     ModuleCreate,
     ModuleUpdate,
@@ -20,13 +18,14 @@ from app.schemas.structure import (
     TopicMove,
     TopicNode,
     TopicUpdate,
+    TrashedDocument,
     TrashedModule,
     TrashedTopic,
     TrashOut,
     YearCreate,
     YearUpdate,
 )
-from app.services.common import ClientInfo, not_found
+from app.services.common import ScopedService, not_found
 
 CODE_TAKEN_CONSTRAINT = "uq_modules_year_code_live"
 
@@ -39,34 +38,10 @@ def _is_violation(exc: IntegrityError, constraint: str) -> bool:
     return constraint in str(exc.orig)
 
 
-class _Service:
-    def __init__(self, db: AsyncSession, user_id: uuid.UUID, client: ClientInfo) -> None:
-        self.db = db
-        self.user_id = user_id
-        self.client = client
-        self.years = YearRepository(db, user_id)
-        self.modules = ModuleRepository(db, user_id)
-        self.topics = TopicRepository(db, user_id)
-        self.audit = AuditRepository(db)
-
-    def _record(
-        self, action: str, target_type: str, target_id: uuid.UUID, **details: object
-    ) -> None:
-        self.audit.record(
-            action,
-            user_id=self.user_id,
-            target_type=target_type,
-            target_id=target_id,
-            ip=self.client.ip,
-            user_agent=self.client.user_agent,
-            details=details or None,
-        )
-
-
 # --- years -------------------------------------------------------------------
 
 
-class YearService(_Service):
+class YearService(ScopedService):
     async def list(self) -> Sequence[AcademicYear]:
         return await self.years.list()
 
@@ -136,7 +111,7 @@ class YearService(_Service):
 # --- modules -----------------------------------------------------------------
 
 
-class ModuleService(_Service):
+class ModuleService(ScopedService):
     async def list(self, year_id: uuid.UUID | None, statuses: Sequence[str]) -> Sequence[Module]:
         return await self.modules.list(year_id=year_id, statuses=statuses)
 
@@ -205,7 +180,7 @@ def _renumber(siblings: list[Topic]) -> None:
         sibling.position = index
 
 
-class TopicService(_Service):
+class TopicService(ScopedService):
     async def _module(self, module_id: uuid.UUID) -> Module:
         module = await self.modules.get(module_id)
         if module is None:
@@ -313,13 +288,21 @@ class TopicService(_Service):
 # --- trash -------------------------------------------------------------------
 
 
-class TrashService(_Service):
+class TrashService(ScopedService):
     async def list(self, config: TrashConfig) -> TrashOut:
         since = utcnow() - timedelta(days=config.retention_days)
         modules = await self.modules.list_deleted(since)
         topics = await self.topics.list_deleted_roots(since)
+        documents = (
+            await self.db.scalars(
+                select(Document)
+                .where(Document.user_id == self.user_id, Document.deleted_at >= since)
+                .order_by(Document.deleted_at.desc())
+            )
+        ).all()
         return TrashOut(
             retention_days=config.retention_days,
             modules=[TrashedModule.model_validate(m) for m in modules],
             topics=[TrashedTopic.model_validate(t) for t in topics],
+            documents=[TrashedDocument.model_validate(d) for d in documents],
         )

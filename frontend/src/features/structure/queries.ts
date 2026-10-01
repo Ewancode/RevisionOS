@@ -51,11 +51,12 @@ export function useModules(yearId: string | undefined, status: "active" | "archi
   });
 }
 
-export function useModule(moduleId: string) {
+export function useModule(moduleId: string, enabled = true) {
   return useQuery({
     queryKey: keys.module(moduleId),
     queryFn: () =>
       unwrap(api.GET("/api/v1/modules/{module_id}", { params: { path: { module_id: moduleId } } })),
+    enabled: enabled && moduleId !== "",
   });
 }
 
@@ -155,11 +156,24 @@ export function useTrash() {
 
 export function useRestore() {
   const invalidate = useInvalidateStructure();
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ kind, id }: { kind: "module" | "topic"; id: string }): Promise<void> => {
+    mutationFn: async ({
+      kind,
+      id,
+    }: {
+      kind: "module" | "topic" | "document";
+      id: string;
+    }): Promise<void> => {
       if (kind === "module") {
         await unwrap(
           api.POST("/api/v1/modules/{module_id}/restore", { params: { path: { module_id: id } } }),
+        );
+      } else if (kind === "document") {
+        await unwrap(
+          api.POST("/api/v1/documents/{document_id}/restore", {
+            params: { path: { document_id: id } },
+          }),
         );
       } else {
         await unwrap(
@@ -167,6 +181,6 @@ export function useRestore() {
         );
       }
     },
-    onSuccess: invalidate,
+    onSuccess: () => Promise.all([invalidate(), qc.invalidateQueries({ queryKey: ["documents"] })]),
   });
 }

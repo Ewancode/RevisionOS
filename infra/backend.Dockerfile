@@ -11,13 +11,23 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Optional: LibreOffice renders PowerPoint slides containing Office equation
+# objects so Claude can read them (~500 MB). Enable with WITH_LIBREOFFICE=true.
+ARG WITH_LIBREOFFICE=false
+RUN if [ "$WITH_LIBREOFFICE" = "true" ]; then \
+      apt-get update \
+      && apt-get install -y --no-install-recommends libreoffice-impress \
+      && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 # Dependencies first so code edits don't invalidate the layer.
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY . .
 
-RUN useradd --create-home --uid 10001 app
+RUN useradd --create-home --uid 10001 app \
+    && mkdir -p /data/storage && chown -R app /data
 USER app
 
 EXPOSE 8000

@@ -9,11 +9,19 @@ x-backend: &backend
   build:
     context: ../backend
     dockerfile: ../infra/backend.Dockerfile
+    args:
+      WITH_LIBREOFFICE: ${WITH_LIBREOFFICE:-false}
   env_file: ../.env
   environment:
     DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:?set in .env}:${POSTGRES_PASSWORD:?set in .env}@db:5432/${POSTGRES_DB:?set in .env}
     REDIS_URL: redis://redis:6379/0
+    STORAGE_LOCAL_ROOT: /data/storage
+    # Docker Desktop on Windows/macOS does not deliver file-change events
+    # into containers, so the dev auto-reload has to poll.
+    WATCHFILES_FORCE_POLLING: "true"
   volumes:
+    # Uploaded files, shared by the API (writes) and the worker (reads).
+    - uploads:/data
     - ../backend/app:/app/app:ro
     - ../backend/config:/app/config:ro
     - ../backend/migrations:/app/migrations:ro
@@ -56,6 +64,8 @@ services:
   worker:
     <<: *backend
     command: arq app.workers.settings.WorkerSettings --watch app
+    # Hard memory ceiling for document parsing (ARCHITECTURE.md section 12).
+    mem_limit: 2g
 
   frontend:
     image: node:22-alpine
@@ -76,5 +86,6 @@ services:
 
 volumes:
   pgdata:
+  uploads:
   frontend_node_modules:
   pnpm_store:

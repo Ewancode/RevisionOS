@@ -16,6 +16,14 @@ dependencies = [
     "redis>=5.0",
     "pyyaml>=6.0",
     "argon2-cffi>=23.1",
+    "anthropic>=1.0",
+    "pymupdf>=1.24",
+    "python-pptx>=1.0",
+    "openpyxl>=3.1",
+    "pypandoc-binary>=1.13",
+    "pillow>=11",
+    "pillow-heif>=0.18",
+    "tzdata>=2024.1",
 ]
 
 [dependency-groups]
@@ -28,6 +36,7 @@ dev = [
     "types-pyyaml>=6.0",
     "testcontainers[postgres]>=4.8",
     "fakeredis>=2.26",
+    "types-openpyxl>=3.1.5.20260827",
 ]
 
 [tool.uv]
@@ -40,9 +49,11 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "ASYNC"]
 ignore = []
+# Mathematical symbols are deliberate in a maths app.
+allowed-confusables = ["×", "−", "∪", "∨", "–"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106"]  # asserts and fixture passwords are the point
+"tests/**" = ["S101", "S105", "S106", "ASYNC240"]  # asserts, fixture passwords, small fixture files
 "migrations/**" = ["E501"]
 
 [tool.mypy]
@@ -52,8 +63,13 @@ files = ["app", "scripts", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "testcontainers.*"]
+module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*"]
 ignore_missing_imports = true
+
+# PyMuPDF ships without type hints; allow calling it from the extractors.
+[[tool.mypy.overrides]]
+module = ["app.ingestion.*", "app.services.documents", "tests.*"]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -62,4 +78,7 @@ asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
 markers = [
     "db: needs a real PostgreSQL with pgvector (Testcontainers or TEST_DATABASE_URL)",
+    "samples: runs on your own files in ../samples; local only, never in CI",
 ]
+# Your own files are opt-in: `pytest -m samples`.
+addopts = "-m 'not samples'"

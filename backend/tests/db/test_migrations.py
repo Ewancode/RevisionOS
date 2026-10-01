@@ -46,8 +46,26 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
     command.upgrade(cfg, "head")
     extensions, tables, enums = _state(url)
     assert extensions == ["vector"]
-    assert {"users", "auth_sessions", "academic_years", "modules", "topics"} <= set(tables)
-    assert enums == ["module_status", "theme"]
+    assert {
+        "users",
+        "auth_sessions",
+        "academic_years",
+        "modules",
+        "topics",
+        "documents",
+        "document_pages",
+        "ai_interactions",
+        "ai_usage",
+    } <= set(tables)
+    assert enums == [
+        "ai_interaction_status",
+        "document_status",
+        "extraction_method",
+        "material_kind",
+        "module_status",
+        "source_tier",
+        "theme",
+    ]
 
     # Fully reversible: nothing is left behind, including enum types.
     command.downgrade(cfg, "base")

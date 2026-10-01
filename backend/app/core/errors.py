@@ -18,11 +18,14 @@ from app.core.logging import request_id_var
 class AppError(Exception):
     """A failure the user should be told about, with a stable machine code."""
 
-    def __init__(self, code: str, message: str, status_code: int = 400) -> None:
+    def __init__(
+        self, code: str, message: str, status_code: int = 400, details: Any = None
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.status_code = status_code
+        self.details = details
 
 
 def error_body(code: str, message: str, details: Any = None) -> dict[str, Any]:
@@ -49,7 +52,7 @@ def _http_code(status_code: int) -> str:
 
 async def _app_error(_: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, AppError)  # noqa: S101  # registered for AppError only
-    return error_response(exc.status_code, exc.code, exc.message)
+    return error_response(exc.status_code, exc.code, exc.message, exc.details)
 
 
 async def _http_error(_: Request, exc: Exception) -> JSONResponse:

@@ -6,6 +6,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@127.0.0.1:
 os.environ["APP_ENV"] = "test"
 
 from collections.abc import AsyncIterator, Iterator
+from pathlib import Path
 
 import httpx
 import pytest
@@ -14,12 +15,21 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from app.ai.client import ClaudeClient
+from app.core.config import get_config
 from app.db.session import create_engine, create_session_factory
+from app.ingestion.pipeline import Deps
 from app.main import create_app
+from app.storage import LocalStorage
+from tests.fakes import FakeAnthropic, RecordingQueue
 from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "ai_usage",
+    "ai_interactions",
+    "document_pages",
+    "documents",
     "topics",
     "modules",
     "academic_years",
@@ -94,8 +104,35 @@ async def db(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 
 @pytest.fixture
-def db_app(engine: AsyncEngine, db: AsyncSession) -> FastAPI:
-    """The app wired to the test database and a fresh in-memory Redis.
+def fake_claude() -> FakeAnthropic:
+    return FakeAnthropic()
+
+
+@pytest.fixture
+def queue() -> RecordingQueue:
+    return RecordingQueue()
+
+
+@pytest.fixture
+def storage(tmp_path: Path) -> LocalStorage:
+    return LocalStorage(tmp_path / "storage")
+
+
+@pytest.fixture
+def claude(fake_claude: FakeAnthropic) -> ClaudeClient:
+    return ClaudeClient(fake_claude, get_config().ai)
+
+
+@pytest.fixture
+def db_app(
+    engine: AsyncEngine,
+    db: AsyncSession,
+    storage: LocalStorage,
+    queue: RecordingQueue,
+    claude: ClaudeClient,
+) -> FastAPI:
+    """The app wired to the test database, a fresh in-memory Redis, local
+    storage in a temp dir, a recording job queue and a fake Claude.
 
     `db` is requested so tables are truncated after each test.
     """
@@ -103,7 +140,16 @@ def db_app(engine: AsyncEngine, db: AsyncSession) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = create_session_factory(engine)
     app.state.redis = FakeAsyncRedis()
+    app.state.storage = storage
+    app.state.jobs = queue
+    app.state.claude = claude
     return app
+
+
+@pytest.fixture
+def deps(engine: AsyncEngine, storage: LocalStorage, claude: ClaudeClient) -> Deps:
+    """What the worker passes to the pipeline, for running jobs in-process."""
+    return Deps(create_session_factory(engine), storage, claude, get_config())
 
 
 @pytest.fixture

@@ -21,3 +21,56 @@ trash:
   # Soft-deleted modules and topics can be restored for this long; the purge
   # job arrives with the scheduler.
   retention_days: 30
+
+uploads:
+  # Per-category size caps, in megabytes.
+  max_megabytes:
+    pdf: 100
+    office: 50      # docx, pptx, xlsx
+    image: 25       # png, jpeg, webp, heic
+    text: 10        # txt, md, csv
+  # Decompression-bomb guard for images (width x height).
+  max_image_pixels: 60000000
+  # Office files are zip archives; refuse anything that expands absurdly.
+  zip_max_entries: 10000
+  zip_max_uncompressed_megabytes: 500
+  zip_max_compression_ratio: 200
+  max_pdf_pages: 1500
+
+ingestion:
+  # Maths-damage score per page (0-1). Each signal is divided by its
+  # saturation and capped at 1, then the weighted signals are summed and
+  # capped at 1. Pages at or above `threshold` go to Claude vision.
+  # Formula and signals: app/ingestion/maths_damage.py.
+  maths_damage:
+    # Calibrated on real LaTeX lecture notes (2026-10-01): pages scoring 0.15-0.3
+    # still lost subscripts, integral limits and whole symbols ("sup A").
+    threshold: 0.15
+    weights:
+      maths_font: 0.5         # share of characters set in maths fonts
+      orphan_lines: 0.3       # lines that are only stray symbols/digits
+      operator_density: 0.2   # maths operators per character
+      broken_glyphs: 1.0      # replacement / private-use characters
+    saturation:
+      maths_font: 0.4
+      orphan_lines: 0.5
+      operator_density: 0.08
+      broken_glyphs: 0.02
+  # A PDF page with fewer extracted characters than this is treated as scanned.
+  scanned_page_min_chars: 40
+  # Page images sent to vision: rendered at this DPI, then the long edge is
+  # capped (larger images are downscaled by the API anyway, at full cost).
+  vision_render_dpi: 200
+  vision_max_long_edge_px: 1568
+  # Page previews shown beside transcriptions.
+  preview_dpi: 110
+  # PDF table detection also fires on graph gridlines and boxed theorems. A
+  # detected table is kept only if at least this share of its cells has text
+  # (and no cell is a stack of bare axis numbers); otherwise it is read as prose.
+  table_min_fill: 0.8
+  # Spreadsheets: rows shown per sheet as a sample.
+  sheet_sample_rows: 20
+  # Whole-document processing limit in the worker.
+  job_timeout_seconds: 1800
+  # How often the progress stream checks for changes.
+  progress_poll_seconds: 1.0

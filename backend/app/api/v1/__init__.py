@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.deps import PROTECTED
-from app.api.v1 import auth, health, settings, structure
+from app.api.v1 import auth, documents, health, settings, structure
 
 router = APIRouter(prefix="/api/v1")
 
@@ -14,4 +14,5 @@ protected = APIRouter(dependencies=PROTECTED)
 protected.include_router(auth.router)
 protected.include_router(settings.router)
 protected.include_router(structure.router)
+protected.include_router(documents.router)
 router.include_router(protected)
