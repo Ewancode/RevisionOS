@@ -1,0 +1,49 @@
+# Tunable parameters for the adaptive learning engine.
+# Formulas: docs/ARCHITECTURE.md section 10 (docs/algorithms.md from Phase 7).
+# Validated on startup by app/core/config.py — invalid values stop the app.
+# Sections are added in the phase that first uses them.
+
+mastery:
+  # Attempt weight halves every `half_life_days`: w = d * 2^(-age / h)
+  half_life_days: 21
+  # Accuracy is smoothed towards p0 with weight alpha, so one correct answer
+  # never reads as 100%.
+  prior_accuracy: 0.5        # p0
+  prior_weight: 2            # alpha
+  # strength = lambda * p_hat + (1 - lambda) * mean flashcard retrievability
+  flashcard_blend_lambda: 0.7
+  # Below this total attempt weight the UI labels a topic "low data".
+  low_data_weight_threshold: 5
+  # Low-confidence AI marks count this fraction of a normal attempt.
+  low_confidence_mark_weight: 0.5
+  difficulty_weights:
+    easy: 0.6
+    medium: 1.0
+    hard: 1.4
+    exam: 1.7
+
+difficulty:
+  # Question selection aims for this predicted probability of success.
+  target_success:
+    min: 0.65
+    max: 0.80
+
+spaced_repetition:
+  # FSRS desired retention.
+  target_retention: 0.90
+  # Every card in an exam's topics is seen at least once in this window.
+  exam_final_window_days: 14
+
+mistakes:
+  # A category becomes "recurring" at this many occurrences in one topic
+  # within the window.
+  recurring_min_count: 3
+  recurring_window_days: 30
+  categories:
+    - arithmetic_or_algebra_slip
+    - sign_error
+    - wrong_method
+    - concept_confusion
+    - incomplete_justification
+    - instance_instead_of_general
+    - notation

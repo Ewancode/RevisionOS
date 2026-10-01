@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Colour tokens. Light/dark/system and the accent picker build on these in
+   Phase 2 (ARCHITECTURE.md section 3). */
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #1a1a1a;
+  --color-muted: #5f6368;
+  --color-success: #1e7a3c;
+  --color-danger: #b3261e;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #121212;
+    --color-fg: #ececec;
+    --color-muted: #a0a4a8;
+    --color-success: #6fcf8f;
+    --color-danger: #f28b82;
+  }
+}
+
+@theme inline {
+  --color-muted: var(--color-muted);
+  --color-success: var(--color-success);
+  --color-danger: var(--color-danger);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

@@ -1,0 +1,47 @@
+# Claude model catalogue, task routing and spending limits.
+# Model IDs appear ONLY in this file. Validated on startup by app/core/config.py.
+#
+# Prices are USD per million tokens, Anthropic first-party API, as of
+# 2026-09-25. Update them from https://www.anthropic.com/pricing when they
+# change. cache_write is the 5-minute cache-write rate (1.25 x input).
+
+models:
+  haiku:
+    id: claude-haiku-4-5-20251001
+    context_window: 200000
+    pricing: { input: 1.00, output: 5.00, cache_write: 1.25, cache_read: 0.10 }
+  sonnet:
+    id: claude-sonnet-5-5
+    context_window: 1000000
+    pricing: { input: 2.00, output: 10.00, cache_write: 2.50, cache_read: 0.20 }
+  opus:
+    id: claude-opus-5-5
+    context_window: 1000000
+    pricing: { input: 4.00, output: 20.00, cache_write: 5.00, cache_read: 0.20 }
+
+# Task type -> model alias (ARCHITECTURE.md section 8). Escalation is used on
+# validation failure, low marking confidence, or a disputed mark.
+routing:
+  query_rewrite:        { model: haiku }
+  classification:       { model: haiku }
+  mistake_labelling:    { model: haiku }
+  flashcard_generation: { model: haiku, escalate_to: sonnet }
+  simple_question_generation: { model: haiku, escalate_to: sonnet }
+  simple_marking:       { model: haiku, escalate_to: sonnet }
+  maths_transcription:  { model: sonnet }
+  tutoring:             { model: sonnet }
+  explanation:          { model: sonnet }
+  revision_guide:       { model: sonnet }
+  document_analysis:    { model: sonnet }
+  proof_marking:        { model: sonnet, escalate_to: opus }
+  exam_question_generation: { model: sonnet, escalate_to: opus }
+  plan_explanation:     { model: haiku }
+
+# Spending guard (enforced from Phase 5). These are the section-18 "low hard
+# cap" defaults — raise them here or, later, in Settings.
+budget:
+  daily_usd_cap: 2.00
+  monthly_usd_cap: 10.00
+  warn_fraction: 0.75
+  # Jobs estimated above this many tokens ask for confirmation first.
+  confirm_above_tokens: 100000
