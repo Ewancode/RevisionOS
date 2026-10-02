@@ -16,6 +16,8 @@ x-backend: &backend
     DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:?set in .env}:${POSTGRES_PASSWORD:?set in .env}@db:5432/${POSTGRES_DB:?set in .env}
     REDIS_URL: redis://redis:6379/0
     STORAGE_LOCAL_ROOT: /data/storage
+    # Embedding models download here once and persist in the volume.
+    MODEL_CACHE_DIR: /data/models
     # Docker Desktop on Windows/macOS does not deliver file-change events
     # into containers, so the dev auto-reload has to poll.
     WATCHFILES_FORCE_POLLING: "true"
@@ -26,6 +28,8 @@ x-backend: &backend
     - ../backend/config:/app/config:ro
     - ../backend/migrations:/app/migrations:ro
     - ../backend/scripts:/app/scripts:ro
+    # Your local golden set for `make eval-search` (a git-ignored folder).
+    - ../samples:/samples:ro
   depends_on:
     db: { condition: service_healthy }
     redis: { condition: service_healthy }

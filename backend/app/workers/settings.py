@@ -15,8 +15,14 @@ from app.core.logging import configure_logging
 from app.core.settings import get_settings
 from app.db.session import create_engine, create_session_factory
 from app.ingestion.pipeline import Deps
+from app.retrieval.embeddings import create_provider
 from app.storage import create_storage
-from app.workers.tasks import ping, process_document_job, retranscribe_page_job
+from app.workers.tasks import (
+    ping,
+    process_document_job,
+    reindex_document_job,
+    retranscribe_page_job,
+)
 
 _config = get_config()
 _timeout = _config.platform.ingestion.job_timeout_seconds
@@ -27,12 +33,16 @@ async def startup(ctx: dict[str, Any]) -> None:
     configure_logging(settings.log_level)
     engine = create_engine(settings.database_url.get_secret_value())
     key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else None
+    embedder = create_provider(get_config().retrieval.embeddings, settings.model_cache_dir)
+    # Load (and on first run download) the model now, not mid-document.
+    await embedder.warm_up()
     ctx["engine"] = engine
     ctx["deps"] = Deps(
         sessions=create_session_factory(engine),
         storage=create_storage(settings),
         claude=create_client(key, get_config().ai),
         config=get_config(),
+        embedder=embedder,
     )
 
 
@@ -45,6 +55,7 @@ class WorkerSettings:
         ping,
         func(process_document_job, name="process_document", timeout=_timeout, max_tries=2),
         func(retranscribe_page_job, name="retranscribe_page", timeout=_timeout, max_tries=1),
+        func(reindex_document_job, name="reindex_document", timeout=_timeout, max_tries=2),
     ]
     on_startup = startup
     on_shutdown = shutdown

@@ -15,6 +15,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -82,6 +83,7 @@ class Document(Base):
             postgresql_where=text("deleted_at IS NULL"),
         ),
         Index("ix_documents_user_module", "user_id", "module_id"),
+        UniqueConstraint("id", "user_id", name="uq_documents_id_user"),
         CheckConstraint("progress BETWEEN 0 AND 100", name="progress_range"),
         CheckConstraint("week IS NULL OR week BETWEEN 0 AND 60", name="week_range"),
         CheckConstraint("size_bytes >= 0", name="size_positive"),

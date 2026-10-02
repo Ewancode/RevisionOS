@@ -1,4 +1,4 @@
-"""Document upload, status, pages, previews and the AI budget."""
+"""Document upload, status, pages and previews."""
 
 import asyncio
 import tempfile
@@ -12,11 +12,9 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
-from app.ai.budget import BudgetGuard
 from app.api.deps import Client, Config, CurrentUser, DbSession
 from app.core.errors import AppError
 from app.schemas.documents import (
-    BudgetOut,
     DocumentOut,
     DocumentProgress,
     DocumentUpdate,
@@ -213,21 +211,4 @@ async def page_preview(document_id: uuid.UUID, page_no: int, documents: Document
     data, media_type = await documents.preview(document_id, page_no)
     return Response(
         content=data, media_type=media_type, headers={"Cache-Control": "private, max-age=3600"}
-    )
-
-
-@router.get("/ai/budget", response_model=BudgetOut, tags=["ai"])
-async def ai_budget(
-    request: Request, db: DbSession, user: CurrentUser, config: Config
-) -> BudgetOut:
-    status_ = await BudgetGuard(db, user.id, config.ai.budget).status()
-    return BudgetOut(
-        currency=status_.currency,
-        spent_today=round(status_.spent_today, 4),
-        spent_this_month=round(status_.spent_this_month, 4),
-        daily_cap=status_.daily_cap,
-        monthly_cap=status_.monthly_cap,
-        warning=status_.warning,
-        exhausted=status_.exhausted,
-        configured=request.app.state.claude.available,
     )

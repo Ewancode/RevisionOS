@@ -19,6 +19,7 @@ from app.ingestion.pipeline import KIND_BY_MIME
 from app.ingestion.validation import IMAGE_KINDS, Kind, validate_upload
 from app.models import Document, DocumentPage
 from app.repositories.structure import ModuleRepository, TopicRepository
+from app.retrieval.indexer import sync_document_metadata
 from app.schemas.documents import DocumentUpdate, MaterialKind, SourceTier
 from app.services.common import ClientInfo, ScopedService, not_found
 from app.storage import StorageBackend, document_key, page_image_key
@@ -146,6 +147,9 @@ class DocumentService(ScopedService):
             await self._check_placement(doc.module_id, body.topic_id)
         for field, value in changes.items():
             setattr(doc, field, value)
+        if changes.keys() & {"topic_id", "source_tier"}:
+            # Search filters and ranks on these copies; no re-embedding needed.
+            await sync_document_metadata(self.db, doc)
         await self.db.commit()
         return doc
 
@@ -223,6 +227,13 @@ class DocumentService(ScopedService):
         page.needs_review = False
         page.review_note = None
         await self.db.commit()
+        # Only this page is re-embedded (ARCHITECTURE.md section 7).
+        await self.jobs.enqueue(
+            "reindex_document",
+            str(document_id),
+            [page_no],
+            job_id=f"reindex:{document_id}:{page_no}:{utcnow().timestamp()}",
+        )
         return page
 
     async def retranscribe(self, document_id: uuid.UUID, page_no: int) -> None:

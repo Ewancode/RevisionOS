@@ -134,6 +134,23 @@ describe("document page", () => {
   });
 });
 
+describe("citation links", () => {
+  it("open the document at the cited page", async () => {
+    fakeApi({
+      "GET /api/v1/auth/session": () => [200, session],
+      "GET /api/v1/years": () => [200, [year]],
+      "GET /api/v1/modules": () => [200, [module]],
+      "GET /api/v1/modules/m1": () => [200, module],
+      "GET /api/v1/documents/d1": () => [200, doc],
+      "GET /api/v1/documents/d1/pages": () => [200, pages],
+      "GET /api/v1/ai/budget": () => [200, budget],
+    });
+    renderAt("/doc/d1?page=2");
+    const page2 = await screen.findByRole("article", { name: /page 2/i });
+    await vi.waitFor(() => expect(page2).toHaveFocus());
+  });
+});
+
 // --- upload request -------------------------------------------------------------
 
 class FakeXhr {

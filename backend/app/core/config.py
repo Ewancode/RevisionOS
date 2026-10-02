@@ -21,6 +21,7 @@ from app.core.settings import get_settings
 Fraction = Annotated[float, Field(ge=0.0, le=1.0)]
 Positive = Annotated[float, Field(gt=0.0)]
 NonNegative = Annotated[float, Field(ge=0.0)]
+PositiveInt = Annotated[int, Field(gt=0)]
 
 
 class _Strict(BaseModel):
@@ -161,11 +162,36 @@ class BudgetConfig(_Strict):
         return usd * self.usd_to_currency
 
 
+class ChatConfig(_Strict):
+    """The assistant's agent loop and its limits (ARCHITECTURE.md section 9)."""
+
+    # API calls per answer: the first, plus one after each round of tool use.
+    max_model_calls: Annotated[int, Field(ge=1, le=10)]
+    # Earlier messages resent as context; older ones are dropped.
+    history_messages: PositiveInt
+    max_message_chars: PositiveInt
+    # Characters of a page returned by the read_page tool.
+    page_read_max_chars: PositiveInt
+    pending_action_minutes: PositiveInt
+    # Characters of cited text kept with each stored citation.
+    cited_text_max_chars: PositiveInt
+    # One answer at a time per conversation; the lock lapses after this long
+    # in case an answer never finishes.
+    answer_lock_seconds: PositiveInt
+
+
+class UsageDashboardConfig(_Strict):
+    default_days: PositiveInt
+    max_days: PositiveInt
+
+
 class AIConfig(_Strict):
     models: dict[str, ModelSpec]
     default_max_tokens: Annotated[int, Field(gt=0, le=128_000)]
     routing: dict[str, Route]
     budget: BudgetConfig
+    chat: ChatConfig
+    usage_dashboard: UsageDashboardConfig
 
     @model_validator(mode="after")
     def _routes_are_valid(self) -> Self:
@@ -195,8 +221,6 @@ class AIConfig(_Strict):
 
 
 # --- platform.yaml -----------------------------------------------------------
-
-PositiveInt = Annotated[int, Field(gt=0)]
 
 
 class AuthConfig(_Strict):
@@ -288,6 +312,61 @@ class PlatformConfig(_Strict):
     ingestion: IngestionConfig
 
 
+# --- retrieval.yaml ----------------------------------------------------------
+
+
+class ChunkingConfig(_Strict):
+    chars_per_token: Positive
+    target_tokens: PositiveInt
+    max_tokens: PositiveInt
+    min_tokens: PositiveInt
+    overlap_max_tokens: Annotated[int, Field(ge=0)]
+
+    @model_validator(mode="after")
+    def _ordered(self) -> Self:
+        if not self.min_tokens <= self.target_tokens <= self.max_tokens:
+            raise ValueError("chunking needs min_tokens <= target_tokens <= max_tokens")
+        if self.overlap_max_tokens >= self.target_tokens:
+            raise ValueError("overlap_max_tokens must be below target_tokens")
+        return self
+
+
+class EmbeddingsConfig(_Strict):
+    provider: Literal["fastembed"]
+    model: Annotated[str, Field(min_length=1)]
+    dimensions: PositiveInt
+    batch_size: PositiveInt
+
+
+class RerankConfig(_Strict):
+    enabled: bool
+    model: Annotated[str, Field(min_length=1)]
+    candidates: PositiveInt
+
+
+class TierWeights(_Strict):
+    university: Positive
+    own: Positive
+
+
+class SearchConfig(_Strict):
+    keyword_candidates: PositiveInt
+    vector_candidates: PositiveInt
+    rrf_k: PositiveInt
+    keyword_weight: NonNegative
+    tier_weights: TierWeights
+    results: PositiveInt
+    min_vector_similarity: Annotated[float, Field(ge=-1.0, le=1.0)]
+    widen_below: Annotated[int, Field(ge=0)]
+    rerank: RerankConfig
+
+
+class RetrievalConfig(_Strict):
+    chunking: ChunkingConfig
+    embeddings: EmbeddingsConfig
+    search: SearchConfig
+
+
 # --- loading -----------------------------------------------------------------
 
 
@@ -295,6 +374,7 @@ class AppConfig(_Strict):
     learning: LearningConfig
     ai: AIConfig
     platform: PlatformConfig
+    retrieval: RetrievalConfig
 
 
 class ConfigError(RuntimeError):
@@ -319,6 +399,7 @@ def load_config(config_dir: Path) -> AppConfig:
         learning=_load_yaml(config_dir / "learning.yaml", LearningConfig),
         ai=_load_yaml(config_dir / "ai.yaml", AIConfig),
         platform=_load_yaml(config_dir / "platform.yaml", PlatformConfig),
+        retrieval=_load_yaml(config_dir / "retrieval.yaml", RetrievalConfig),
     )
 
 

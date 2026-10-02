@@ -4,6 +4,8 @@ import asyncio
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
 
 import httpx
 from alembic import command
@@ -16,8 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.core.config import get_config
 from app.core.security import CSRF_COOKIE, CSRF_HEADER
 from app.core.settings import BACKEND_ROOT
+from app.ingestion.pipeline import Deps, process_document
 from app.models import User
 from app.services.users import create_user
+from tests.fakes import RecordingQueue
 
 # Secure cookies are only sent over https, so tests talk "https" to the app.
 BASE_URL = "https://test"
@@ -69,3 +73,49 @@ async def signed_in(
         assert response.status_code == 200, response.text
         client.headers[CSRF_HEADER] = client.cookies[CSRF_COOKIE]
         yield client
+
+
+# --- course data through the API --------------------------------------------------
+
+
+async def create_module(client: httpx.AsyncClient, code: str = "MATH260") -> dict[str, Any]:
+    years = (await client.get("/api/v1/years")).json()
+    if years:
+        year = years[0]
+    else:
+        year = (
+            await client.post(
+                "/api/v1/years",
+                json={"label": "2026/27", "start_date": "2026-09-21", "end_date": "2027-06-11"},
+            )
+        ).json()
+    response = await client.post(
+        "/api/v1/modules",
+        json={"academic_year_id": year["id"], "code": code, "title": "Financial Maths"},
+    )
+    return dict(response.json())
+
+
+async def ingest(
+    client: httpx.AsyncClient,
+    deps: Deps,
+    queue: RecordingQueue,
+    module_id: str,
+    path: Path,
+    name: str,
+    **params: Any,
+) -> str:
+    query = {
+        "module_id": module_id,
+        "filename": name,
+        "source_tier": "university",
+        "material_kind": "lecture",
+        **params,
+    }
+    response = await client.post("/api/v1/documents", params=query, content=path.read_bytes())
+    assert response.status_code == 202, response.text
+    doc_id = str(response.json()["id"])
+    while queue.jobs:
+        _, args = queue.jobs.pop(0)
+        await process_document(deps, uuid.UUID(args[0]))
+    return doc_id

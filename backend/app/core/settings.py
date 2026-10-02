@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # S3-compatible backend is added for deployment (Phase 13).
     storage_backend: Literal["local"] = "local"
     storage_local_root: Path = BACKEND_ROOT.parent / "data" / "storage"
+    # Downloaded embedding models (about 70 MB for the default).
+    model_cache_dir: Path = BACKEND_ROOT.parent / "data" / "models"
 
     # Required from Phase 5; optional until the AI layer exists.
     anthropic_api_key: SecretStr | None = None

@@ -1,5 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
-import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Archive, ArchiveRestore, MessageSquare, Pencil, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
@@ -44,6 +44,20 @@ export function ModulePage({ moduleId }: { moduleId: string }) {
           )}
         </div>
         <div className="flex gap-2">
+          <Link
+            to="/search"
+            search={{ q: "", module_id: m.id }}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border px-2 text-xs font-medium hover:bg-surface"
+          >
+            <Search size={14} /> Search this module
+          </Link>
+          <Link
+            to="/chat"
+            search={{ module_id: m.id }}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border px-2 text-xs font-medium hover:bg-surface"
+          >
+            <MessageSquare size={14} /> Ask about this module
+          </Link>
           <Button size="sm" onClick={() => setEditing(true)}>
             <Pencil size={14} /> Edit
           </Button>

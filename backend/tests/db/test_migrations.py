@@ -56,13 +56,21 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
         "document_pages",
         "ai_interactions",
         "ai_usage",
+        "chunks",
+        "conversations",
+        "messages",
+        "pending_actions",
     } <= set(tables)
     assert enums == [
         "ai_interaction_status",
         "document_status",
         "extraction_method",
         "material_kind",
+        "message_role",
+        "message_status",
         "module_status",
+        "pending_action_kind",
+        "pending_action_status",
         "source_tier",
         "theme",
     ]

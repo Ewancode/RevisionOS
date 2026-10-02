@@ -1,6 +1,6 @@
 """Document processing (ARCHITECTURE.md section 7, "Ingestion stages").
 
-queued -> extracting -> transcribing -> ready (or failed)
+queued -> extracting -> transcribing -> indexing -> ready (or failed)
 
 Idempotent and resumable: re-running keeps pages that were already
 transcribed by Claude or corrected by hand, and only redoes the rest. One
@@ -29,6 +29,8 @@ from app.ingestion.render import office_to_pdf
 from app.ingestion.text import clean_text
 from app.ingestion.validation import IMAGE_KINDS, MIME, Kind
 from app.models import Document, DocumentPage
+from app.retrieval.embeddings import EmbeddingProvider
+from app.retrieval.indexer import index_document
 from app.storage import StorageBackend
 
 logger = logging.getLogger(__name__)
@@ -39,6 +41,7 @@ SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
 # Progress milestones shown to the user (percent).
 EXTRACTED = 40
+INDEXING = 95
 DONE = 100
 
 
@@ -48,6 +51,7 @@ class Deps:
     storage: StorageBackend
     claude: ClaudeClient
     config: AppConfig
+    embedder: EmbeddingProvider
 
 
 REVIEW_NOTES = {
@@ -209,9 +213,11 @@ async def process_document(deps: Deps, document_id: uuid.UUID) -> None:
                 assert reason is not None  # noqa: S101  # filtered above
                 await _transcribe_one(deps, db, doc, row, reason, renderer)
                 await _set_progress(
-                    db, doc, "transcribing", EXTRACTED + (DONE - EXTRACTED - 1) * done // len(todo)
+                    db, doc, "transcribing", EXTRACTED + (INDEXING - EXTRACTED) * done // len(todo)
                 )
 
+            await _set_progress(db, doc, "indexing", INDEXING)
+            await _index(deps, db, doc)
             doc.status = "ready"
             await _set_progress(db, doc, "ready", DONE)
         except Exception as exc:
@@ -241,3 +247,30 @@ async def retranscribe_page(deps: Deps, document_id: uuid.UUID, page_no: int) ->
             await _transcribe_one(deps, db, doc, row, VisionReason.MATHS_DAMAGE, renderer)
         finally:
             renderer.close()
+        await _index(deps, db, doc, pages={page_no})
+
+
+async def _index(
+    deps: Deps, db: AsyncSession, doc: Document, pages: set[int] | None = None
+) -> None:
+    """Make the document searchable. A failure here leaves the pages readable:
+    the document is marked with `index_failed` and Reprocess retries."""
+    document_id = doc.id  # read before a rollback expires the object
+    try:
+        await index_document(db, deps.embedder, deps.config.retrieval, document_id, pages)
+    except Exception:
+        await db.rollback()
+        logger.exception("indexing failed", extra={"document_id": str(document_id)})
+        fresh = await db.get(Document, document_id)
+        if fresh is not None:
+            fresh.error_code = "index_failed"
+            await db.commit()
+
+
+async def reindex_document(deps: Deps, document_id: uuid.UUID, pages: list[int] | None) -> None:
+    """Rebuild chunks after a hand correction (those pages) or a model change (all)."""
+    async with deps.sessions() as db:
+        doc = await db.get(Document, document_id)
+        if doc is None or doc.deleted_at is not None:
+            return
+        await _index(deps, db, doc, set(pages) if pages is not None else None)

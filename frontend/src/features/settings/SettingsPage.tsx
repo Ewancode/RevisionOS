@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { Button, ErrorText, Field } from "@/components/ui";
@@ -126,7 +127,8 @@ function AiBudget() {
     <Section title="AI usage">
       {!b.configured && (
         <p className="text-sm text-danger">
-          Claude is not configured. Add ANTHROPIC_API_KEY to .env and restart to enable maths transcription.
+          Claude is not configured. Add ANTHROPIC_API_KEY to .env and restart to enable the assistant and
+          maths transcription.
         </p>
       )}
       <dl className="grid max-w-sm grid-cols-2 gap-y-1 text-sm">
@@ -140,7 +142,13 @@ function AiBudget() {
         </dd>
       </dl>
       {b.exhausted && <p className="text-sm text-danger">The budget is reached; AI features are paused until it resets.</p>}
-      <p className="text-xs text-muted">Caps are set in backend/config/ai.yaml. Costs are estimates from token counts.</p>
+      <p className="text-xs text-muted">
+        Caps are set in backend/config/ai.yaml. Costs are estimates from token counts.{" "}
+        <Link to="/usage" className="hover:underline">
+          See usage by feature, model, module and day
+        </Link>
+        .
+      </p>
     </Section>
   );
 }

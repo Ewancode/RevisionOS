@@ -10,6 +10,7 @@
 
 import re
 import uuid
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models import PendingAction, User
 from tests import factories
 from tests.support import make_user, signed_in
 
@@ -111,6 +113,9 @@ async def _seed_owner(client: httpx.AsyncClient, tmp_path: Path) -> dict[str, st
         client, module["id"], factories.pdf(tmp_path / "b.pdf", ["other"]), "b.pdf"
     )
     await client.delete(f"/api/v1/documents/{old_doc}")
+    conversation = (
+        await client.post("/api/v1/conversations", json={"module_id": module["id"]})
+    ).json()
     return {
         "year": year["id"],
         "module": module["id"],
@@ -120,7 +125,24 @@ async def _seed_owner(client: httpx.AsyncClient, tmp_path: Path) -> dict[str, st
         "document": document,
         "trashed_document": old_doc,
         "page": "1",
+        "conversation": conversation["id"],
     }
+
+
+async def _seed_pending_action(db: AsyncSession, owner: User, ids: dict[str, str]) -> None:
+    """A delete request Claude made for A (tools create these, not the API)."""
+    action = PendingAction(
+        id=uuid.uuid4(),
+        user_id=owner.id,
+        conversation_id=uuid.UUID(ids["conversation"]),
+        action="delete_document",
+        target_id=uuid.UUID(ids["document"]),
+        preview="Delete a.pdf?",
+        expires_at=datetime.now(UTC) + timedelta(minutes=10),
+    )
+    db.add(action)
+    await db.commit()
+    ids["action"] = str(action.id)
 
 
 # (method, path template, json body) — every route that takes a resource id.
@@ -150,6 +172,12 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("PUT", "/api/v1/documents/{document}/pages/{page}", {"markdown": "pwned"}),
     ("POST", "/api/v1/documents/{document}/pages/{page}/retranscribe", None),
     ("GET", "/api/v1/documents/{document}/pages/{page}/preview", None),
+    ("POST", "/api/v1/conversations", {"module_id": "{module}"}),
+    ("GET", "/api/v1/conversations/{conversation}", None),
+    ("DELETE", "/api/v1/conversations/{conversation}", None),
+    ("POST", "/api/v1/conversations/{conversation}/messages", {"content": "pwned"}),
+    ("POST", "/api/v1/pending-actions/{action}/confirm", None),
+    ("POST", "/api/v1/pending-actions/{action}/cancel", None),
 ]
 
 
@@ -167,6 +195,7 @@ async def test_other_users_resources_are_invisible(
     intruder = await make_user(db, "b@example.com", "B")
     async with signed_in(db_app, owner) as a, signed_in(db_app, intruder, ip="192.0.2.5") as b:
         ids = await _seed_owner(a, tmp_path)
+        await _seed_pending_action(db, owner, ids)
         before_tree = (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json()
         before_years = (await a.get("/api/v1/years")).json()
         before_trash = (await a.get("/api/v1/trash")).json()
@@ -186,6 +215,7 @@ async def test_other_users_resources_are_invisible(
         assert (await b.get("/api/v1/modules?status=all")).json() == []
         assert (await b.get("/api/v1/trash")).json()["modules"] == []
         assert (await b.get("/api/v1/documents")).json() == []
+        assert (await b.get("/api/v1/conversations")).json() == []
         # Uploading into A's module is refused too.
         upload = await b.post(
             "/api/v1/documents",
@@ -203,6 +233,11 @@ async def test_other_users_resources_are_invisible(
         assert (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json() == before_tree
         assert (await a.get("/api/v1/years")).json() == before_years
         assert (await a.get("/api/v1/trash")).json() == before_trash
+        assert (await a.get(f"/api/v1/conversations/{ids['conversation']}")).status_code == 200
+        action = await db.get(PendingAction, uuid.UUID(ids["action"]))
+        assert action is not None
+        await db.refresh(action)
+        assert action.status == "pending"
 
 
 async def test_cannot_attach_a_topic_to_another_users_parent(

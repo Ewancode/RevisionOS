@@ -8,11 +8,17 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 3 (files). Phase 2 brought sign-in with secure sessions,
-academic years, modules and topic trees, theming and settings. Phase 3 adds
-uploading lecture materials, which are turned into page-by-page Markdown with
-LaTeX maths; pages whose maths extracts badly are read by Claude, within a
-monthly budget. Search and asking Claude questions arrive in Phases 4–5.
+**Status:** Phase 5 (the assistant). Phase 2 brought sign-in with secure
+sessions, academic years, modules and topic trees, theming and settings.
+Phase 3 added uploading lecture materials, which are turned into page-by-page
+Markdown with LaTeX maths; pages whose maths extracts badly are read by
+Claude, within a monthly budget. Phase 4 added search across your materials
+(Ctrl+K anywhere), with each result linking to the exact page. Phase 5 adds
+**Ask Claude**: questions answered from your materials, with every claim
+linked to the page it came from, a badge saying whether the answer is from
+your university material, your notes or general knowledge, and deletions
+that happen only when you confirm them. An AI usage page shows cost by
+feature, model, module and day.
 
 ## Layout
 
@@ -49,12 +55,13 @@ make create-user            # in a second terminal: your account (asks for a pas
 Registration is closed by design; `make create-user` is the only way to make
 an account. Sign in at http://localhost:5173.
 
-### Claude (maths transcription)
+### Claude (the assistant and maths transcription)
 
 Add your Anthropic API key to `.env` as `ANTHROPIC_API_KEY=...`, then run
-`make dev` again. Without a key everything still works: damaged maths pages
-are kept as extracted and flagged "needs review". Spending is capped at
-£10 a month (`backend/config/ai.yaml`); Settings → AI usage shows the total.
+`make dev` again. Without a key everything else still works: the assistant
+says it is not configured, and damaged maths pages are kept as extracted and
+flagged "needs review". Spending is capped at £10 a month and £2 a day
+(`backend/config/ai.yaml`); the AI usage page (`/usage`) shows where it went.
 
 Transcription costs roughly 0.5p per slide and 1.5p per dense page of notes,
 once per upload (a 110-page set of LaTeX notes is about £1.60). If the
@@ -96,7 +103,7 @@ shell, Claude Code bills that key instead of your Pro plan.
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Database created by compose |
 | `DATABASE_URL` | Async SQLAlchemy URL used when running on the host |
 | `REDIS_URL` | Job queue and (later) rate limits |
-| `ANTHROPIC_API_KEY` | Claude API key: maths transcription now, chat from Phase 5 (optional; see above) |
+| `ANTHROPIC_API_KEY` | Claude API key for the assistant and maths transcription (optional; see above) |
 
 ## Testing
 
@@ -104,6 +111,19 @@ shell, Claude Code bills that key instead of your Pro plan.
 make test           # backend + frontend
 make check          # lint + typecheck + tests (what CI runs)
 ```
+
+Search quality: `make eval-search` scores the live index against a golden
+set of questions in `samples/golden.yaml` (git-ignored; format in
+`backend/scripts/eval_search.py`). `make reindex` rebuilds the search index,
+for example after changing `config/retrieval.yaml` or the embedding model
+(see [ADR 10](docs/adr/0010-retrieval-details.md)).
+
+Answer quality: `make eval-chat` asks a spread of the golden questions
+through the real assistant and checks that its verified citations point at
+the expected pages ([ADR 11](docs/adr/0011-assistant-chat-and-citations.md)).
+It makes real API calls, so on its own it only prints the estimated cost
+(about £0.30 for the default 10 questions); run `make eval-chat ARGS=--yes`
+to go ahead. Automated tests never call the real API.
 
 To check extraction on your own lecture files, put a few in `samples/`
 (git-ignored: they are university copyright and the repo is public), then
@@ -147,5 +167,7 @@ Session lifetimes, login rate limits and trash retention are in
 are in `ai.yaml`; update prices from
 Anthropic's pricing page when they change. The AI spending caps there
 (£10 a month, £2 a day, converted from USD at a deliberately cautious rate)
-are enforced from Phase 5. For a hard ceiling outside the app as well, load
+are checked before every call. The assistant's limits (calls per answer,
+history length, how long delete requests wait for you) are in its `chat`
+section. For a hard ceiling outside the app as well, load
 matching prepaid credit in the Claude Console with auto-reload off.

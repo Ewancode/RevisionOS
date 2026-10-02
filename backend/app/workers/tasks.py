@@ -3,7 +3,7 @@
 import uuid
 from typing import Any
 
-from app.ingestion.pipeline import Deps, process_document, retranscribe_page
+from app.ingestion.pipeline import Deps, process_document, reindex_document, retranscribe_page
 
 
 async def ping(ctx: dict[str, Any]) -> str:
@@ -19,3 +19,10 @@ async def process_document_job(ctx: dict[str, Any], document_id: str) -> None:
 async def retranscribe_page_job(ctx: dict[str, Any], document_id: str, page_no: int) -> None:
     deps: Deps = ctx["deps"]
     await retranscribe_page(deps, uuid.UUID(document_id), page_no)
+
+
+async def reindex_document_job(
+    ctx: dict[str, Any], document_id: str, pages: list[int] | None = None
+) -> None:
+    deps: Deps = ctx["deps"]
+    await reindex_document(deps, uuid.UUID(document_id), pages)

@@ -1,5 +1,6 @@
 """FastAPI application factory."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -17,6 +18,7 @@ from app.core.middleware import RequestContextMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.settings import Settings, get_settings
 from app.db.session import create_engine, create_session_factory
+from app.retrieval.embeddings import create_provider
 from app.storage import create_storage
 from app.workers.queue import ArqQueue
 
@@ -39,9 +41,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.jobs = ArqQueue(arq)
         app.state.storage = create_storage(settings)
         app.state.claude = create_client(key, get_config().ai)
+        embedder = create_provider(get_config().retrieval.embeddings, settings.model_cache_dir)
+        app.state.embedder = embedder
+        # Load the model in the background so startup is not blocked; the
+        # first search waits for it only if it arrives before this finishes.
+        warm = asyncio.create_task(embedder.warm_up())
         try:
             yield
         finally:
+            warm.cancel()
             await arq.aclose()
             await redis.aclose()
             await engine.dispose()

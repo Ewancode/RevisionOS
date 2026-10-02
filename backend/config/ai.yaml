@@ -50,9 +50,33 @@ routing:
   maths_transcription:  { model: sonnet, effort: high, max_tokens: 8000 }
   proof_marking:        { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
   exam_question_generation: { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
+  # The assistant (chat). Answers are a few paragraphs; tool rounds are short.
+  chat:                 { model: sonnet, effort: medium, max_tokens: 8000 }
 
-# Spending guard (enforced from Phase 5). Caps are in your currency; API
-# prices above are USD and are converted with usd_to_currency.
+# The assistant's agent loop (ARCHITECTURE.md section 9).
+chat:
+  # API calls per answer: the first, plus one after each round of tool use.
+  # Each call is checked against the budget before it is made.
+  max_model_calls: 4
+  # Earlier messages resent with each question (oldest dropped first).
+  history_messages: 20
+  max_message_chars: 4000
+  # Characters of a page returned by the read_page tool.
+  page_read_max_chars: 12000
+  # How long Claude's delete requests wait for your confirmation.
+  pending_action_minutes: 10
+  # Characters of quoted source text stored with each citation.
+  cited_text_max_chars: 600
+  # One answer at a time per conversation; the lock lapses after this long
+  # in case an answer never finishes.
+  answer_lock_seconds: 300
+
+usage_dashboard:
+  default_days: 30
+  max_days: 366
+
+# Spending guard, checked before every call (ADR 0008). Caps are in your
+# currency; API prices above are USD and are converted with usd_to_currency.
 #
 # usd_to_currency is deliberately on the high side (1 USD = 0.80 GBP), so
 # estimated costs in pounds run slightly high and the cap trips early rather

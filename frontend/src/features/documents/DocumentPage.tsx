@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Download, Pencil, RefreshCw, Sparkles, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
@@ -40,8 +40,10 @@ function PageCard({ doc, page }: { doc: Doc; page: Page }) {
 
   return (
     <article
+      id={`doc-page-${page.page_no}`}
+      tabIndex={-1}
       aria-labelledby={`page-${page.page_no}`}
-      className={`grid gap-4 rounded-lg border p-4 ${page.needs_review ? "border-danger" : "border-border"} ${
+      className={`grid scroll-mt-4 gap-4 rounded-lg border p-4 ${page.needs_review ? "border-danger" : "border-border"} ${
         PREVIEWABLE.has(doc.mime) ? "lg:grid-cols-2" : ""
       }`}
     >
@@ -147,7 +149,21 @@ function BudgetNote() {
   );
 }
 
-export function DocumentPage({ documentId }: { documentId: string }) {
+/** Scroll to (and focus, for screen readers) the page a citation points at. */
+function useFocusPage(pageNo: number | undefined, loaded: boolean) {
+  useEffect(() => {
+    if (!pageNo || !loaded) return;
+    const target = document.getElementById(`doc-page-${pageNo}`);
+    if (!target) return;
+    target.scrollIntoView?.({ block: "start" });
+    target.focus({ preventScroll: true });
+    target.classList.add("ring-2", "ring-accent");
+    const timer = setTimeout(() => target.classList.remove("ring-2", "ring-accent"), 2500);
+    return () => clearTimeout(timer);
+  }, [pageNo, loaded]);
+}
+
+export function DocumentPage({ documentId, focusPage }: { documentId: string; focusPage?: number }) {
   const doc = useDocument(documentId);
   useDocumentProgress(doc.data);
   const ready = doc.data?.status === "ready" || doc.data?.status === "failed";
@@ -156,6 +172,7 @@ export function DocumentPage({ documentId }: { documentId: string }) {
   const { reprocess, remove } = useDocumentMutations(documentId);
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
+  useFocusPage(focusPage, pages.data !== undefined);
 
   if (doc.isPending) return <p className="text-sm text-muted">Loading…</p>;
   if (doc.isError) return <ErrorText error={doc.error} />;

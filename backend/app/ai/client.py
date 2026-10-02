@@ -5,10 +5,13 @@ budget against the call's worst-case cost, call the API, then record the
 interaction and its token usage. Nothing else in the app talks to Anthropic.
 """
 
+import asyncio
 import json
 import logging
 import time
 import uuid
+from collections.abc import AsyncGenerator, AsyncIterator
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Any, Protocol, cast
 
@@ -27,8 +30,21 @@ SERVER_FALLBACK_BETA = "server-side-fallback-2026-07-01"
 CHARS_PER_TOKEN = 3.5
 
 
+class MessageStream(Protocol):
+    """The slice of the SDK's async message stream used here."""
+
+    def __aiter__(self) -> AsyncIterator[Any]: ...
+
+    @property
+    def current_message_snapshot(self) -> Any: ...
+
+    async def get_final_message(self) -> Any: ...
+
+
 class MessagesAPI(Protocol):
     async def create(self, **kwargs: Any) -> Any: ...
+
+    def stream(self, **kwargs: Any) -> AbstractAsyncContextManager[MessageStream]: ...
 
 
 class BetaAPI(Protocol):
@@ -52,6 +68,34 @@ class AIResult:
     served_model: str
     interaction_id: uuid.UUID
     tokens: TokenCounts
+
+
+@dataclass(frozen=True)
+class TextDelta:
+    """A piece of answer text, as Claude writes it."""
+
+    text: str
+
+
+@dataclass(frozen=True)
+class StreamedReply:
+    """One finished streamed call. `message` is the SDK's final message: its
+    `content` goes back to the API unchanged on the next call of the loop."""
+
+    message: Any
+    stop_reason: str | None
+    served_model: str
+    interaction_id: uuid.UUID
+    tokens: TokenCounts
+
+
+def _tokens(usage: Any) -> TokenCounts:
+    return TokenCounts(
+        input=int(getattr(usage, "input_tokens", 0) or 0),
+        output=int(getattr(usage, "output_tokens", 0) or 0),
+        cache_write=int(getattr(usage, "cache_creation_input_tokens", 0) or 0),
+        cache_read=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
+    )
 
 
 def ai_unavailable(code: str, message: str) -> AppError:
@@ -150,13 +194,7 @@ class ClaudeClient:
         latency_ms = int((time.perf_counter() - started) * 1000)
 
         served = str(getattr(response, "model", spec.id))
-        usage = response.usage
-        tokens = TokenCounts(
-            input=int(usage.input_tokens or 0),
-            output=int(usage.output_tokens or 0),
-            cache_write=int(getattr(usage, "cache_creation_input_tokens", 0) or 0),
-            cache_read=int(getattr(usage, "cache_read_input_tokens", 0) or 0),
-        )
+        tokens = _tokens(response.usage)
         stop_reason = getattr(response, "stop_reason", None)
         status = "refused" if stop_reason == "refusal" else "ok"
         if stop_reason == "max_tokens":
@@ -177,20 +215,7 @@ class ClaudeClient:
             error_code="max_tokens" if stop_reason == "max_tokens" else None,
         )
         # Usage is recorded whatever the outcome: refused and truncated calls are billed.
-        db.add(
-            AIUsage(
-                user_id=user_id,
-                interaction_id=interaction.id,
-                feature=task,
-                model=served,
-                module_id=module_id,
-                input_tokens=tokens.input,
-                output_tokens=tokens.output,
-                cache_write_tokens=tokens.cache_write,
-                cache_read_tokens=tokens.cache_read,
-                estimated_cost_usd=cost_usd(pricing_for(served, self.config), tokens),
-            )
-        )
+        self._add_usage(db, user_id, interaction.id, task, served, module_id, tokens)
         await db.commit()
 
         if stop_reason == "refusal":
@@ -199,6 +224,158 @@ class ClaudeClient:
             raise AppError("ai_truncated", "Claude's answer was cut off (output limit).", 502)
         text = next((b.text for b in response.content if getattr(b, "type", None) == "text"), "")
         return AIResult(text, served, interaction.id, tokens)
+
+    async def stream(
+        self,
+        db: AsyncSession,
+        *,
+        user_id: uuid.UUID,
+        task: str,
+        prompt_version: str,
+        system: str,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        estimated_input_tokens: int,
+        final_call: bool = False,
+        module_id: uuid.UUID | None = None,
+    ) -> AsyncGenerator[TextDelta | StreamedReply]:
+        """One streamed call with tools, for the assistant's agent loop.
+
+        Yields each piece of text as it arrives, then the finished reply.
+        Refusals and truncation are returned (in `stop_reason`), not raised,
+        so the caller can keep what was already shown. Usage is recorded
+        however the call ends, including when the caller stops listening.
+        """
+        if self.sdk is None:
+            raise ai_unavailable(
+                "ai_not_configured", "Claude is not configured: set ANTHROPIC_API_KEY in .env."
+            )
+        step, spec, max_tokens = self._step(task, escalate=False)
+        worst_case = cost_usd(spec.pricing, TokenCounts(estimated_input_tokens, max_tokens))
+        try:
+            await BudgetGuard(db, user_id, self.config.budget).ensure_can_spend(worst_case)
+        except AppError:
+            self._record(db, user_id, task, spec, step, prompt_version, "budget_blocked", None)
+            await db.commit()
+            raise
+
+        request: dict[str, Any] = {
+            "model": spec.id,
+            "max_tokens": max_tokens,
+            # Two cache breakpoints. Tools + system are the same for every
+            # conversation, so a new question reads them from the cache; the
+            # top-level one covers everything up to the newest message, so
+            # each further call of the loop re-reads the whole prefix.
+            "system": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+            "messages": messages,
+            "tools": tools,
+            "cache_control": {"type": "ephemeral"},
+        }
+        if step.effort:
+            request["output_config"] = {"effort": step.effort}
+        if final_call:
+            # Out of tool rounds: Claude must answer with what it has.
+            request["tool_choice"] = {"type": "none"}
+
+        started = time.perf_counter()
+        manager = (
+            self.sdk.beta.messages.stream(
+                betas=[SERVER_FALLBACK_BETA], fallbacks="default", **request
+            )
+            if spec.server_fallback
+            else self.sdk.messages.stream(**request)
+        )
+        snapshot: Any = None
+        try:
+            async with manager as stream:
+                async for event in stream:
+                    snapshot = stream.current_message_snapshot
+                    if getattr(event, "type", None) == "text" and event.text:
+                        yield TextDelta(event.text)
+                final = await stream.get_final_message()
+        except anthropic.APIError as exc:
+            code = type(exc).__name__
+            logger.warning("claude stream failed", extra={"task": task, "error": code})
+            self._record(
+                db, user_id, task, spec, step, prompt_version, "error", None, error_code=code
+            )
+            await db.commit()
+            raise ai_unavailable(
+                "ai_unavailable", "Claude could not be reached. Try again shortly."
+            ) from exc
+        except (asyncio.CancelledError, GeneratorExit):
+            # The browser went away mid-answer. The tokens so far are billed,
+            # so record what the stream reported before stopping.
+            if snapshot is not None:
+                interaction = self._record(
+                    db,
+                    user_id,
+                    task,
+                    spec,
+                    step,
+                    prompt_version,
+                    "error",
+                    None,
+                    error_code="cancelled",
+                )
+                self._add_usage(
+                    db, user_id, interaction.id, task, spec.id, module_id, _tokens(snapshot.usage)
+                )
+                await db.commit()
+            raise
+
+        served = str(getattr(final, "model", spec.id))
+        tokens = _tokens(final.usage)
+        stop_reason = getattr(final, "stop_reason", None)
+        status = {"refusal": "refused", "max_tokens": "error"}.get(stop_reason or "", "ok")
+        tool_calls = [
+            {"name": block.name, "input": block.input}
+            for block in final.content
+            if getattr(block, "type", None) == "tool_use"
+        ]
+        interaction = self._record(
+            db,
+            user_id,
+            task,
+            spec,
+            step,
+            prompt_version,
+            status,
+            None,
+            served_model=served,
+            stop_reason=stop_reason,
+            latency_ms=int((time.perf_counter() - started) * 1000),
+            error_code="max_tokens" if stop_reason == "max_tokens" else None,
+            tool_calls=tool_calls or None,
+        )
+        self._add_usage(db, user_id, interaction.id, task, served, module_id, tokens)
+        await db.commit()
+        yield StreamedReply(final, stop_reason, served, interaction.id, tokens)
+
+    def _add_usage(
+        self,
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        interaction_id: uuid.UUID,
+        task: str,
+        model_id: str,
+        module_id: uuid.UUID | None,
+        tokens: TokenCounts,
+    ) -> None:
+        db.add(
+            AIUsage(
+                user_id=user_id,
+                interaction_id=interaction_id,
+                feature=task,
+                model=model_id,
+                module_id=module_id,
+                input_tokens=tokens.input,
+                output_tokens=tokens.output,
+                cache_write_tokens=tokens.cache_write,
+                cache_read_tokens=tokens.cache_read,
+                estimated_cost_usd=cost_usd(pricing_for(model_id, self.config), tokens),
+            )
+        )
 
     def _record(
         self,

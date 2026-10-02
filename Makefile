@@ -2,7 +2,8 @@ COMPOSE := docker compose -f infra/docker-compose.yml --env-file .env
 BACKEND := cd backend &&
 FRONTEND := cd frontend &&
 
-.PHONY: help dev down logs migrate migration create-user test test-backend test-frontend \
+.PHONY: help dev down logs migrate migration create-user reindex eval-search eval-chat \
+        test test-backend test-frontend \
         lint typecheck fmt api-client check
 
 help:
@@ -11,6 +12,9 @@ help:
 	@echo "make migrate        Apply database migrations"
 	@echo "make migration m=.. Create a new Alembic migration"
 	@echo "make create-user    Create your account (registration is closed)"
+	@echo "make reindex        Rebuild search chunks for every document"
+	@echo "make eval-search    Score search on samples/golden.yaml (local only)"
+	@echo "make eval-chat      Check the assistant cites the right pages (ARGS=--yes spends money)"
 	@echo "make test           Run backend and frontend test suites"
 	@echo "make lint           Ruff + ESLint"
 	@echo "make typecheck      mypy + tsc"
@@ -34,6 +38,15 @@ migration:
 
 create-user:
 	$(COMPOSE) run --rm api python -m scripts.create_user
+
+reindex:
+	$(COMPOSE) exec worker python -m scripts.reindex
+
+eval-search:
+	$(COMPOSE) exec -T worker python -m scripts.eval_search
+
+eval-chat:
+	$(COMPOSE) exec -T worker python -m scripts.eval_chat $(ARGS)
 
 test: test-backend test-frontend
 

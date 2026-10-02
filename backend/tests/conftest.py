@@ -20,12 +20,17 @@ from app.core.config import get_config
 from app.db.session import create_engine, create_session_factory
 from app.ingestion.pipeline import Deps
 from app.main import create_app
+from app.retrieval.embeddings import HashingProvider
 from app.storage import LocalStorage
 from tests.fakes import FakeAnthropic, RecordingQueue
 from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "pending_actions",
+    "messages",
+    "conversations",
+    "chunks",
     "ai_usage",
     "ai_interactions",
     "document_pages",
@@ -143,13 +148,20 @@ def db_app(
     app.state.storage = storage
     app.state.jobs = queue
     app.state.claude = claude
+    app.state.embedder = HashingProvider(get_config().retrieval.embeddings.dimensions)
     return app
 
 
 @pytest.fixture
 def deps(engine: AsyncEngine, storage: LocalStorage, claude: ClaudeClient) -> Deps:
     """What the worker passes to the pipeline, for running jobs in-process."""
-    return Deps(create_session_factory(engine), storage, claude, get_config())
+    return Deps(
+        create_session_factory(engine),
+        storage,
+        claude,
+        get_config(),
+        HashingProvider(get_config().retrieval.embeddings.dimensions),
+    )
 
 
 @pytest.fixture

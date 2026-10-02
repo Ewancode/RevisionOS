@@ -11,7 +11,7 @@
 import "katex/dist/katex.min.css";
 
 import { memo } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
@@ -46,15 +46,19 @@ export function normaliseDisplayMaths(markdown: string): string {
 export const MathMarkdown = memo(function MathMarkdown({
   children,
   className = "",
+  components,
 }: {
   children: string;
   className?: string;
+  /** Custom renderers, e.g. for citation links in answers. Applied after sanitising. */
+  components?: Components;
 }) {
   return (
     <div className={`math-markdown ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[[rehypeSanitize, schema], [rehypeKatex, katexOptions]]}
+        components={components}
       >
         {normaliseDisplayMaths(children)}
       </ReactMarkdown>

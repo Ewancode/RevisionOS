@@ -1,8 +1,10 @@
 """Every Claude call and its cost (ARCHITECTURE.md section 8)."""
 
 import uuid
+from typing import Any
 
 from sqlalchemy import BigInteger, Enum, Float, ForeignKey, Index, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -31,6 +33,8 @@ class AIInteraction(Base):
     document_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("documents.id", ondelete="SET NULL")
     )
+    # Tools Claude asked for in this call: [{"name": ..., "input": {...}}].
+    tool_calls: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[CreatedAt]
 
     __table_args__ = (Index("ix_ai_interactions_user_created", "user_id", "created_at"),)

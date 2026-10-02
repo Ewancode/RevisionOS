@@ -1,6 +1,6 @@
 import { Link, Navigate, Outlet, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, LogOut, Plus, Settings } from "lucide-react";
-import { useState } from "react";
+import { LayoutDashboard, LogOut, MessageSquare, Plus, Search as SearchIcon, Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { useLogout, useSession } from "@/features/auth/session";
@@ -41,6 +41,48 @@ function ModuleLink({ module, yearId }: { module: Module; yearId: string }) {
   );
 }
 
+/** Search box; Ctrl+K (Cmd+K on a Mac) focuses it from anywhere. */
+function SidebarSearch() {
+  const navigate = useNavigate();
+  const input = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        input.current?.focus();
+        input.current?.select();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <form
+      role="search"
+      className="relative"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (text.trim()) void navigate({ to: "/search", search: { q: text.trim() } });
+      }}
+    >
+      <SearchIcon size={14} className="pointer-events-none absolute left-2.5 top-2.5 text-muted" aria-hidden />
+      <input
+        ref={input}
+        type="search"
+        aria-label="Search your materials"
+        aria-keyshortcuts="Control+K"
+        placeholder="Search  (Ctrl+K)"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="h-9 w-full rounded-md border border-border bg-bg pl-8 pr-2 text-sm"
+      />
+    </form>
+  );
+}
+
 function Sidebar() {
   const { years, year, setYearId } = useViewingYear();
   const [showArchived, setShowArchived] = useState(false);
@@ -59,6 +101,8 @@ function Sidebar() {
         Revision OS
       </Link>
 
+      <SidebarSearch />
+
       <div className="flex flex-col gap-1">
         <Link
           to="/"
@@ -67,6 +111,14 @@ function Sidebar() {
           activeProps={{ className: "bg-surface font-medium" }}
         >
           <LayoutDashboard size={16} /> Today
+        </Link>
+        <Link
+          to="/chat"
+          search={{}}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <MessageSquare size={16} /> Ask Claude
         </Link>
       </div>
 

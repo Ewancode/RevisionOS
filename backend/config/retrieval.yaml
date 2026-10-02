@@ -1,0 +1,59 @@
+# Chunking, embeddings and search (ARCHITECTURE.md section 7).
+# Validated on startup by app/core/config.py.
+
+chunking:
+  # Token counts are estimated as characters / chars_per_token. LaTeX is
+  # token-dense, so the estimate is deliberately low (counts run high).
+  chars_per_token: 2.8
+  # Aim for this size; never exceed max except to keep one equation, code
+  # block or table row group whole. BGE models embed at most 512 tokens, and
+  # the context header takes some of that.
+  target_tokens: 280
+  max_tokens: 380
+  # A structural boundary (heading, Theorem, Definition, Example, Proof...)
+  # starts a new chunk once the current one has at least this many tokens.
+  min_tokens: 50
+  # When a chunk is cut for size, its last block is repeated at the start of
+  # the next one if it is at most this long, so a sentence spanning the cut
+  # is findable from both sides.
+  overlap_max_tokens: 90
+
+embeddings:
+  provider: fastembed
+  # bge-small: Recall@5 0.90 vs 0.92 for bge-base, at a third of the indexing
+  # time and half the storage. `dimensions` must match the database column
+  # (migration 0004); changing model means a migration plus `make reindex`.
+  model: BAAI/bge-small-en-v1.5
+  dimensions: 384
+  batch_size: 32
+
+search:
+  # Candidates taken from each retriever before fusion.
+  keyword_candidates: 40
+  vector_candidates: 40
+  # Weighted Reciprocal Rank Fusion:
+  #   score = keyword_weight / (rrf_k + keyword_rank) + 1 / (rrf_k + vector_rank)
+  # Measured on 62 real lecture questions (2026-10-02): meaning-based search
+  # alone gave Recall@5 0.90 / MRR 0.79; equal weights 0.89 / 0.74. Weight 0.5
+  # costs 0.02 MRR but makes exact terms ("sech squared", "Leibniz rule")
+  # find their page, which meaning alone missed.
+  rrf_k: 60
+  keyword_weight: 0.5
+  # Ranking boost by source (section 7, step 5): a multiplier on the fused score.
+  tier_weights:
+    university: 1.0
+    own: 0.9
+  # Passages returned.
+  results: 8
+  # A passage found only by meaning (not by keyword) must be at least this
+  # similar to the query (cosine), or it is dropped as noise.
+  min_vector_similarity: 0.55
+  # Scoped searches (topic, then module) widen to the next scope up when they
+  # find fewer passages than this.
+  widen_below: 3
+  # A web-trained cross-encoder (MiniLM-L6) lowered MRR on lecture notes
+  # (0.74 -> 0.72), so reranking is off until a better model is evaluated.
+  rerank:
+    enabled: false
+    model: Xenova/ms-marco-MiniLM-L-6-v2
+    candidates: 30

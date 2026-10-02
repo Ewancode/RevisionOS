@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ai Usage
+         * @description Requests, tokens and estimated cost over the last `days` days.
+         */
+        get: operations["ai_usage_api_v1_ai_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -83,6 +103,68 @@ export interface paths {
         get: operations["session_api_v1_auth_session_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conversations */
+        get: operations["list_conversations_api_v1_conversations_get"];
+        put?: never;
+        /** Create Conversation */
+        post: operations["create_conversation_api_v1_conversations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation_api_v1_conversations__conversation_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Conversation */
+        delete: operations["delete_conversation_api_v1_conversations__conversation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversation_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Message
+         * @description Ask a question; the answer streams back as server-sent events:
+         *
+         *     - `status` {text}: what the assistant is doing ("Searching …")
+         *     - `delta` {text}: the next piece of answer text
+         *     - `action` PendingAction: a deletion awaiting your confirmation
+         *     - `done` Message: the saved answer, with verified citations
+         *     - `error` {code, message, saved: Message}: the answer failed or was refused
+         */
+        post: operations["send_message_api_v1_conversations__conversation_id__messages_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -388,6 +470,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pending-actions/{action_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Pending Action */
+        post: operations["cancel_pending_action_api_v1_pending_actions__action_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pending-actions/{action_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Pending Action
+         * @description Carry out a deletion Claude requested. Only reachable from your signed-in
+         *     browser with a CSRF token; the item goes to the trash.
+         */
+        post: operations["confirm_pending_action_api_v1_pending_actions__action_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search */
+        get: operations["search_api_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings": {
         parameters: {
             query?: never;
@@ -560,6 +697,92 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** CitationOut */
+        CitationOut: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Filename */
+            filename: string;
+            /** Heading Path */
+            heading_path: string;
+            /** Module Code */
+            module_code: string;
+            /** N */
+            n: number;
+            /** Page No */
+            page_no: number;
+            /** Quote */
+            quote: string;
+            /**
+             * Source Tier
+             * @enum {string}
+             */
+            source_tier: "university" | "own";
+        };
+        /**
+         * ConversationCreate
+         * @description Start a conversation, optionally from a module or topic (searches
+         *     start there and widen when they find little).
+         */
+        ConversationCreate: {
+            /** Module Id */
+            module_id?: string | null;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /** ConversationDetail */
+        ConversationDetail: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Messages */
+            messages: components["schemas"]["MessageOut"][];
+            /** Module Id */
+            module_id: string | null;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ConversationOut */
+        ConversationOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Module Id */
+            module_id: string | null;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** DocumentOut */
         DocumentOut: {
             /**
@@ -642,6 +865,46 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MessageCreate */
+        MessageCreate: {
+            /** Content */
+            content: string;
+        };
+        /** MessageOut */
+        MessageOut: {
+            /** Actions */
+            actions?: components["schemas"]["PendingActionOut"][];
+            /** Citations */
+            citations: components["schemas"]["CitationOut"][];
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Provenance */
+            provenance: ("university" | "own" | "general")[];
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "complete" | "stopped" | "error";
+            /** Steps */
+            steps: string[];
+        };
         /** ModuleCreate */
         ModuleCreate: {
             /**
@@ -703,6 +966,53 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** NamedDocument */
+        NamedDocument: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Original Filename */
+            original_filename: string;
+        };
+        /** NamedModule */
+        NamedModule: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /** Code */
+            code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+        };
+        /** NamedTopic */
+        NamedTopic: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Title */
+            title: string;
+        };
         /** PageCorrection */
         PageCorrection: {
             /** Markdown */
@@ -726,6 +1036,71 @@ export interface components {
             /** Review Note */
             review_note: string | null;
         };
+        /** PassageOut */
+        PassageOut: {
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Content */
+            content: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Filename */
+            filename: string;
+            /** Heading Path */
+            heading_path: string;
+            /**
+             * Matched
+             * @enum {string}
+             */
+            matched: "keyword" | "meaning" | "both";
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Page No */
+            page_no: number;
+            /** Score */
+            score: number;
+            /**
+             * Source Tier
+             * @enum {string}
+             */
+            source_tier: "university" | "own";
+        };
+        /** PendingActionOut */
+        PendingActionOut: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "delete_document" | "delete_topic" | "delete_module";
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Preview */
+            preview: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "confirmed" | "cancelled" | "expired";
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /** Checks */
@@ -737,6 +1112,26 @@ export interface components {
              * @enum {string}
              */
             status: "ready" | "not_ready";
+        };
+        /** SearchOut */
+        SearchOut: {
+            /** Documents */
+            documents: components["schemas"]["NamedDocument"][];
+            /** Modules */
+            modules: components["schemas"]["NamedModule"][];
+            /** Passages */
+            passages: components["schemas"]["PassageOut"][];
+            /** Query */
+            query: string;
+            /**
+             * Scope Used
+             * @enum {string}
+             */
+            scope_used: "topic" | "module" | "year" | "all";
+            /** Topics */
+            topics: components["schemas"]["NamedTopic"][];
+            /** Widened */
+            widened: boolean;
         };
         /** SessionOut */
         SessionOut: {
@@ -900,6 +1295,69 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** UsageBreakdown */
+        UsageBreakdown: {
+            /** Cost */
+            cost: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Requests */
+            requests: number;
+            /** Tokens */
+            tokens: number;
+        };
+        /** UsageDay */
+        UsageDay: {
+            /** Cost */
+            cost: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Requests */
+            requests: number;
+        };
+        /** UsageOut */
+        UsageOut: {
+            /** By Day */
+            by_day: components["schemas"]["UsageDay"][];
+            /** By Feature */
+            by_feature: components["schemas"]["UsageBreakdown"][];
+            /** By Model */
+            by_model: components["schemas"]["UsageBreakdown"][];
+            /** By Module */
+            by_module: components["schemas"]["UsageBreakdown"][];
+            /** Currency */
+            currency: string;
+            /** Days */
+            days: number;
+            /**
+             * Since
+             * Format: date
+             */
+            since: string;
+            totals: components["schemas"]["UsageTotals"];
+        };
+        /** UsageTotals */
+        UsageTotals: {
+            /** Blocked Requests */
+            blocked_requests: number;
+            /** Cache Read Tokens */
+            cache_read_tokens: number;
+            /** Cache Write Tokens */
+            cache_write_tokens: number;
+            /** Cost */
+            cost: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Requests */
+            requests: number;
+        };
         /** UserOut */
         UserOut: {
             /** Display Name */
@@ -1005,6 +1463,37 @@ export interface operations {
             };
         };
     };
+    ai_usage_api_v1_ai_usage_get: {
+        parameters: {
+            query?: {
+                days?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_auth_login_post: {
         parameters: {
             query?: never;
@@ -1103,6 +1592,154 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionOut"];
+                };
+            };
+        };
+    };
+    list_conversations_api_v1_conversations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"][];
+                };
+            };
+        };
+    };
+    create_conversation_api_v1_conversations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_api_v1_conversations__conversation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_conversation_api_v1_conversations__conversation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_message_api_v1_conversations__conversation_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1818,6 +2455,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TopicOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_pending_action_api_v1_pending_actions__action_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_pending_action_api_v1_pending_actions__action_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                year_id?: string | null;
+                module_id?: string | null;
+                topic_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
                 };
             };
             /** @description Validation Error */

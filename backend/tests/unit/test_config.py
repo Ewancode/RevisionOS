@@ -84,7 +84,7 @@ def test_every_route_resolves_to_a_model() -> None:
 def test_invalid_values_are_rejected(
     tmp_path: Path, file: str, path: list[str], value: Any, expected: str
 ) -> None:
-    data = {name: _shipped(f"{name}.yaml") for name in ("learning", "ai", "platform")}
+    data = {name: _shipped(f"{name}.yaml") for name in ("learning", "ai", "platform", "retrieval")}
     node = data[file]
     for key in path[:-1]:
         node = node[key]

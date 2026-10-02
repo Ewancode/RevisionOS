@@ -1,6 +1,7 @@
 /**
  * A tiny in-memory stand-in for the backend, routed by "METHOD /path".
- * Handlers return [status, body]; unmatched requests fail the test loudly.
+ * Handlers return [status, body] — or a ready-made Response, e.g. a stream of
+ * server-sent events. Unmatched requests fail the test loudly.
  */
 import { vi } from "vitest";
 
@@ -8,8 +9,9 @@ export type Handler = (request: Request, body: unknown) => [number, unknown] | P
 
 export function fakeApi(routes: Record<string, Handler>) {
   const calls: { method: string; path: string; body: unknown }[] = [];
-  const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
-    const request = input as Request;
+  const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    // jsdom's AbortSignal is not one Node's Request accepts; the fake ignores it.
+    const request = input instanceof Request ? input : new Request(input, { ...init, signal: undefined });
     const path = new URL(request.url).pathname;
     const text = request.method === "GET" ? "" : await request.text();
     const body: unknown = text ? JSON.parse(text) : undefined;
@@ -17,6 +19,7 @@ export function fakeApi(routes: Record<string, Handler>) {
     const handler = routes[`${request.method} ${path}`];
     if (!handler) throw new Error(`Unexpected request: ${request.method} ${path}`);
     const [status, payload] = await handler(request, body);
+    if (payload instanceof Response) return payload;
     return new Response(status === 204 ? null : JSON.stringify(payload), {
       status,
       headers: { "Content-Type": "application/json" },
