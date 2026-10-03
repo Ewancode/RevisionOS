@@ -4,6 +4,8 @@ import uuid
 from typing import Any
 
 from app.ingestion.pipeline import Deps, process_document, reindex_document, retranscribe_page
+from app.practice.generation import run_draft
+from app.practice.marking import mark_attempt
 
 
 async def ping(ctx: dict[str, Any]) -> str:
@@ -26,3 +28,15 @@ async def reindex_document_job(
 ) -> None:
     deps: Deps = ctx["deps"]
     await reindex_document(deps, uuid.UUID(document_id), pages)
+
+
+async def generate_draft_job(ctx: dict[str, Any], draft_id: str) -> None:
+    deps: Deps = ctx["deps"]
+    async with deps.sessions() as db:
+        await run_draft(db, deps.claude, deps.embedder, deps.config, uuid.UUID(draft_id))
+
+
+async def mark_attempt_job(ctx: dict[str, Any], attempt_id: str) -> None:
+    deps: Deps = ctx["deps"]
+    async with deps.sessions() as db:
+        await mark_attempt(db, deps.claude, deps.config, uuid.UUID(attempt_id))

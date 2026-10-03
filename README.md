@@ -8,8 +8,9 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 5 (the assistant). Phase 2 brought sign-in with secure
-sessions, academic years, modules and topic trees, theming and settings.
+**Status:** Phase 6 (revision materials and practice). Phase 2 brought
+sign-in with secure sessions, academic years, modules and topic trees,
+theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
 Markdown with LaTeX maths; pages whose maths extracts badly are read by
 Claude, within a monthly budget. Phase 4 added search across your materials
@@ -18,7 +19,11 @@ Claude, within a monthly budget. Phase 4 added search across your materials
 linked to the page it came from, a badge saying whether the answer is from
 your university material, your notes or general knowledge, and deletions
 that happen only when you confirm them. An AI usage page shows cost by
-feature, model, module and day.
+feature, model, module and day. Phase 6 adds revision materials with version
+history, a question bank and flashcards that Claude writes from your
+materials (checked before you can save them), quizzes and timed mock exams
+with AI help switched off, and marking of every answer type, including
+photos of handwritten working, with explanations of every mistake.
 
 ## Layout
 
@@ -125,6 +130,12 @@ It makes real API calls, so on its own it only prints the estimated cost
 (about £0.30 for the default 10 questions); run `make eval-chat ARGS=--yes`
 to go ahead. Automated tests never call the real API.
 
+Practice quality: `make eval-practice ARGS="--yes --module MATH101"` generates
+questions through the real API, reports how many pass the app's checks, then
+marks a right and a wrong answer to each with the real marking pipeline
+([ADR 12](docs/adr/0012-revision-materials-questions-and-marking.md)). It
+cleans up after itself and costs about £0.20.
+
 To check extraction on your own lecture files, put a few in `samples/`
 (git-ignored: they are university copyright and the repo is public), then
 `cd backend && uv run pytest -m samples -s`. This makes no AI calls.
@@ -171,3 +182,6 @@ are checked before every call. The assistant's limits (calls per answer,
 history length, how long delete requests wait for you) are in its `chat`
 section. For a hard ceiling outside the app as well, load
 matching prepaid credit in the Claude Console with auto-reload off.
+Generation limits, the checks on generated questions, marking tolerances and
+quiz and exam settings are in `practice.yaml`; search settings are in
+`retrieval.yaml`.

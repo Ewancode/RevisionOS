@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Lightbulb, MessageSquarePlus, NotebookPen, Send, Square, Trash2 } from "lucide-react";
+import { BookOpen, FileText, GraduationCap, Lightbulb, MessageSquarePlus, NotebookPen, Send, Square, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { CitedMarkdown, Sources } from "@/components/CitedMarkdown";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
 import { useBudget } from "@/features/documents/queries";
@@ -19,12 +20,10 @@ import {
   useLiveAnswer,
   usePendingActionMutations,
   type ChatMessage,
-  type Citation,
   type LiveAnswer,
+  type MessageLink,
   type PendingAction,
 } from "./queries";
-
-const CITE_HREF = /^#(?:user-content-)?cite-(\d+)$/;
 
 const PROVENANCE: Record<string, { label: string; icon: ReactNode; className: string }> = {
   university: {
@@ -57,78 +56,6 @@ function ProvenanceBadges({ provenance }: { provenance: string[] }) {
   );
 }
 
-function citationTitle(c: Citation) {
-  return `${c.filename} — page ${c.page_no}`;
-}
-
-/** Answer text, with `[[n]](#cite-n)` markers drawn as links to the cited page. */
-function AnswerText({ content, citations }: { content: string; citations: Citation[] }) {
-  return (
-    <MathMarkdown
-      className="text-sm"
-      components={{
-        a({ href, children }) {
-          const match = href ? CITE_HREF.exec(href) : null;
-          if (match) {
-            const citation = citations[Number(match[1]) - 1];
-            if (!citation) return null;
-            return (
-              <Link
-                to="/doc/$documentId"
-                params={{ documentId: citation.document_id }}
-                search={{ page: citation.page_no }}
-                title={citationTitle(citation)}
-                aria-label={`Source ${citation.n}: ${citationTitle(citation)}`}
-                className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded bg-surface px-1 align-super text-[10px] font-semibold text-accent no-underline hover:underline"
-              >
-                {citation.n}
-              </Link>
-            );
-          }
-          return (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          );
-        },
-      }}
-    >
-      {content}
-    </MathMarkdown>
-  );
-}
-
-function Sources({ citations }: { citations: Citation[] }) {
-  if (!citations.length) return null;
-  return (
-    <section aria-label="Sources" className="flex flex-col gap-1 border-t border-border pt-2">
-      <h3 className="text-xs font-medium text-muted">Sources</h3>
-      <ol className="flex flex-col gap-1 text-xs">
-        {citations.map((c) => (
-          <li key={c.n} className="flex gap-2">
-            <span className="w-4 shrink-0 text-right font-semibold text-accent">{c.n}</span>
-            <span className="min-w-0">
-              <Link
-                to="/doc/$documentId"
-                params={{ documentId: c.document_id }}
-                search={{ page: c.page_no }}
-                className="font-medium hover:underline"
-              >
-                {citationTitle(c)}
-              </Link>
-              <span className="text-muted">
-                {" "}
-                · {c.module_code} · {c.source_tier === "university" ? "University material" : "My notes"}
-                {c.heading_path && ` · ${c.heading_path}`}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 function ActionCard({ action, conversationId }: { action: PendingAction; conversationId: string }) {
   const { confirm, cancel } = usePendingActionMutations(conversationId);
   const busy = confirm.isPending || cancel.isPending;
@@ -154,6 +81,26 @@ function ActionCard({ action, conversationId }: { action: PendingAction; convers
       )}
       <ErrorText error={confirm.error ?? cancel.error} />
     </div>
+  );
+}
+
+/** Things the assistant made, such as drafts to review. */
+function Links({ links }: { links: MessageLink[] }) {
+  if (!links.length) return null;
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {links.map((link) => (
+        <li key={link.id}>
+          <Link
+            to="/drafts/$draftId"
+            params={{ draftId: link.id }}
+            className="inline-flex items-center gap-1 rounded-md border border-accent px-2 py-1 text-xs font-medium text-accent hover:bg-surface"
+          >
+            <FileText size={12} /> Review draft: {link.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -185,7 +132,7 @@ function AssistantMessage({ message, conversationId }: { message: ChatMessage; c
   return (
     <article aria-label="Claude's answer" className="flex flex-col gap-2">
       <Steps steps={message.steps} />
-      {message.content && <AnswerText content={message.content} citations={message.citations} />}
+      {message.content && <CitedMarkdown content={message.content} citations={message.citations} />}
       {message.status === "stopped" && <p className="text-xs text-muted">Stopped.</p>}
       {message.status === "error" && (
         <p role="alert" className="text-sm text-danger">
@@ -196,6 +143,7 @@ function AssistantMessage({ message, conversationId }: { message: ChatMessage; c
               : "The answer failed. Try again."}
         </p>
       )}
+      <Links links={message.links ?? []} />
       {(message.actions ?? []).map((a) => (
         <ActionCard key={a.id} action={a} conversationId={conversationId} />
       ))}
@@ -219,6 +167,7 @@ function LiveMessage({ answer, conversationId }: { answer: LiveAnswer; conversat
           </p>
         )}
         {answer.text && <MathMarkdown className="text-sm">{answer.text}</MathMarkdown>}
+        <Links links={answer.links} />
         {answer.actions.map((a) => (
           <ActionCard key={a.id} action={a} conversationId={conversationId} />
         ))}

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import Client, Config, CurrentUser, DbSession
-from app.core.errors import AppError
+from app.api.uploads import receive_to_file
 from app.schemas.documents import (
     DocumentOut,
     DocumentProgress,
@@ -46,23 +46,6 @@ def _service(
 Documents = Annotated[DocumentService, Depends(_service)]
 
 
-async def _receive_to_file(request: Request, limit: int, target: Path) -> None:
-    """Stream the raw request body to disk, refusing more than `limit` bytes
-    whatever Content-Length claims."""
-    declared = request.headers.get("content-length")
-    if declared and declared.isdigit() and int(declared) > limit:
-        raise AppError("file_too_large", f"Uploads are limited to {limit // CHUNK} MB.", 413)
-    received = 0
-    with target.open("wb") as handle:
-        async for chunk in request.stream():
-            received += len(chunk)
-            if received > limit:
-                raise AppError(
-                    "file_too_large", f"Uploads are limited to {limit // CHUNK} MB.", 413
-                )
-            await asyncio.to_thread(handle.write, chunk)
-
-
 @router.post("/documents", response_model=DocumentOut, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
     request: Request,
@@ -80,7 +63,7 @@ async def upload_document(
     with GET /documents/{id}/events."""
     with tempfile.TemporaryDirectory(prefix="revision-os-upload-") as tmp:
         path = Path(tmp) / "upload"
-        await _receive_to_file(request, config.platform.uploads.largest_upload_bytes, path)
+        await receive_to_file(request, config.platform.uploads.largest_upload_bytes, path)
         doc = await documents.upload(
             temp_path=path,
             filename=filename,

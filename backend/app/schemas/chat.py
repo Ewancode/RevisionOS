@@ -46,6 +46,12 @@ class PendingActionOut(Output):
     expires_at: datetime
 
 
+class MessageLink(Output):
+    kind: Literal["draft"]
+    id: uuid.UUID
+    label: str
+
+
 class MessageOut(Output):
     id: uuid.UUID
     role: Literal["user", "assistant"]
@@ -55,6 +61,7 @@ class MessageOut(Output):
     citations: list[CitationOut]
     provenance: list[Provenance]
     steps: list[str]
+    links: list[MessageLink] = Field(default_factory=list)
     status: Literal["complete", "stopped", "error"]
     error_code: str | None
     created_at: datetime

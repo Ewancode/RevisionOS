@@ -65,7 +65,15 @@ class TargetSuccess(_Strict):
         return self
 
 
+class InitialRatings(_Strict):
+    easy: Positive
+    medium: Positive
+    hard: Positive
+    exam: Positive
+
+
 class DifficultyConfig(_Strict):
+    initial_ratings: InitialRatings
     target_success: TargetSuccess
 
 
@@ -367,6 +375,70 @@ class RetrievalConfig(_Strict):
     search: SearchConfig
 
 
+# --- practice.yaml -----------------------------------------------------------
+
+
+class GenerationConfig(_Strict):
+    default_items: PositiveInt
+    max_items: PositiveInt
+    passages: PositiveInt
+    max_context_chars: PositiveInt
+    near_duplicate_similarity: Annotated[float, Field(gt=0.0, le=1.0)]
+    repair_rounds: Annotated[int, Field(ge=0, le=3)]
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.default_items > self.max_items:
+            raise ValueError("default_items cannot exceed max_items")
+        return self
+
+
+class ValidationConfig(_Strict):
+    max_stem_chars: PositiveInt
+    min_options: Annotated[int, Field(ge=2)]
+    max_options: PositiveInt
+    max_rubric_points: PositiveInt
+    min_model_answer_chars: PositiveInt
+    max_expression_chars: PositiveInt
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.min_options > self.max_options:
+            raise ValueError("min_options cannot exceed max_options")
+        return self
+
+
+class MarkingConfig(_Strict):
+    spot_check_points: PositiveInt
+    spot_check_min_points: PositiveInt
+    spot_check_tolerance: Positive
+    default_relative_tolerance: Positive
+    remark_at_or_below: Literal["low", "medium", "high"]
+    correct_at: Annotated[float, Field(gt=0.0, le=1.0)]
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.spot_check_min_points > self.spot_check_points:
+            raise ValueError("spot_check_min_points cannot exceed spot_check_points")
+        return self
+
+
+class QuizzesConfig(_Strict):
+    default_questions: PositiveInt
+    max_questions: PositiveInt
+    mock_default_minutes: PositiveInt
+    max_minutes: PositiveInt
+    exam_grace_seconds: Annotated[int, Field(ge=0)]
+    weak_area_below: Annotated[float, Field(gt=0.0, le=1.0)]
+
+
+class PracticeConfig(_Strict):
+    generation: GenerationConfig
+    validation: ValidationConfig
+    marking: MarkingConfig
+    quizzes: QuizzesConfig
+
+
 # --- loading -----------------------------------------------------------------
 
 
@@ -375,6 +447,7 @@ class AppConfig(_Strict):
     ai: AIConfig
     platform: PlatformConfig
     retrieval: RetrievalConfig
+    practice: PracticeConfig
 
 
 class ConfigError(RuntimeError):
@@ -400,6 +473,7 @@ def load_config(config_dir: Path) -> AppConfig:
         ai=_load_yaml(config_dir / "ai.yaml", AIConfig),
         platform=_load_yaml(config_dir / "platform.yaml", PlatformConfig),
         retrieval=_load_yaml(config_dir / "retrieval.yaml", RetrievalConfig),
+        practice=_load_yaml(config_dir / "practice.yaml", PracticeConfig),
     )
 
 

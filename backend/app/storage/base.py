@@ -13,7 +13,11 @@ from typing import Protocol
 
 # users/<uuid>/documents/<uuid>/(original | pages/<n>.png)
 _KEY = re.compile(
-    r"^users/[0-9a-f-]{36}/documents/[0-9a-f-]{36}/(original|pages/[1-9][0-9]{0,4}\.png)$"
+    r"^users/[0-9a-f-]{36}/("
+    r"documents/[0-9a-f-]{36}/(original|pages/[1-9][0-9]{0,4}\.png)"
+    # Photos of handwritten working (re-encoded to PNG or JPEG on upload).
+    r"|answers/[0-9a-f-]{36}/[0-9a-f-]{36}\.(png|jpeg)"
+    r")$"
 )
 
 
@@ -33,6 +37,13 @@ def document_key(user_id: uuid.UUID, document_id: uuid.UUID) -> str:
 
 def page_image_key(user_id: uuid.UUID, document_id: uuid.UUID, page_no: int) -> str:
     return validate_key(f"users/{user_id}/documents/{document_id}/pages/{page_no}.png")
+
+
+def answer_image_key(
+    user_id: uuid.UUID, attempt_id: uuid.UUID, question_id: uuid.UUID, ext: str
+) -> str:
+    """A photo of handwritten working for one answer."""
+    return validate_key(f"users/{user_id}/answers/{attempt_id}/{question_id}.{ext}")
 
 
 def document_prefix(user_id: uuid.UUID, document_id: uuid.UUID) -> str:

@@ -162,7 +162,7 @@ export function useRestore() {
       kind,
       id,
     }: {
-      kind: "module" | "topic" | "document";
+      kind: "module" | "topic" | "document" | "material" | "flashcard";
       id: string;
     }): Promise<void> => {
       if (kind === "module") {
@@ -175,12 +175,26 @@ export function useRestore() {
             params: { path: { document_id: id } },
           }),
         );
+      } else if (kind === "material") {
+        await unwrap(
+          api.POST("/api/v1/materials/{material_id}/restore", { params: { path: { material_id: id } } }),
+        );
+      } else if (kind === "flashcard") {
+        await unwrap(
+          api.POST("/api/v1/flashcards/{card_id}/restore", { params: { path: { card_id: id } } }),
+        );
       } else {
         await unwrap(
           api.POST("/api/v1/topics/{topic_id}/restore", { params: { path: { topic_id: id } } }),
         );
       }
     },
-    onSuccess: () => Promise.all([invalidate(), qc.invalidateQueries({ queryKey: ["documents"] })]),
+    onSuccess: () =>
+      Promise.all([
+        invalidate(),
+        qc.invalidateQueries({ queryKey: ["documents"] }),
+        qc.invalidateQueries({ queryKey: ["materials"] }),
+        qc.invalidateQueries({ queryKey: ["flashcards"] }),
+      ]),
   });
 }

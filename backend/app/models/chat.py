@@ -58,6 +58,8 @@ class Message(Base):
     provenance: Mapped[list[str]] = mapped_column(JSONB, server_default="[]", default=list)
     # What the assistant did on the way ("Searched your materials for ...").
     steps: Mapped[list[str]] = mapped_column(JSONB, server_default="[]", default=list)
+    # Things the assistant made, e.g. drafts: [{"kind": "draft", "id": ..., "label": ...}].
+    links: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]", default=list)
     status: Mapped[str] = mapped_column(
         Enum(*MESSAGE_STATUSES, name="message_status"), server_default="complete"
     )

@@ -1,7 +1,18 @@
 from fastapi import APIRouter
 
 from app.api.deps import PROTECTED
-from app.api.v1 import ai, auth, chat, documents, health, search, settings, structure
+from app.api.v1 import (
+    ai,
+    auth,
+    chat,
+    documents,
+    health,
+    materials,
+    practice,
+    search,
+    settings,
+    structure,
+)
 
 router = APIRouter(prefix="/api/v1")
 
@@ -18,4 +29,6 @@ protected.include_router(documents.router)
 protected.include_router(search.router)
 protected.include_router(chat.router)
 protected.include_router(ai.router)
+protected.include_router(materials.router)
+protected.include_router(practice.router)
 router.include_router(protected)

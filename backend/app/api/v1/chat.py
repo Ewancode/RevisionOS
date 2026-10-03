@@ -10,7 +10,15 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from app.ai.chat import ActionRequested, ChatOrchestrator, Delta, Done, Failed, Status
+from app.ai.chat import (
+    ActionRequested,
+    ChatOrchestrator,
+    Delta,
+    Done,
+    Failed,
+    LinkAdded,
+    Status,
+)
 from app.api.deps import Client, Config, CurrentUser, DbSession
 from app.core.errors import AppError
 from app.models import Message
@@ -25,6 +33,7 @@ from app.schemas.chat import (
 from app.services.chat import ConversationService
 from app.services.documents import DocumentService
 from app.services.pending_actions import PendingActionService
+from app.services.quizzes import ensure_no_exam
 from app.services.structure import ModuleService, TopicService
 
 router = APIRouter(tags=["chat"])
@@ -93,6 +102,8 @@ async def send_message(
     """
     conversation = await conversations.get(conversation_id)
     conversations.check_length(body.content)
+    # No AI help during a mock exam: enforced here, not just in the UI.
+    await ensure_no_exam(db, user.id, config, request.app.state.jobs)
     claude = request.app.state.claude
     if not claude.available:
         raise AppError(
@@ -110,6 +121,7 @@ async def send_message(
         claude=claude,
         embedder=request.app.state.embedder,
         config=config,
+        jobs=request.app.state.jobs,
     )
 
     async def with_actions(message: Message) -> MessageOut:
@@ -127,6 +139,8 @@ async def send_message(
                     yield _sse("status", {"text": event.text})
                 elif isinstance(event, Delta):
                     yield _sse("delta", {"text": event.text})
+                elif isinstance(event, LinkAdded):
+                    yield _sse("link", event.link)
                 elif isinstance(event, ActionRequested):
                     yield _sse("action", PendingActionOut.model_validate(event.action))
                 elif isinstance(event, Done):

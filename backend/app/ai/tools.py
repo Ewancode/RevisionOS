@@ -28,10 +28,11 @@ from app.retrieval.embeddings import EmbeddingProvider
 from app.retrieval.search import Passage, Scope, SearchService
 from app.services.common import ClientInfo
 from app.services.pending_actions import PendingActionService
+from app.workers.queue import JobQueue
 
 logger = logging.getLogger(__name__)
 
-Risk = Literal["read", "destructive"]
+Risk = Literal["read", "draft", "destructive"]
 
 
 @dataclass(frozen=True)
@@ -66,34 +67,46 @@ class ToolContext:
     scope: Scope
     conversation_id: uuid.UUID
     message_id: uuid.UUID
+    jobs: JobQueue | None = None
     sources: list[Source] = field(default_factory=list)
     actions: list[PendingAction] = field(default_factory=list)
+    # Things made on the way, e.g. drafts: [{"kind": "draft", "id", "label"}].
+    links: list[dict[str, Any]] = field(default_factory=list)
 
     def add_source(self, passage: Passage) -> dict[str, Any]:
         """Register a passage and return it as a citable search_result block."""
-        source = Source(
-            source=source_id(passage.document_id, passage.page_no),
-            title=source_title(passage.filename, passage.page_no),
-            document_id=passage.document_id,
-            filename=passage.filename,
-            page_no=passage.page_no,
-            source_tier=passage.source_tier,
-            module_code=passage.module_code,
-            heading_path=passage.heading_path,
-        )
+        source, block = search_result(passage)
         self.sources.append(source)
-        tier = (
-            "university material" if passage.source_tier == "university" else "student's own notes"
-        )
-        header = f"[{passage.module_code} · {tier}"
-        header += f" · {passage.heading_path}]" if passage.heading_path else "]"
-        return {
-            "type": "search_result",
-            "source": source.source,
-            "title": source.title,
-            "content": [{"type": "text", "text": f"{header}\n{passage.content}"}],
-            "citations": {"enabled": True},
-        }
+        return block
+
+
+def passage_header(passage: Passage) -> str:
+    tier = "university material" if passage.source_tier == "university" else "student's own notes"
+    header = f"[{passage.module_code} · {tier}"
+    return header + (f" · {passage.heading_path}]" if passage.heading_path else "]")
+
+
+def search_result(passage: Passage) -> tuple[Source, dict[str, Any]]:
+    """A passage as a citable `search_result` block, and the record used to
+    check citations to it."""
+    source = Source(
+        source=source_id(passage.document_id, passage.page_no),
+        title=source_title(passage.filename, passage.page_no),
+        document_id=passage.document_id,
+        filename=passage.filename,
+        page_no=passage.page_no,
+        source_tier=passage.source_tier,
+        module_code=passage.module_code,
+        heading_path=passage.heading_path,
+    )
+    block = {
+        "type": "search_result",
+        "source": source.source,
+        "title": source.title,
+        "content": [{"type": "text", "text": f"{passage_header(passage)}\n{passage.content}"}],
+        "citations": {"enabled": True},
+    }
+    return source, block
 
 
 @dataclass(frozen=True)
@@ -265,6 +278,87 @@ async def list_materials(ctx: ToolContext, _: ListInput) -> ToolOutput:
     return ToolOutput("\n".join(lines))
 
 
+# --- draft tools (preview before anything is saved) --------------------------------------
+
+MaterialKindName = Literal[
+    "guide",
+    "summary",
+    "formula_sheet",
+    "worked_examples",
+    "definitions",
+    "explanation",
+    "concept_map",
+    "notes",
+]
+
+
+class DraftInput(_Input):
+    kind: Literal["material", "questions", "flashcards"]
+    module_code: str = Field(max_length=20, description="The module, e.g. MATH101.")
+    topic: str | None = Field(
+        default=None, max_length=200, description="A topic title in that module, if any."
+    )
+    material_kind: MaterialKindName | None = Field(
+        default=None, description="For a material: what kind."
+    )
+    count: int | None = Field(default=None, ge=1, le=20, description="Questions or cards.")
+    difficulty: Literal["easy", "medium", "hard", "exam", "mixed"] | None = None
+    instructions: str | None = Field(
+        default=None, max_length=1000, description="What to focus on, in the student's words."
+    )
+
+
+DRAFT_LABELS = {
+    "material": "revision material",
+    "questions": "questions",
+    "flashcards": "flashcards",
+}
+
+
+async def start_draft(ctx: ToolContext, args: DraftInput) -> ToolOutput:
+    # Imported here: drafts -> quizzes -> marking -> generation -> chat -> tools.
+    from app.schemas.practice import GenerateRequest
+    from app.services.drafts import DraftService
+
+    if ctx.jobs is None:
+        return ToolOutput("Drafts cannot be started from here.", True)
+    module = await _module_by_code(ctx, args.module_code)
+    if module is None:
+        return ToolOutput(f"No module with code {args.module_code}.", True)
+    topic_id = None
+    if args.topic:
+        topic = await ctx.db.scalar(
+            select(Topic).where(
+                Topic.user_id == ctx.user_id,
+                Topic.module_id == module.id,
+                Topic.deleted_at.is_(None),
+                func.lower(Topic.title) == args.topic.strip().lower(),
+            )
+        )
+        if topic is None:
+            return ToolOutput(f"No topic called “{args.topic}” in {module.code}.", True)
+        topic_id = topic.id
+    service = DraftService(ctx.db, ctx.user_id, ctx.client, config=ctx.config, jobs=ctx.jobs)
+    draft = await service.create(
+        GenerateRequest(
+            module_id=module.id,
+            topic_id=topic_id,
+            kind=args.kind,
+            material_kind=args.material_kind,
+            count=args.count,
+            difficulty=args.difficulty,
+            instructions=args.instructions,
+        )
+    )
+    label = f"{module.code} {DRAFT_LABELS[args.kind]}" + (f": {args.topic}" if args.topic else "")
+    ctx.links.append({"kind": "draft", "id": str(draft.id), "label": label})
+    return ToolOutput(
+        f"Started a draft of {DRAFT_LABELS[args.kind]} for {module.code}. It takes about a "
+        "minute. The student sees a link to preview it, then chooses whether to save, edit, "
+        "regenerate or discard it; nothing is saved until they do."
+    )
+
+
 # --- destructive tools (pending actions only) ---------------------------------------
 
 
@@ -342,6 +436,17 @@ TOOLS: dict[str, Tool] = {
             ListInput,
             list_materials,
             lambda _: "Looking at your modules and files",
+        ),
+        Tool(
+            "start_draft",
+            "Generate revision material (a guide, summary, formula sheet, worked examples, "
+            "definitions...), practice questions or flashcards from the student's materials, "
+            "as a draft they preview before saving. Use it when they ask you to make or "
+            "create one of these.",
+            "draft",
+            DraftInput,
+            start_draft,
+            lambda a: f"Starting a {DRAFT_LABELS[a.kind]} draft",
         ),
         Tool(
             "request_delete_document",

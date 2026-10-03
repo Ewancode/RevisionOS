@@ -7,6 +7,7 @@ export type Conversation = Schemas["ConversationOut"];
 export type ChatMessage = Schemas["MessageOut"];
 export type Citation = Schemas["CitationOut"];
 export type PendingAction = Schemas["PendingActionOut"];
+export type MessageLink = Schemas["MessageLink"];
 export type Usage = Schemas["UsageOut"];
 
 export const chatKeys = {
@@ -105,6 +106,7 @@ export interface LiveAnswer {
   text: string;
   statuses: string[];
   actions: PendingAction[];
+  links: MessageLink[];
   error?: ApiError;
   stopped: boolean;
   controller: AbortController;
@@ -170,6 +172,7 @@ export async function ask(qc: QueryClient, conversationId: string, question: str
     text: "",
     statuses: [],
     actions: [],
+    links: [],
     stopped: false,
     controller,
   };
@@ -207,6 +210,7 @@ export async function ask(qc: QueryClient, conversationId: string, question: str
         if (event === "status") update({ statuses: [...state.statuses, (data as { text: string }).text] });
         else if (event === "delta") update({ text: state.text + (data as { text: string }).text });
         else if (event === "action") update({ actions: [...state.actions, data as PendingAction] });
+        else if (event === "link") update({ links: [...state.links, data as MessageLink] });
         else if (event === "error") {
           const error = data as { code: string; message: string };
           update({ error: new ApiError(200, error.code, error.message) });

@@ -160,6 +160,7 @@ async def test_answer_cites_the_page_it_came_from(
         "search_materials",
         "read_page",
         "list_materials",
+        "start_draft",
         "request_delete_document",
         "request_delete_topic",
         "request_delete_module",

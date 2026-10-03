@@ -41,6 +41,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/answers/{answer_id}/dispute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dispute Mark
+         * @description Re-mark a Claude-marked answer with the stronger model.
+         */
+        post: operations["dispute_mark_api_v1_answers__answer_id__dispute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/answers/{answer_id}/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Override Mark
+         * @description Set the mark yourself (the original is kept for the record).
+         */
+        post: operations["override_mark_api_v1_answers__answer_id__override_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Attempts
+         * @description Your quizzes and mock exams in a module, newest first.
+         */
+        get: operations["list_attempts_api_v1_attempts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Attempt
+         * @description The quiz as you answer it (no answers shown), or your results once
+         *     submitted. An exam past its deadline is submitted automatically.
+         */
+        get: operations["get_attempt_api_v1_attempts__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attempts/{attempt_id}/responses/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Response */
+        put: operations["save_response_api_v1_attempts__attempt_id__responses__question_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attempts/{attempt_id}/responses/{question_id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Photo
+         * @description A photo of your handwritten working (raw request body). Returns
+         *     Claude's transcription for you to check and edit into your answer.
+         */
+        post: operations["upload_photo_api_v1_attempts__attempt_id__responses__question_id__photo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attempts/{attempt_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Attempt
+         * @description Submit the whole quiz. Exact marks appear at once; Claude's marks and
+         *     explanations follow (status "marking", then "marked").
+         */
+        post: operations["submit_attempt_api_v1_attempts__attempt_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -361,6 +501,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Drafts
+         * @description Drafts not yet saved or discarded.
+         */
+        get: operations["list_drafts_api_v1_drafts_get"];
+        put?: never;
+        /**
+         * Generate
+         * @description Ask Claude for a material, questions or flashcards. Poll the draft
+         *     until it is ready, then save, regenerate or discard it.
+         */
+        post: operations["generate_api_v1_drafts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Draft */
+        get: operations["get_draft_api_v1_drafts__draft_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drafts/{draft_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Discard Draft */
+        post: operations["discard_draft_api_v1_drafts__draft_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drafts/{draft_id}/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Regenerate Draft */
+        post: operations["regenerate_draft_api_v1_drafts__draft_id__regenerate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drafts/{draft_id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save Draft */
+        post: operations["save_draft_api_v1_drafts__draft_id__save_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/flashcards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Flashcards */
+        get: operations["list_flashcards_api_v1_flashcards_get"];
+        put?: never;
+        /** Create Flashcard */
+        post: operations["create_flashcard_api_v1_flashcards_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/flashcards/{card_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Flashcard */
+        delete: operations["delete_flashcard_api_v1_flashcards__card_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Flashcard */
+        patch: operations["update_flashcard_api_v1_flashcards__card_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/flashcards/{card_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Flashcard */
+        post: operations["restore_flashcard_api_v1_flashcards__card_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -389,6 +675,135 @@ export interface paths {
         get: operations["readiness_api_v1_health_ready_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Materials */
+        get: operations["list_materials_api_v1_materials_get"];
+        put?: never;
+        /**
+         * Create Material
+         * @description One of your own materials (origin: user).
+         */
+        post: operations["create_material_api_v1_materials_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Material */
+        get: operations["get_material_api_v1_materials__material_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Material */
+        delete: operations["delete_material_api_v1_materials__material_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Material */
+        patch: operations["update_material_api_v1_materials__material_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diff Versions */
+        get: operations["diff_versions_api_v1_materials__material_id__diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Material */
+        post: operations["restore_material_api_v1_materials__material_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Version
+         * @description Your edit, saved as a new version (the old ones are kept).
+         */
+        post: operations["add_version_api_v1_materials__material_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Version */
+        get: operations["get_version_api_v1_materials__material_id__versions__version_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Version */
+        delete: operations["delete_version_api_v1_materials__material_id__versions__version_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/{material_id}/versions/{version_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Version */
+        post: operations["restore_version_api_v1_materials__material_id__versions__version_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -502,6 +917,84 @@ export interface paths {
          *     browser with a CSRF token; the item goes to the trash.
          */
         post: operations["confirm_pending_action_api_v1_pending_actions__action_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Question Bank
+         * @description A module's questions with your latest result on each, filtered.
+         */
+        get: operations["question_bank_api_v1_questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/questions/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Question
+         * @description Move to a topic, relabel the difficulty, or retire (and un-retire) it.
+         *     Questions are retired rather than deleted, so your attempts keep meaning.
+         */
+        patch: operations["update_question_api_v1_questions__question_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/quizzes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Quiz
+         * @description Build a practice quiz or mock exam from the bank and start it.
+         */
+        post: operations["create_quiz_api_v1_quizzes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quizzes/{quiz_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retake Quiz */
+        post: operations["retake_quiz_api_v1_quizzes__quiz_id__attempts_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -671,6 +1164,185 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AttemptItem */
+        AttemptItem: {
+            /** Correct Answer */
+            correct_answer?: string | null;
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard" | "exam";
+            /** Feedback */
+            feedback?: {
+                [key: string]: unknown;
+            } | null;
+            /** Has Photo */
+            has_photo: boolean;
+            /** Marked By */
+            marked_by?: ("rule" | "sympy" | "ai" | "override") | null;
+            /** Marking Confidence */
+            marking_confidence?: ("high" | "medium" | "low") | null;
+            /** Mistake Category */
+            mistake_category?: string | null;
+            /** Position */
+            position: number;
+            /** Question Attempt Id */
+            question_attempt_id?: string | null;
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Response */
+            response: {
+                [key: string]: unknown;
+            } | null;
+            /** Score */
+            score?: number | null;
+            /** Self Confidence */
+            self_confidence: number | null;
+            /** Solution Md */
+            solution_md?: string | null;
+            /** Sources */
+            sources?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Stem Md */
+            stem_md: string;
+            /** Time Ms */
+            time_ms: number | null;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "multiple_choice" | "true_false" | "numerical" | "expression" | "short_answer" | "explanation" | "derivation";
+            /** View */
+            view: {
+                [key: string]: unknown;
+            };
+        };
+        /** AttemptListItem */
+        AttemptListItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "practice" | "mock";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "normal" | "exam";
+            /** Questions */
+            questions: number;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Score */
+            score: number | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "marking" | "marked";
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Title */
+            title: string;
+        };
+        /** AttemptOut */
+        AttemptOut: {
+            /** Deadline */
+            deadline: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["AttemptItem"][];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "normal" | "exam";
+            quiz: components["schemas"]["QuizOut"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "marking" | "marked";
+            /** Submitted At */
+            submitted_at: string | null;
+            summary?: components["schemas"]["AttemptSummary"] | null;
+        };
+        /** AttemptStarted */
+        AttemptStarted: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            quiz: components["schemas"]["QuizOut"];
+        };
+        /** AttemptSummary */
+        AttemptSummary: {
+            /** Answered */
+            answered: number;
+            /** By Difficulty */
+            by_difficulty: components["schemas"]["Breakdown"][];
+            /** By Topic */
+            by_topic: components["schemas"]["Breakdown"][];
+            /** Correct */
+            correct: number;
+            /** Incorrect */
+            incorrect: number;
+            /** Next Steps */
+            next_steps: string[];
+            /** Partial */
+            partial: number;
+            /** Questions */
+            questions: number;
+            /** Score */
+            score: number | null;
+            /** Time Taken Seconds */
+            time_taken_seconds: number | null;
+            /** Unmarked */
+            unmarked: number;
+            /** Weak Areas */
+            weak_areas: string[];
+        };
+        /** Breakdown */
+        Breakdown: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Questions */
+            questions: number;
+            /** Score */
+            score: number;
+        };
         /** BudgetOut */
         BudgetOut: {
             /** Configured */
@@ -783,6 +1455,25 @@ export interface components {
              */
             updated_at: string;
         };
+        /** DiffLine */
+        DiffLine: {
+            /**
+             * Op
+             * @enum {string}
+             */
+            op: "equal" | "insert" | "delete";
+            /** Text */
+            text: string;
+        };
+        /** DiffOut */
+        DiffOut: {
+            /** From Version */
+            from_version: number;
+            /** Lines */
+            lines: components["schemas"]["DiffLine"][];
+            /** To Version */
+            to_version: number;
+        };
         /** DocumentOut */
         DocumentOut: {
             /**
@@ -845,6 +1536,154 @@ export interface components {
             /** Week */
             week?: number | null;
         };
+        /** DraftOut */
+        DraftOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "material" | "questions" | "flashcards";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            /** Request */
+            request: {
+                [key: string]: unknown;
+            };
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "generating" | "ready" | "failed" | "saved" | "discarded";
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** DraftRegenerate */
+        DraftRegenerate: {
+            /** Instructions */
+            instructions?: string | null;
+        };
+        /** DraftSave */
+        DraftSave: {
+            /** Content Md */
+            content_md?: string | null;
+            /** Selected */
+            selected?: number[] | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** FlashcardCreate */
+        FlashcardCreate: {
+            /** Back Md */
+            back_md: string;
+            /** Front Md */
+            front_md: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /** FlashcardOut */
+        FlashcardOut: {
+            /** Back Md */
+            back_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Front Md */
+            front_md: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /** Topic Id */
+            topic_id: string | null;
+        };
+        /** FlashcardUpdate */
+        FlashcardUpdate: {
+            /** Back Md */
+            back_md?: string | null;
+            /** Front Md */
+            front_md?: string | null;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /**
+         * GenerateRequest
+         * @description Ask Claude for a material, questions or flashcards. The result is a
+         *     draft to preview before anything is saved.
+         */
+        GenerateRequest: {
+            /** Count */
+            count?: number | null;
+            /** Difficulty */
+            difficulty?: ("easy" | "medium" | "hard" | "exam") | "mixed" | null;
+            /** Document Ids */
+            document_ids?: string[];
+            /** Improve Material Id */
+            improve_material_id?: string | null;
+            /** Instructions */
+            instructions?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "material" | "questions" | "flashcards";
+            /** Material Kind */
+            material_kind?: ("guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes") | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Topic Id */
+            topic_id?: string | null;
+            /** Types */
+            types?: ("multiple_choice" | "true_false" | "numerical" | "expression" | "short_answer" | "explanation" | "derivation")[] | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -865,10 +1704,131 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** MaterialCreate */
+        MaterialCreate: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Kind
+             * @default notes
+             * @enum {string}
+             */
+            kind?: "guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /** MaterialOut */
+        MaterialOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            current: components["schemas"]["VersionOut"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Versions */
+            versions: components["schemas"]["VersionSummary"][];
+        };
+        /** MaterialSummary */
+        MaterialSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** MaterialUpdate */
+        MaterialUpdate: {
+            /** Kind */
+            kind?: ("guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes") | null;
+            /** Title */
+            title?: string | null;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
         /** MessageCreate */
         MessageCreate: {
             /** Content */
             content: string;
+        };
+        /** MessageLink */
+        MessageLink: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "draft";
+            /** Label */
+            label: string;
         };
         /** MessageOut */
         MessageOut: {
@@ -890,6 +1850,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Links */
+            links?: components["schemas"]["MessageLink"][];
             /** Provenance */
             provenance: ("university" | "own" | "general")[];
             /**
@@ -1101,6 +2063,153 @@ export interface components {
              */
             status: "pending" | "confirmed" | "cancelled" | "expired";
         };
+        /** PhotoTranscription */
+        PhotoTranscription: {
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "high" | "medium" | "low";
+            /** Markdown */
+            markdown: string;
+            /** Notes */
+            notes: string;
+        };
+        /** QuestionOut */
+        QuestionOut: {
+            /** Answer Spec */
+            answer_spec: {
+                [key: string]: unknown;
+            };
+            /**
+             * Attempts
+             * @default 0
+             */
+            attempts?: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard" | "exam";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Attempted At */
+            last_attempted_at?: string | null;
+            /** Last Score */
+            last_score?: number | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Solution Md */
+            solution_md: string;
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "retired";
+            /** Stem Md */
+            stem_md: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "multiple_choice" | "true_false" | "numerical" | "expression" | "short_answer" | "explanation" | "derivation";
+        };
+        /** QuestionUpdate */
+        QuestionUpdate: {
+            /** Difficulty */
+            difficulty?: ("easy" | "medium" | "hard" | "exam") | null;
+            /** Status */
+            status?: ("active" | "retired") | null;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /**
+         * QuizCreate
+         * @description Build a quiz from the bank and start it. Either name the questions, or
+         *     give filters and a count. A mock exam is timed and runs in exam mode.
+         */
+        QuizCreate: {
+            /** Count */
+            count?: number | null;
+            /** Difficulties */
+            difficulties?: ("easy" | "medium" | "hard" | "exam")[] | null;
+            /**
+             * Kind
+             * @default practice
+             * @enum {string}
+             */
+            kind?: "practice" | "mock";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Question Ids */
+            question_ids?: string[] | null;
+            /**
+             * Result
+             * @default any
+             * @enum {string}
+             */
+            result?: "any" | "unattempted" | "wrong";
+            /** Time Limit Minutes */
+            time_limit_minutes?: number | null;
+            /** Title */
+            title?: string | null;
+            /** Topic Ids */
+            topic_ids?: string[] | null;
+            /** Types */
+            types?: ("multiple_choice" | "true_false" | "numerical" | "expression" | "short_answer" | "explanation" | "derivation")[] | null;
+        };
+        /** QuizOut */
+        QuizOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "practice" | "mock";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Time Limit Minutes */
+            time_limit_minutes: number | null;
+            /** Title */
+            title: string;
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /** Checks */
@@ -1112,6 +2221,33 @@ export interface components {
              * @enum {string}
              */
             status: "ready" | "not_ready";
+        };
+        /** ResponseSave */
+        ResponseSave: {
+            /** Response */
+            response: {
+                [key: string]: unknown;
+            } | null;
+            /** Self Confidence */
+            self_confidence?: number | null;
+            /** Time Ms */
+            time_ms?: number | null;
+        };
+        /** SavedDraft */
+        SavedDraft: {
+            draft: components["schemas"]["DraftOut"];
+            /** Material Id */
+            material_id?: string | null;
+            /**
+             * Saved Items
+             * @default 0
+             */
+            saved_items?: number;
+        };
+        /** ScoreOverride */
+        ScoreOverride: {
+            /** Score */
+            score: number;
         };
         /** SearchOut */
         SearchOut: {
@@ -1231,6 +2367,10 @@ export interface components {
         TrashOut: {
             /** Documents */
             documents: components["schemas"]["TrashedDocument"][];
+            /** Flashcards */
+            flashcards: components["schemas"]["TrashedFlashcard"][];
+            /** Materials */
+            materials: components["schemas"]["TrashedMaterial"][];
             /** Modules */
             modules: components["schemas"]["TrashedModule"][];
             /** Retention Days */
@@ -1257,6 +2397,46 @@ export interface components {
             module_id: string;
             /** Original Filename */
             original_filename: string;
+        };
+        /** TrashedFlashcard */
+        TrashedFlashcard: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /** Front Md */
+            front_md: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+        };
+        /** TrashedMaterial */
+        TrashedMaterial: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Title */
+            title: string;
         };
         /** TrashedModule */
         TrashedModule: {
@@ -1383,6 +2563,61 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VersionCreate */
+        VersionCreate: {
+            /** Change Note */
+            change_note?: string | null;
+            /** Content Md */
+            content_md: string;
+        };
+        /** VersionOut */
+        VersionOut: {
+            /** Change Note */
+            change_note: string | null;
+            /** Citations */
+            citations: components["schemas"]["CitationOut"][];
+            /** Content Md */
+            content_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Created By
+             * @enum {string}
+             */
+            created_by: "user" | "claude";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version No */
+            version_no: number;
+        };
+        /** VersionSummary */
+        VersionSummary: {
+            /** Change Note */
+            change_note: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Created By
+             * @enum {string}
+             */
+            created_by: "user" | "claude";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version No */
+            version_no: number;
+        };
         /** YearCreate */
         YearCreate: {
             /**
@@ -1481,6 +2716,233 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dispute_mark_api_v1_answers__answer_id__dispute_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    override_mark_api_v1_answers__answer_id__override_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoreOverride"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_attempts_api_v1_attempts_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attempt_api_v1_attempts__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_response_api_v1_attempts__attempt_id__responses__question_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResponseSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_photo_api_v1_attempts__attempt_id__responses__question_id__photo_post: {
+        parameters: {
+            query: {
+                filename: string;
+            };
+            header?: never;
+            path: {
+                attempt_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoTranscription"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_attempt_api_v1_attempts__attempt_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptOut"];
                 };
             };
             /** @description Validation Error */
@@ -2162,6 +3624,362 @@ export interface operations {
             };
         };
     };
+    list_drafts_api_v1_drafts_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_api_v1_drafts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_draft_api_v1_drafts__draft_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_draft_api_v1_drafts__draft_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regenerate_draft_api_v1_drafts__draft_id__regenerate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftRegenerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_draft_api_v1_drafts__draft_id__save_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_flashcards_api_v1_flashcards_get: {
+        parameters: {
+            query: {
+                module_id: string;
+                topic_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_flashcard_api_v1_flashcards_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlashcardCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_flashcard_api_v1_flashcards__card_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_flashcard_api_v1_flashcards__card_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlashcardUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_flashcard_api_v1_flashcards__card_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     liveness_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -2207,6 +4025,359 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReadinessResponse"];
+                };
+            };
+        };
+    };
+    list_materials_api_v1_materials_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_material_api_v1_materials_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_material_api_v1_materials__material_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_material_api_v1_materials__material_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_material_api_v1_materials__material_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    diff_versions_api_v1_materials__material_id__diff_get: {
+        parameters: {
+            query: {
+                from_version: string;
+                to_version: string;
+            };
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_material_api_v1_materials__material_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_version_api_v1_materials__material_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_v1_materials__material_id__versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_version_api_v1_materials__material_id__versions__version_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_api_v1_materials__material_id__versions__version_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2517,6 +4688,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PendingActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    question_bank_api_v1_questions_get: {
+        parameters: {
+            query: {
+                module_id: string;
+                topic_id?: string[] | null;
+                difficulty?: ("easy" | "medium" | "hard" | "exam")[] | null;
+                type?: ("multiple_choice" | "true_false" | "numerical" | "expression" | "short_answer" | "explanation" | "derivation")[] | null;
+                result?: "any" | "unattempted" | "wrong" | "right";
+                origin?: ("user" | "claude") | null;
+                status?: "active" | "retired";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_question_api_v1_questions__question_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_quiz_api_v1_quizzes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retake_quiz_api_v1_quizzes__quiz_id__attempts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptStarted"];
                 };
             };
             /** @description Validation Error */

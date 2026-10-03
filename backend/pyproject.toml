@@ -25,6 +25,7 @@ dependencies = [
     "pillow-heif>=0.18",
     "tzdata>=2024.1",
     "fastembed>=0.5",
+    "sympy>=1.14.0",
 ]
 
 [dependency-groups]
@@ -64,12 +65,12 @@ files = ["app", "scripts", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*"]
+module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*"]
 ignore_missing_imports = true
 
-# PyMuPDF ships without type hints; allow calling it from the extractors.
+# PyMuPDF and SymPy ship without type hints; allow calling them where used.
 [[tool.mypy.overrides]]
-module = ["app.ingestion.*", "app.services.documents", "tests.*"]
+module = ["app.ingestion.*", "app.services.documents", "app.practice.maths", "tests.*"]
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]

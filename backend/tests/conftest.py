@@ -27,6 +27,15 @@ from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "question_attempts",
+    "quiz_attempts",
+    "quiz_items",
+    "quizzes",
+    "questions",
+    "flashcards",
+    "material_versions",
+    "materials",
+    "drafts",
     "pending_actions",
     "messages",
     "conversations",

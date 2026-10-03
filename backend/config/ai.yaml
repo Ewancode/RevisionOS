@@ -40,16 +40,17 @@ routing:
   classification:       { model: haiku }
   mistake_labelling:    { model: haiku }
   plan_explanation:     { model: haiku }
-  flashcard_generation: { model: haiku, escalate_to: { model: sonnet, effort: low } }
-  simple_question_generation: { model: haiku, escalate_to: { model: sonnet, effort: medium } }
+  flashcard_generation: { model: haiku, escalate_to: { model: sonnet, effort: low }, max_tokens: 6000 }
+  simple_question_generation: { model: haiku, escalate_to: { model: sonnet, effort: medium }, max_tokens: 8000 }
   simple_marking:       { model: haiku, escalate_to: { model: sonnet, effort: medium } }
   tutoring:             { model: sonnet, effort: medium }
-  explanation:          { model: sonnet, effort: medium }
-  revision_guide:       { model: sonnet, effort: medium }
+  # Explanations of a quiz's wrong answers, in one call per quiz.
+  explanation:          { model: sonnet, effort: medium, max_tokens: 8000 }
+  revision_guide:       { model: sonnet, effort: medium, max_tokens: 12000 }
   document_analysis:    { model: sonnet, effort: medium }
   maths_transcription:  { model: sonnet, effort: high, max_tokens: 8000 }
   proof_marking:        { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
-  exam_question_generation: { model: sonnet, effort: high, escalate_to: { model: opus, effort: high } }
+  exam_question_generation: { model: sonnet, effort: high, escalate_to: { model: opus, effort: high }, max_tokens: 10000 }
   # The assistant (chat). Answers are a few paragraphs; tool rounds are short.
   chat:                 { model: sonnet, effort: medium, max_tokens: 8000 }
 

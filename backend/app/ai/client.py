@@ -68,6 +68,8 @@ class AIResult:
     served_model: str
     interaction_id: uuid.UUID
     tokens: TokenCounts
+    # Every content block, e.g. text blocks carrying citations.
+    content: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -223,7 +225,7 @@ class ClaudeClient:
         if stop_reason == "max_tokens":
             raise AppError("ai_truncated", "Claude's answer was cut off (output limit).", 502)
         text = next((b.text for b in response.content if getattr(b, "type", None) == "text"), "")
-        return AIResult(text, served, interaction.id, tokens)
+        return AIResult(text, served, interaction.id, tokens, tuple(response.content))
 
     async def stream(
         self,

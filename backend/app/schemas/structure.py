@@ -147,8 +147,24 @@ class TrashedDocument(Output):
     deleted_at: datetime
 
 
+class TrashedMaterial(Output):
+    id: uuid.UUID
+    module_id: uuid.UUID
+    title: str
+    deleted_at: datetime
+
+
+class TrashedFlashcard(Output):
+    id: uuid.UUID
+    module_id: uuid.UUID
+    front_md: str
+    deleted_at: datetime
+
+
 class TrashOut(Output):
     retention_days: int
     modules: list[TrashedModule]
     topics: list[TrashedTopic]
     documents: list[TrashedDocument]
+    materials: list[TrashedMaterial]
+    flashcards: list[TrashedFlashcard]

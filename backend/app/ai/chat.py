@@ -40,11 +40,12 @@ from app.models import Conversation, Message, Module, PendingAction, Topic
 from app.retrieval.embeddings import EmbeddingProvider
 from app.retrieval.search import Scope, SearchService
 from app.services.common import ClientInfo
+from app.workers.queue import JobQueue
 
 logger = logging.getLogger(__name__)
 
 TASK = "chat"
-PROMPT_VERSION = "chat.v1"
+PROMPT_VERSION = "chat.v2"
 PROMPT_FILE = Path(__file__).parent / "prompts" / f"{PROMPT_VERSION}.md"
 CITE_MARKER = re.compile(r" ?\[\[\d+\]\]\(#cite-\d+\)")
 
@@ -72,6 +73,11 @@ class ActionRequested:
 
 
 @dataclass(frozen=True)
+class LinkAdded:
+    link: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class Done:
     message: Message
 
@@ -83,7 +89,7 @@ class Failed:
     saved: Message
 
 
-ChatEvent = Status | Delta | ActionRequested | Done | Failed
+ChatEvent = Status | Delta | ActionRequested | LinkAdded | Done | Failed
 
 
 # --- building the answer ---------------------------------------------------------------
@@ -190,7 +196,9 @@ class ChatOrchestrator:
         claude: ClaudeClient,
         embedder: EmbeddingProvider,
         config: AppConfig,
+        jobs: JobQueue | None = None,
     ) -> None:
+        self.jobs = jobs
         self.db = db
         self.user_id = user_id
         self.client = client
@@ -276,6 +284,7 @@ class ChatOrchestrator:
             scope=scope,
             conversation_id=conversation.id,
             message_id=reply_id,
+            jobs=self.jobs,
         )
         streamed: list[str] = []
 
@@ -292,6 +301,7 @@ class ChatOrchestrator:
                 citations=answer.citations,
                 provenance=answer.provenance if answer.citations or content else [],
                 steps=steps,
+                links=ctx.links,
                 status=status,
                 error_code=error_code,
             )
@@ -380,10 +390,12 @@ class ChatOrchestrator:
                     if prepared.status:
                         steps.append(prepared.status)
                         yield Status(prepared.status)
-                    before = len(ctx.actions)
+                    before, links_before = len(ctx.actions), len(ctx.links)
                     output = await tools.run(ctx, prepared)
                     for action in ctx.actions[before:]:
                         yield ActionRequested(action)
+                    for link in ctx.links[links_before:]:
+                        yield LinkAdded(link)
                     results.append(
                         {
                             "type": "tool_result",

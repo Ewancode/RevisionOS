@@ -23,6 +23,13 @@ mastery:
     exam: 1.7
 
 difficulty:
+  # Starting Elo-style rating of a new question, by its label; real outcomes
+  # recalibrate it from Phase 7 (ARCHITECTURE.md section 10).
+  initial_ratings:
+    easy: 1350
+    medium: 1500
+    hard: 1650
+    exam: 1800
   # Question selection aims for this predicted probability of success.
   target_success:
     min: 0.65

@@ -18,6 +18,8 @@ from app.ingestion.pipeline import Deps
 from app.retrieval.embeddings import create_provider
 from app.storage import create_storage
 from app.workers.tasks import (
+    generate_draft_job,
+    mark_attempt_job,
     ping,
     process_document_job,
     reindex_document_job,
@@ -56,6 +58,9 @@ class WorkerSettings:
         func(process_document_job, name="process_document", timeout=_timeout, max_tries=2),
         func(retranscribe_page_job, name="retranscribe_page", timeout=_timeout, max_tries=1),
         func(reindex_document_job, name="reindex_document", timeout=_timeout, max_tries=2),
+        # Not retried: a retry would pay for the same Claude calls twice.
+        func(generate_draft_job, name="generate_draft", timeout=_timeout, max_tries=1),
+        func(mark_attempt_job, name="mark_attempt", timeout=_timeout, max_tries=1),
     ]
     on_startup = startup
     on_shutdown = shutdown

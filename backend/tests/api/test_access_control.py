@@ -19,7 +19,19 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import PendingAction, User
+from app.models import (
+    Draft,
+    Flashcard,
+    Material,
+    MaterialVersion,
+    PendingAction,
+    Question,
+    QuestionAttempt,
+    Quiz,
+    QuizAttempt,
+    QuizItem,
+    User,
+)
 from tests import factories
 from tests.support import make_user, signed_in
 
@@ -145,6 +157,76 @@ async def _seed_pending_action(db: AsyncSession, owner: User, ids: dict[str, str
     ids["action"] = str(action.id)
 
 
+async def _seed_practice(db: AsyncSession, owner: User, ids: dict[str, str]) -> None:
+    """A's draft, material with two versions, trashed material, question,
+    flashcards, quiz, attempt and answer (made directly: no Claude needed)."""
+    module = uuid.UUID(ids["module"])
+    user = owner.id
+    now = datetime.now(UTC)
+    draft = Draft(
+        id=uuid.uuid4(), user_id=user, module_id=module, kind="questions", request={},
+        status="ready", payload={"items": [], "passages": []},
+    )  # fmt: skip
+    material = Material(
+        id=uuid.uuid4(), user_id=user, module_id=module, title="Guide", kind="guide", origin="user"
+    )
+    trashed = Material(
+        id=uuid.uuid4(), user_id=user, module_id=module, title="Old", kind="guide",
+        origin="user", deleted_at=now,
+    )  # fmt: skip
+    db.add_all([draft, material, trashed])
+    await db.flush()
+    old = MaterialVersion(
+        id=uuid.uuid4(), material_id=material.id, user_id=user, version_no=1,
+        content_md="v1", created_by="user",
+    )  # fmt: skip
+    new = MaterialVersion(
+        id=uuid.uuid4(), material_id=material.id, user_id=user, version_no=2,
+        content_md="v2", created_by="user",
+    )  # fmt: skip
+    db.add_all([old, new])
+    await db.flush()
+    material.current_version_id = new.id
+    question = Question(
+        id=uuid.uuid4(), user_id=user, module_id=module, type="multiple_choice",
+        difficulty="easy", rating=1350, stem_md="2+2?", solution_md="4", origin="claude",
+        answer_spec={"type": "multiple_choice", "options": ["3", "4"], "correct": 1},
+    )  # fmt: skip
+    card = Flashcard(
+        id=uuid.uuid4(), user_id=user, module_id=module, front_md="f", back_md="b", origin="user"
+    )
+    old_card = Flashcard(
+        id=uuid.uuid4(), user_id=user, module_id=module, front_md="o", back_md="b",
+        origin="user", deleted_at=now,
+    )  # fmt: skip
+    quiz = Quiz(id=uuid.uuid4(), user_id=user, module_id=module, kind="practice", title="Q")
+    db.add_all([question, card, old_card, quiz])
+    await db.flush()
+    attempt = QuizAttempt(id=uuid.uuid4(), user_id=user, quiz_id=quiz.id, mode="normal")
+    db.add_all(
+        [QuizItem(quiz_id=quiz.id, position=0, user_id=user, question_id=question.id), attempt]
+    )
+    await db.flush()
+    answer = QuestionAttempt(
+        id=uuid.uuid4(), user_id=user, quiz_attempt_id=attempt.id, question_id=question.id
+    )
+    db.add(answer)
+    await db.commit()
+    ids |= {
+        "draft": str(draft.id),
+        "material": str(material.id),
+        "trashed_material": str(trashed.id),
+        "version": str(new.id),
+        "old_version": str(old.id),
+        "question": str(question.id),
+        "flashcard": str(card.id),
+        "trashed_flashcard": str(old_card.id),
+        "quiz": str(quiz.id),
+        "attempt": str(attempt.id),
+        "answer": str(answer.id),
+    }
+
+
 # (method, path template, json body) — every route that takes a resource id.
 ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("PATCH", "/api/v1/years/{year}", {"label": "pwned"}),
@@ -178,12 +260,55 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("POST", "/api/v1/conversations/{conversation}/messages", {"content": "pwned"}),
     ("POST", "/api/v1/pending-actions/{action}/confirm", None),
     ("POST", "/api/v1/pending-actions/{action}/cancel", None),
+    # Phase 6: drafts, materials, the bank, flashcards, quizzes and attempts.
+    ("POST", "/api/v1/drafts", {"module_id": "{module}", "kind": "questions"}),
+    ("GET", "/api/v1/drafts/{draft}", None),
+    ("POST", "/api/v1/drafts/{draft}/save", {"selected": []}),
+    ("POST", "/api/v1/drafts/{draft}/regenerate", {"instructions": "x"}),
+    ("POST", "/api/v1/drafts/{draft}/discard", None),
+    ("POST", "/api/v1/materials", {"module_id": "{module}", "title": "x", "content_md": "x"}),
+    ("GET", "/api/v1/materials/{material}", None),
+    ("PATCH", "/api/v1/materials/{material}", {"title": "pwned"}),
+    ("DELETE", "/api/v1/materials/{material}", None),
+    ("POST", "/api/v1/materials/{trashed_material}/restore", None),
+    ("POST", "/api/v1/materials/{material}/versions", {"content_md": "pwned"}),
+    ("GET", "/api/v1/materials/{material}/versions/{version}", None),
+    ("POST", "/api/v1/materials/{material}/versions/{version}/restore", None),
+    ("DELETE", "/api/v1/materials/{material}/versions/{old_version}", None),
+    (
+        "GET",
+        "/api/v1/materials/{material}/diff?from_version={old_version}&to_version={version}",
+        None,
+    ),
+    ("PATCH", "/api/v1/questions/{question}", {"status": "retired"}),
+    ("POST", "/api/v1/flashcards", {"module_id": "{module}", "front_md": "x", "back_md": "y"}),
+    ("PATCH", "/api/v1/flashcards/{flashcard}", {"front_md": "pwned"}),
+    ("DELETE", "/api/v1/flashcards/{flashcard}", None),
+    ("POST", "/api/v1/flashcards/{trashed_flashcard}/restore", None),
+    ("POST", "/api/v1/quizzes", {"module_id": "{module}"}),
+    ("POST", "/api/v1/quizzes", {"module_id": "{module}", "question_ids": ["{question}"]}),
+    ("POST", "/api/v1/quizzes/{quiz}/attempts", None),
+    ("GET", "/api/v1/attempts/{attempt}", None),
+    ("PUT", "/api/v1/attempts/{attempt}/responses/{question}", {"response": {"choice": 0}}),
+    ("POST", "/api/v1/attempts/{attempt}/responses/{question}/photo?filename=a.png", None),
+    ("POST", "/api/v1/attempts/{attempt}/submit", None),
+    ("POST", "/api/v1/answers/{answer}/dispute", None),
+    ("POST", "/api/v1/answers/{answer}/override", {"score": 1}),
 ]
+
+
+def _fill(value: Any, ids: dict[str, str]) -> Any:
+    """Put A's ids into a request body template, including inside lists."""
+    if isinstance(value, str):
+        return value.format(**ids)
+    if isinstance(value, list):
+        return [_fill(v, ids) for v in value]
+    return value
 
 
 def test_attack_list_covers_every_id_route(app: FastAPI) -> None:
     id_routes = {(m, p) for m, p in _routes(app) if "{" in p}
-    attacked = {(m, re.sub(r"\{(\w+)\}", "{x}", p)) for m, p, _ in ATTACKS}
+    attacked = {(m, re.sub(r"\{(\w+)\}", "{x}", p.split("?")[0])) for m, p, _ in ATTACKS}
     normalised = {(m, re.sub(r"\{(\w+)\}", "{x}", p)) for m, p in id_routes}
     assert normalised <= attacked
 
@@ -196,17 +321,14 @@ async def test_other_users_resources_are_invisible(
     async with signed_in(db_app, owner) as a, signed_in(db_app, intruder, ip="192.0.2.5") as b:
         ids = await _seed_owner(a, tmp_path)
         await _seed_pending_action(db, owner, ids)
+        await _seed_practice(db, owner, ids)
         before_tree = (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json()
         before_years = (await a.get("/api/v1/years")).json()
         before_trash = (await a.get("/api/v1/trash")).json()
 
         for method, template, body in ATTACKS:
             url = template.format(**ids)
-            payload = (
-                {k: (v.format(**ids) if isinstance(v, str) else v) for k, v in body.items()}
-                if body
-                else None
-            )
+            payload = {k: _fill(v, ids) for k, v in body.items()} if body else None
             response = await b.request(method, url, json=payload)
             assert response.status_code == 404, f"{method} {url} -> {response.status_code}"
 
@@ -216,6 +338,9 @@ async def test_other_users_resources_are_invisible(
         assert (await b.get("/api/v1/trash")).json()["modules"] == []
         assert (await b.get("/api/v1/documents")).json() == []
         assert (await b.get("/api/v1/conversations")).json() == []
+        for listing in ("materials", "questions", "flashcards", "drafts", "attempts"):
+            response = await b.get(f"/api/v1/{listing}", params={"module_id": ids["module"]})
+            assert response.status_code == 404, listing
         # Uploading into A's module is refused too.
         upload = await b.post(
             "/api/v1/documents",

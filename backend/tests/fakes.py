@@ -97,7 +97,8 @@ class FakeMessages:
             raise self.owner.error
         reply = self.owner.respond(kwargs)
         return SimpleNamespace(
-            content=[SimpleNamespace(type="text", text=reply.get("text", ""))],
+            content=reply.get("blocks")
+            or [SimpleNamespace(type="text", text=reply.get("text", ""))],
             usage=SimpleNamespace(
                 input_tokens=reply.get("input_tokens", 1500),
                 output_tokens=reply.get("output_tokens", 400),

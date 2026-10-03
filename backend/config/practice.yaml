@@ -1,0 +1,49 @@
+# Revision materials, question generation, quizzes and marking
+# (ARCHITECTURE.md sections 9-10; ADR 0012). Validated on startup.
+
+generation:
+  # Items per generation request (questions or flashcards).
+  default_items: 8
+  max_items: 20
+  # Passages retrieved for a topic when no files are chosen.
+  passages: 12
+  # Characters of page text sent when specific files are chosen (~20k tokens).
+  max_context_chars: 60000
+  # A generated item this similar (cosine) to an existing one, or to another
+  # item in the same batch, is rejected as a near-duplicate.
+  near_duplicate_similarity: 0.93
+  # Invalid items get this many repair attempts, on the route's stronger model.
+  repair_rounds: 1
+
+validation:
+  max_stem_chars: 4000
+  min_options: 2
+  max_options: 6
+  max_rubric_points: 10
+  # A model answer shorter than this cannot show what full marks look like.
+  min_model_answer_chars: 40
+  max_expression_chars: 300
+
+marking:
+  # Algebraic answers: compare at this many random points...
+  spot_check_points: 8
+  # ...needing at least this many where both sides evaluate...
+  spot_check_min_points: 5
+  # ...agreeing within this relative tolerance.
+  spot_check_tolerance: 1.0e-6
+  # Numerical questions that state no tolerance are marked with this one.
+  default_relative_tolerance: 0.01
+  # AI marks at or below this confidence are re-marked once on the stronger model.
+  remark_at_or_below: low
+  # A response scoring at least this counts as correct in results.
+  correct_at: 0.999
+
+quizzes:
+  default_questions: 10
+  max_questions: 60
+  mock_default_minutes: 60
+  max_minutes: 240
+  # Answers are still accepted this long after an exam's deadline (network delay).
+  exam_grace_seconds: 30
+  # Topics scoring below this in a quiz are listed as weak areas.
+  weak_area_below: 0.6

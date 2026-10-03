@@ -7,6 +7,12 @@ import { Dashboard } from "@/features/dashboard/Dashboard";
 import { DocumentPage } from "@/features/documents/DocumentPage";
 import { SearchPage } from "@/features/search/SearchPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
+import { AttemptPage } from "@/features/study/AttemptPage";
+import { DraftPage } from "@/features/study/DraftPage";
+import { FlashcardsPage } from "@/features/study/FlashcardsPage";
+import { MaterialPage } from "@/features/study/MaterialPage";
+import { MaterialsPage } from "@/features/study/MaterialsPage";
+import { QuestionBankPage } from "@/features/study/QuestionBankPage";
 import { ModulePage } from "@/features/structure/ModulePage";
 
 import { AppShell } from "./AppShell";
@@ -79,6 +85,60 @@ const conversationRoute = createRoute({
   },
 });
 
+const materialsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/modules/$moduleId/materials",
+  component: function MaterialsRouteView() {
+    const { moduleId } = materialsRoute.useParams();
+    return <MaterialsPage key={moduleId} moduleId={moduleId} />;
+  },
+});
+
+const questionsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/modules/$moduleId/questions",
+  component: function QuestionsRouteView() {
+    const { moduleId } = questionsRoute.useParams();
+    return <QuestionBankPage key={moduleId} moduleId={moduleId} />;
+  },
+});
+
+const flashcardsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/modules/$moduleId/flashcards",
+  component: function FlashcardsRouteView() {
+    const { moduleId } = flashcardsRoute.useParams();
+    return <FlashcardsPage key={moduleId} moduleId={moduleId} />;
+  },
+});
+
+const materialRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/materials/$materialId",
+  component: function MaterialRouteView() {
+    const { materialId } = materialRoute.useParams();
+    return <MaterialPage key={materialId} materialId={materialId} />;
+  },
+});
+
+const draftRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/drafts/$draftId",
+  component: function DraftRouteView() {
+    const { draftId } = draftRoute.useParams();
+    return <DraftPage key={draftId} draftId={draftId} />;
+  },
+});
+
+const attemptRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/attempts/$attemptId",
+  component: function AttemptRouteView() {
+    const { attemptId } = attemptRoute.useParams();
+    return <AttemptPage key={attemptId} attemptId={attemptId} />;
+  },
+});
+
 const usageRoute = createRoute({ getParentRoute: () => appRoute, path: "/usage", component: UsagePage });
 
 const settingsRoute = createRoute({
@@ -96,6 +156,12 @@ export const routeTree = rootRoute.addChildren([
     searchRoute,
     chatRoute,
     conversationRoute,
+    materialsRoute,
+    questionsRoute,
+    flashcardsRoute,
+    materialRoute,
+    draftRoute,
+    attemptRoute,
     usageRoute,
     settingsRoute,
   ]),
