@@ -293,3 +293,49 @@ Made when you open the app, each at most once (a dedupe key per reminder):
 
 Each kind can be switched off, and none are made in your quiet hours. Read
 reminders older than 30 days are deleted.
+
+## Analytics (`app/analytics/compute.py`)
+
+All numbers are in `config/analytics.yaml`. Every figure is returned with its
+*basis*, a sentence naming the stored rows it came from; select ⓘ beside a
+figure to read it. Missing data shows as "–", never as 0.
+
+- **Days and weeks** are local (Europe/London); weeks start on Monday.
+- **This week** means the last 7 days, today included.
+- **Accuracy** is the mean mark of marked answers (partial credit counts);
+  **correct** counts answers with full marks.
+- **Study time** is measured, not estimated: each marked answer's recorded
+  time (capped at 15 minutes) plus each flashcard review's (capped at
+  120 s). Answers or reviews with no recorded time add nothing, and the
+  basis says how many there were.
+- **Streak:** consecutive days with at least one marked answer, flashcard
+  review or completed planned session. It may end yesterday, since today is
+  not over yet.
+- **Today's progress:** minutes of today's planned sessions marked done,
+  plus today's daily quiz once submitted, divided by the minutes planned
+  for both.
+- **Module strength:** the mean of the module's topic strengths, weighted by
+  each topic's evidence Σ*w* (as a parent topic in the tree is).
+- **Coverage:** the share of a module's topics with at least 3 marked answers.
+- **Topics mastered:** an estimated strength of 80% or more, and not
+  "low data".
+- **Strong and weak topics:** 70% or more, and below 50%, among topics with
+  enough data.
+
+### Exam readiness
+
+A weighted mean of measured components, each in [0, 1]:
+
+| Component | Weight | Measured as |
+| --- | --- | --- |
+| Coverage | 0.25 | share of the exam's topics with ≥ 3 marked answers |
+| Strength | 0.30 | mean estimated strength of the exam's topics |
+| Recent | 0.20 | mean mark on the exam's topics in the last 14 days |
+| Mock | 0.15 | mean score of the module's latest 3 marked mock exams |
+| Recency | 0.10 | share of the exam's topics practised in the last 7 days |
+
+A component with no data (no mock taken, nothing answered lately) is left
+out, and the remaining weights are rescaled; it is not counted as 0. The
+index is labelled *Early days* (below 0.4), *Building*, *On track* (0.6+)
+or *Well prepared* (0.8+). It summarises preparation so far and is not a
+predicted mark.

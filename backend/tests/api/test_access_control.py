@@ -339,6 +339,9 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("POST", "/api/v1/sessions/{session}/status", {"status": "done"}),
     ("POST", "/api/v1/notifications/{notification}/read", None),
     ("DELETE", "/api/v1/availability/overrides/{override_day}", None),
+    # Phase 9: analytics.
+    ("GET", "/api/v1/analytics/modules/{module}", None),
+    ("GET", "/api/v1/analytics/trends?module_id={module}", None),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}"}),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}", "question_ids": ["{question}"]}),
     ("POST", "/api/v1/quizzes/{quiz}/attempts", None),

@@ -3,6 +3,7 @@ import { Archive, ArchiveRestore, MessageSquare, Pencil, Search, Trash2 } from "
 import { useState } from "react";
 
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
+import { ModuleOverview } from "@/features/analytics/ModuleOverview";
 import { Materials } from "@/features/documents/Materials";
 import { ProgressSection } from "@/features/learning/ProgressSection";
 import { ExamsSection } from "@/features/planner/Exams";
@@ -79,6 +80,7 @@ export function ModulePage({ moduleId }: { moduleId: string }) {
       </header>
       <ErrorText error={update.error} />
 
+      <ModuleOverview moduleId={moduleId} />
       <ExamsSection moduleId={moduleId} />
       <StudySection moduleId={moduleId} />
       <ProgressSection moduleId={moduleId} />

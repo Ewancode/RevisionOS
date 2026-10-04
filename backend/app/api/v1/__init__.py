@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.deps import PROTECTED
 from app.api.v1 import (
     ai,
+    analytics,
     auth,
     chat,
     documents,
@@ -35,4 +36,5 @@ protected.include_router(materials.router)
 protected.include_router(learning.router)
 protected.include_router(practice.router)
 protected.include_router(planner.router)
+protected.include_router(analytics.router)
 router.include_router(protected)

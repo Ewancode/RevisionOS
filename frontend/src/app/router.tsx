@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 
+import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { ChatPage } from "@/features/chat/ChatPage";
 import { UsagePage } from "@/features/chat/UsagePage";
@@ -184,6 +185,8 @@ const calendarRoute = createRoute({
   },
 });
 
+const analyticsRoute = createRoute({ getParentRoute: () => appRoute, path: "/analytics", component: AnalyticsPage });
+
 const usageRoute = createRoute({ getParentRoute: () => appRoute, path: "/usage", component: UsagePage });
 
 const settingsRoute = createRoute({
@@ -212,6 +215,7 @@ export const routeTree = rootRoute.addChildren([
     profileRoute,
     plannerRoute,
     calendarRoute,
+    analyticsRoute,
     usageRoute,
     settingsRoute,
   ]),

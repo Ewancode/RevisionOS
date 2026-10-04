@@ -1,0 +1,45 @@
+# Analytics (SPEC 41, 43; docs/algorithms.md "Analytics").
+# Every number is computed from stored rows (answers, flashcard reviews,
+# planned sessions, topic mastery); Claude computes none of them.
+# Validated on startup by app/core/config.py.
+
+windows:
+  # "This week" figures on the dashboards: the last N days, today included.
+  recent_days: 7
+  # Weeks shown in the charts, this week included.
+  chart_weeks: 12
+
+study_time:
+  # Study time is measured, not guessed: each marked answer's recorded time
+  # plus each flashcard review's, capped so a tab left open overnight does not
+  # count as hours. Answers and reviews with no time recorded add nothing.
+  answer_cap_minutes: 15
+  review_cap_seconds: 120
+
+topics:
+  # A topic counts as mastered at this estimated strength, with enough data
+  # (not "low data", see learning.yaml).
+  mastered_at: 0.8
+  # Strong and weak topics on the dashboard.
+  strong_at: 0.7
+  weak_below: 0.5
+  list_limit: 5
+
+readiness:
+  # Exam readiness is a weighted mean of measured components, each in [0, 1].
+  # It describes your preparation so far; it is not a predicted mark.
+  weights:
+    coverage: 0.25   # share of the exam's topics with enough answers
+    strength: 0.30   # mean estimated strength of the exam's topics
+    recent: 0.20     # mean mark on the exam's topics in the last recent_days
+    mock: 0.15       # mean mark of the latest mock exams for the module
+    recency: 0.10    # share of the exam's topics practised in recency_days
+  recent_days: 14
+  recency_days: 7
+  mock_attempts: 3
+  # Labels by index, from the lowest threshold up.
+  bands:
+    - [0.0, "Early days"]
+    - [0.4, "Building"]
+    - [0.6, "On track"]
+    - [0.8, "Well prepared"]

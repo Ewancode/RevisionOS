@@ -1160,6 +1160,25 @@
         "title": "DailyStarted",
         "type": "object"
       },
+      "DayActivity": {
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "events": {
+            "title": "Events",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "events"
+        ],
+        "title": "DayActivity",
+        "type": "object"
+      },
       "DiffLine": {
         "properties": {
           "op": {
@@ -2809,6 +2828,32 @@
         "title": "MessageOut",
         "type": "object"
       },
+      "MetricOut": {
+        "description": "A number and the stored data it was computed from.",
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "basis"
+        ],
+        "title": "MetricOut",
+        "type": "object"
+      },
       "MistakeExample": {
         "properties": {
           "answer_id": {
@@ -2958,6 +3003,114 @@
           "count"
         ],
         "title": "MistakePattern",
+        "type": "object"
+      },
+      "ModuleAnalyticsOut": {
+        "properties": {
+          "coverage": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "mastered": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadinessOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recent": {
+            "$ref": "#/components/schemas/SummaryOut"
+          },
+          "recommendation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuiltBlock"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "module_id",
+          "progress",
+          "coverage",
+          "mastered",
+          "recent",
+          "readiness",
+          "recommendation"
+        ],
+        "title": "ModuleAnalyticsOut",
+        "type": "object"
+      },
+      "ModuleCard": {
+        "properties": {
+          "accuracy": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "answered": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "mastered": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "module_id",
+          "code",
+          "title",
+          "colour",
+          "progress",
+          "coverage",
+          "mastered",
+          "answered",
+          "accuracy"
+        ],
+        "title": "ModuleCard",
         "type": "object"
       },
       "ModuleCreate": {
@@ -3380,6 +3533,74 @@
           "minutes"
         ],
         "title": "Override",
+        "type": "object"
+      },
+      "OverviewOut": {
+        "properties": {
+          "mastered": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "materials": {
+            "items": {
+              "$ref": "#/components/schemas/RecentMaterial"
+            },
+            "title": "Materials",
+            "type": "array"
+          },
+          "mistake_groups": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "modules": {
+            "items": {
+              "$ref": "#/components/schemas/ModuleCard"
+            },
+            "title": "Modules",
+            "type": "array"
+          },
+          "recent": {
+            "$ref": "#/components/schemas/SummaryOut"
+          },
+          "streak": {
+            "$ref": "#/components/schemas/StreakOut"
+          },
+          "strong": {
+            "items": {
+              "$ref": "#/components/schemas/TopicStat"
+            },
+            "title": "Strong",
+            "type": "array"
+          },
+          "today": {
+            "$ref": "#/components/schemas/TodayOut"
+          },
+          "uploads": {
+            "items": {
+              "$ref": "#/components/schemas/RecentUpload"
+            },
+            "title": "Uploads",
+            "type": "array"
+          },
+          "weak": {
+            "items": {
+              "$ref": "#/components/schemas/TopicStat"
+            },
+            "title": "Weak",
+            "type": "array"
+          }
+        },
+        "required": [
+          "today",
+          "streak",
+          "recent",
+          "mastered",
+          "mistake_groups",
+          "modules",
+          "strong",
+          "weak",
+          "uploads",
+          "materials"
+        ],
+        "title": "OverviewOut",
         "type": "object"
       },
       "PageCorrection": {
@@ -4401,6 +4622,72 @@
         "title": "QuizOut",
         "type": "object"
       },
+      "ReadinessOut": {
+        "properties": {
+          "band": {
+            "title": "Band",
+            "type": "string"
+          },
+          "components": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricOut"
+            },
+            "title": "Components",
+            "type": "object"
+          },
+          "days_until": {
+            "title": "Days Until",
+            "type": "integer"
+          },
+          "exam_id": {
+            "format": "uuid",
+            "title": "Exam Id",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "number"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "weak_topics": {
+            "items": {
+              "$ref": "#/components/schemas/TopicStat"
+            },
+            "title": "Weak Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "exam_id",
+          "module_id",
+          "module_code",
+          "title",
+          "days_until",
+          "index",
+          "band",
+          "components",
+          "weak_topics",
+          "note"
+        ],
+        "title": "ReadinessOut",
+        "type": "object"
+      },
       "ReadinessResponse": {
         "properties": {
           "checks": {
@@ -4428,6 +4715,81 @@
           "checks"
         ],
         "title": "ReadinessResponse",
+        "type": "object"
+      },
+      "RecentMaterial": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "origin",
+          "module_code",
+          "created_at"
+        ],
+        "title": "RecentMaterial",
+        "type": "object"
+      },
+      "RecentUpload": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "module_code",
+          "status",
+          "created_at"
+        ],
+        "title": "RecentUpload",
         "type": "object"
       },
       "ResponseSave": {
@@ -4812,6 +5174,22 @@
         "title": "Shortfall",
         "type": "object"
       },
+      "StreakOut": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "longest": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "required": [
+          "current",
+          "longest"
+        ],
+        "title": "StreakOut",
+        "type": "object"
+      },
       "StudySessionOut": {
         "properties": {
           "actual_minutes": {
@@ -4919,6 +5297,65 @@
           "reason"
         ],
         "title": "StudySessionOut",
+        "type": "object"
+      },
+      "SummaryOut": {
+        "properties": {
+          "accuracy": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "answered": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "correct": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "mistakes": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "reviews": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "study_minutes": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "required": [
+          "days",
+          "answered",
+          "correct",
+          "accuracy",
+          "study_minutes",
+          "reviews",
+          "mistakes"
+        ],
+        "title": "SummaryOut",
+        "type": "object"
+      },
+      "TodayOut": {
+        "properties": {
+          "done_minutes": {
+            "title": "Done Minutes",
+            "type": "integer"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "required": [
+          "progress",
+          "planned_minutes",
+          "done_minutes"
+        ],
+        "title": "TodayOut",
         "type": "object"
       },
       "TopicCreate": {
@@ -5187,6 +5624,53 @@
         "title": "TopicProgress",
         "type": "object"
       },
+      "TopicStat": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "strength": {
+            "title": "Strength",
+            "type": "number"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "module_id",
+          "module_code",
+          "topic_id",
+          "title",
+          "strength",
+          "attempts"
+        ],
+        "title": "TopicStat",
+        "type": "object"
+      },
       "TopicUpdate": {
         "additionalProperties": false,
         "properties": {
@@ -5425,6 +5909,46 @@
           "deleted_at"
         ],
         "title": "TrashedTopic",
+        "type": "object"
+      },
+      "TrendsOut": {
+        "properties": {
+          "basis": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Basis",
+            "type": "object"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DayActivity"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "mistake_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Mistake Labels",
+            "type": "object"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeekOut"
+            },
+            "title": "Weeks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "weeks",
+          "days",
+          "mistake_labels",
+          "basis"
+        ],
+        "title": "TrendsOut",
         "type": "object"
       },
       "UsageBreakdown": {
@@ -5849,6 +6373,65 @@
         "title": "WeakTopic",
         "type": "object"
       },
+      "WeekOut": {
+        "properties": {
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy"
+          },
+          "answered": {
+            "title": "Answered",
+            "type": "integer"
+          },
+          "mistakes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Mistakes",
+            "type": "object"
+          },
+          "reviews": {
+            "title": "Reviews",
+            "type": "integer"
+          },
+          "sessions_done": {
+            "title": "Sessions Done",
+            "type": "integer"
+          },
+          "sessions_planned": {
+            "title": "Sessions Planned",
+            "type": "integer"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "study_minutes": {
+            "title": "Study Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "answered",
+          "accuracy",
+          "study_minutes",
+          "reviews",
+          "sessions_done",
+          "sessions_planned",
+          "mistakes"
+        ],
+        "title": "WeekOut",
+        "type": "object"
+      },
       "YearCreate": {
         "additionalProperties": false,
         "properties": {
@@ -6039,6 +6622,149 @@
         "summary": "Ai Usage",
         "tags": [
           "ai"
+        ]
+      }
+    },
+    "/api/v1/analytics/modules/{module_id}": {
+      "get": {
+        "description": "A module's dashboard figures.",
+        "operationId": "module_api_v1_analytics_modules__module_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "module_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Module Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleAnalyticsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Module",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/overview": {
+      "get": {
+        "description": "The main dashboard: today, streak, this week, modules, topics, recent items.",
+        "operationId": "overview_api_v1_analytics_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Overview",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/readiness": {
+      "get": {
+        "description": "For each upcoming exam: a summary of preparation so far, not a predicted mark.",
+        "operationId": "readiness_api_v1_analytics_readiness_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReadinessOut"
+                  },
+                  "title": "Response Readiness Api V1 Analytics Readiness Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readiness",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/trends": {
+      "get": {
+        "description": "Weekly accuracy, study time, mistakes and consistency, and daily activity.",
+        "operationId": "trends_api_v1_analytics_trends_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Trends",
+        "tags": [
+          "analytics"
         ]
       }
     },

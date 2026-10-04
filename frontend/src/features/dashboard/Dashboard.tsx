@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useViewingYear } from "@/app/viewingYear";
 import { Button } from "@/components/ui";
 import { useSession } from "@/features/auth/session";
+import { TodayGlance } from "@/features/analytics/TodayGlance";
 import { TodayPanels } from "@/features/learning/TodayPanels";
 import { TodayPlan } from "@/features/planner/TodayPlan";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
 import { useModules } from "@/features/structure/queries";
 import { greeting } from "@/lib/greeting";
 
-/** Today: the planned revision, "I have N minutes", upcoming exams, then what
+/** Today: figures at a glance (each traceable), the planned revision, "I have N minutes", upcoming exams, then what
  *  to practise now (daily quiz, due flashcards, weak topics, recurring
  *  mistakes) and your modules. */
 export function Dashboard() {
@@ -54,6 +55,8 @@ export function Dashboard() {
           </Button>
         </section>
       )}
+
+      {year && !!modules.data?.length && <TodayGlance />}
 
       {year && !!modules.data?.length && <TodayPlan />}
 

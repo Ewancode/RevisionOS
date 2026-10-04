@@ -41,6 +41,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/modules/{module_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Module
+         * @description A module's dashboard figures.
+         */
+        get: operations["module_api_v1_analytics_modules__module_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview
+         * @description The main dashboard: today, streak, this week, modules, topics, recent items.
+         */
+        get: operations["overview_api_v1_analytics_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readiness
+         * @description For each upcoming exam: a summary of preparation so far, not a predicted mark.
+         */
+        get: operations["readiness_api_v1_analytics_readiness_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trends
+         * @description Weekly accuracy, study time, mistakes and consistency, and daily activity.
+         */
+        get: operations["trends_api_v1_analytics_trends_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/answers/{answer_id}/dispute": {
         parameters: {
             query?: never;
@@ -2019,6 +2099,16 @@ export interface components {
             attempt_id: string;
             plan: components["schemas"]["DailyPlanOut"];
         };
+        /** DayActivity */
+        DayActivity: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Events */
+            events: number;
+        };
         /** DiffLine */
         DiffLine: {
             /**
@@ -2585,6 +2675,16 @@ export interface components {
             /** Steps */
             steps: string[];
         };
+        /**
+         * MetricOut
+         * @description A number and the stored data it was computed from.
+         */
+        MetricOut: {
+            /** Basis */
+            basis: string;
+            /** Value */
+            value: number | null;
+        };
         /** MistakeExample */
         MistakeExample: {
             /**
@@ -2648,6 +2748,39 @@ export interface components {
             count: number;
             /** Description */
             description: string;
+        };
+        /** ModuleAnalyticsOut */
+        ModuleAnalyticsOut: {
+            coverage: components["schemas"]["MetricOut"];
+            mastered: components["schemas"]["MetricOut"];
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            progress: components["schemas"]["MetricOut"];
+            readiness: components["schemas"]["ReadinessOut"] | null;
+            recent: components["schemas"]["SummaryOut"];
+            recommendation: components["schemas"]["BuiltBlock"] | null;
+        };
+        /** ModuleCard */
+        ModuleCard: {
+            accuracy: components["schemas"]["MetricOut"];
+            answered: components["schemas"]["MetricOut"];
+            /** Code */
+            code: string;
+            /** Colour */
+            colour: string | null;
+            coverage: components["schemas"]["MetricOut"];
+            mastered: components["schemas"]["MetricOut"];
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            progress: components["schemas"]["MetricOut"];
+            /** Title */
+            title: string;
         };
         /** ModuleCreate */
         ModuleCreate: {
@@ -2795,6 +2928,24 @@ export interface components {
             minutes: number;
             /** Note */
             note?: string | null;
+        };
+        /** OverviewOut */
+        OverviewOut: {
+            mastered: components["schemas"]["MetricOut"];
+            /** Materials */
+            materials: components["schemas"]["RecentMaterial"][];
+            mistake_groups: components["schemas"]["MetricOut"];
+            /** Modules */
+            modules: components["schemas"]["ModuleCard"][];
+            recent: components["schemas"]["SummaryOut"];
+            streak: components["schemas"]["StreakOut"];
+            /** Strong */
+            strong: components["schemas"]["TopicStat"][];
+            today: components["schemas"]["TodayOut"];
+            /** Uploads */
+            uploads: components["schemas"]["RecentUpload"][];
+            /** Weak */
+            weak: components["schemas"]["TopicStat"][];
         };
         /** PageCorrection */
         PageCorrection: {
@@ -3159,6 +3310,37 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** ReadinessOut */
+        ReadinessOut: {
+            /** Band */
+            band: string;
+            /** Components */
+            components: {
+                [key: string]: components["schemas"]["MetricOut"];
+            };
+            /** Days Until */
+            days_until: number;
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /** Index */
+            index: number;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Note */
+            note: string;
+            /** Title */
+            title: string;
+            /** Weak Topics */
+            weak_topics: components["schemas"]["TopicStat"][];
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /** Checks */
@@ -3170,6 +3352,46 @@ export interface components {
              * @enum {string}
              */
             status: "ready" | "not_ready";
+        };
+        /** RecentMaterial */
+        RecentMaterial: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Module Code */
+            module_code: string;
+            /** Origin */
+            origin: string;
+            /** Title */
+            title: string;
+        };
+        /** RecentUpload */
+        RecentUpload: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Module Code */
+            module_code: string;
+            /** Status */
+            status: string;
         };
         /** ResponseSave */
         ResponseSave: {
@@ -3292,6 +3514,11 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** StreakOut */
+        StreakOut: {
+            current: components["schemas"]["MetricOut"];
+            longest: components["schemas"]["MetricOut"];
+        };
         /** StudySessionOut */
         StudySessionOut: {
             /** Actual Minutes */
@@ -3335,6 +3562,25 @@ export interface components {
             title: string;
             /** Topic Id */
             topic_id: string | null;
+        };
+        /** SummaryOut */
+        SummaryOut: {
+            accuracy: components["schemas"]["MetricOut"];
+            answered: components["schemas"]["MetricOut"];
+            correct: components["schemas"]["MetricOut"];
+            /** Days */
+            days: number;
+            mistakes: components["schemas"]["MetricOut"];
+            reviews: components["schemas"]["MetricOut"];
+            study_minutes: components["schemas"]["MetricOut"];
+        };
+        /** TodayOut */
+        TodayOut: {
+            /** Done Minutes */
+            done_minutes: number;
+            /** Planned Minutes */
+            planned_minutes: number;
+            progress: components["schemas"]["MetricOut"];
         };
         /** TopicCreate */
         TopicCreate: {
@@ -3429,6 +3675,24 @@ export interface components {
             topic_id: string | null;
             /** Weight */
             weight: number;
+        };
+        /** TopicStat */
+        TopicStat: {
+            /** Attempts */
+            attempts: number;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Strength */
+            strength: number;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
         };
         /** TopicUpdate */
         TopicUpdate: {
@@ -3548,6 +3812,21 @@ export interface components {
             module_id: string;
             /** Title */
             title: string;
+        };
+        /** TrendsOut */
+        TrendsOut: {
+            /** Basis */
+            basis: {
+                [key: string]: string;
+            };
+            /** Days */
+            days: components["schemas"]["DayActivity"][];
+            /** Mistake Labels */
+            mistake_labels: {
+                [key: string]: string;
+            };
+            /** Weeks */
+            weeks: components["schemas"]["WeekOut"][];
         };
         /** UsageBreakdown */
         UsageBreakdown: {
@@ -3714,6 +3993,30 @@ export interface components {
             /** Topic Id */
             topic_id: string | null;
         };
+        /** WeekOut */
+        WeekOut: {
+            /** Accuracy */
+            accuracy: number | null;
+            /** Answered */
+            answered: number;
+            /** Mistakes */
+            mistakes: {
+                [key: string]: number;
+            };
+            /** Reviews */
+            reviews: number;
+            /** Sessions Done */
+            sessions_done: number;
+            /** Sessions Planned */
+            sessions_planned: number;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Study Minutes */
+            study_minutes: number;
+        };
         /** YearCreate */
         YearCreate: {
             /**
@@ -3812,6 +4115,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    module_api_v1_analytics_modules__module_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleAnalyticsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_v1_analytics_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewOut"];
+                };
+            };
+        };
+    };
+    readiness_api_v1_analytics_readiness_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessOut"][];
+                };
+            };
+        };
+    };
+    trends_api_v1_analytics_trends_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendsOut"];
                 };
             };
             /** @description Validation Error */

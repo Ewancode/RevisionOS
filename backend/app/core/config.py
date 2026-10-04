@@ -558,6 +558,56 @@ class PlannerConfig(_Strict):
     notifications: NotificationsConfig
 
 
+# --- analytics.yaml ----------------------------------------------------------
+
+
+class WindowsConfig(_Strict):
+    recent_days: PositiveInt
+    chart_weeks: Annotated[int, Field(ge=2, le=52)]
+
+
+class StudyTimeConfig(_Strict):
+    answer_cap_minutes: PositiveInt
+    review_cap_seconds: PositiveInt
+
+
+class AnalyticsTopicsConfig(_Strict):
+    mastered_at: Fraction
+    strong_at: Fraction
+    weak_below: Fraction
+    list_limit: PositiveInt
+
+
+class ReadinessWeights(_Strict):
+    coverage: NonNegative
+    strength: NonNegative
+    recent: NonNegative
+    mock: NonNegative
+    recency: NonNegative
+
+
+class ReadinessConfig(_Strict):
+    weights: ReadinessWeights
+    recent_days: PositiveInt
+    recency_days: PositiveInt
+    mock_attempts: PositiveInt
+    bands: list[tuple[Fraction, str]] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _bands_ascending(self) -> Self:
+        thresholds = [t for t, _ in self.bands]
+        if thresholds != sorted(thresholds) or thresholds[0] != 0.0:
+            raise ValueError("readiness bands must start at 0 and ascend")
+        return self
+
+
+class AnalyticsConfig(_Strict):
+    windows: WindowsConfig
+    study_time: StudyTimeConfig
+    topics: AnalyticsTopicsConfig
+    readiness: ReadinessConfig
+
+
 # --- loading -----------------------------------------------------------------
 
 
@@ -568,6 +618,7 @@ class AppConfig(_Strict):
     retrieval: RetrievalConfig
     practice: PracticeConfig
     planner: PlannerConfig
+    analytics: AnalyticsConfig
 
 
 class ConfigError(RuntimeError):
@@ -595,6 +646,7 @@ def load_config(config_dir: Path) -> AppConfig:
         retrieval=_load_yaml(config_dir / "retrieval.yaml", RetrievalConfig),
         practice=_load_yaml(config_dir / "practice.yaml", PracticeConfig),
         planner=_load_yaml(config_dir / "planner.yaml", PlannerConfig),
+        analytics=_load_yaml(config_dir / "analytics.yaml", AnalyticsConfig),
     )
 
 

@@ -1,6 +1,7 @@
 import { Link, Navigate, Outlet, useNavigate } from "@tanstack/react-router";
 import {
   BarChart3,
+  ChartLine,
   CalendarDays,
   CalendarRange,
   Layers,
@@ -156,6 +157,13 @@ function Sidebar() {
           activeProps={{ className: "bg-surface font-medium" }}
         >
           <CalendarDays size={16} /> Calendar
+        </Link>
+        <Link
+          to="/analytics"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <ChartLine size={16} /> Analytics
         </Link>
         <Link
           to="/profile"
