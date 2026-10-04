@@ -4,7 +4,7 @@ selection").
 1. Every topic in your current modules gets a priority from five terms in
    [0, 1] (weights in learning.yaml):
    weakness (1 - strength), overdue (days since practised), urgency (exam
-   proximity, from Phase 8), recurring (a recurring mistake there) and gap
+   proximity), recurring (a recurring mistake there) and gap
    (few answers yet). With no data every topic scores the same, so the
    first quizzes spread evenly, as SPEC 21 asks.
 2. Length: your available minutes divided by your median time per question,
@@ -103,6 +103,7 @@ async def plan(
     config: AppConfig,
     now: datetime,
     minutes: int | None = None,
+    urgency: dict[Key, float] | None = None,
 ) -> DailyPlan:
     settings = config.learning.daily_quiz
     mastery_config = config.learning.mastery
@@ -172,7 +173,7 @@ async def plan(
         terms = maths.PriorityTerms(
             weakness=1 - strength,
             overdue=maths.overdue(days_since, settings.overdue_after_days),
-            urgency=0.0,  # exams arrive in Phase 8
+            urgency=(urgency or {}).get(key, 0.0),
             recurring=1.0 if groups else 0.0,
             gap=maths.coverage_gap(attempts, settings.coverage_attempts),
         )

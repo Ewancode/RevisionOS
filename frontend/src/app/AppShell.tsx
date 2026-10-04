@@ -1,6 +1,8 @@
 import { Link, Navigate, Outlet, useNavigate } from "@tanstack/react-router";
 import {
   BarChart3,
+  CalendarDays,
+  CalendarRange,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -13,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { useLogout, useSession } from "@/features/auth/session";
+import { NotificationBell } from "@/features/planner/NotificationBell";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
 import { useModules, type Module } from "@/features/structure/queries";
 
@@ -106,9 +109,12 @@ function Sidebar() {
       aria-label="Main"
       className="flex w-full flex-col gap-4 border-b border-border bg-bg p-3 md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r"
     >
-      <Link to="/" className="px-2 text-base font-semibold">
-        Revision OS
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/" className="px-2 text-base font-semibold">
+          Revision OS
+        </Link>
+        <NotificationBell />
+      </div>
 
       <SidebarSearch />
 
@@ -136,6 +142,20 @@ function Sidebar() {
           activeProps={{ className: "bg-surface font-medium" }}
         >
           <Layers size={16} /> Review flashcards
+        </Link>
+        <Link
+          to="/planner"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <CalendarRange size={16} /> Planner
+        </Link>
+        <Link
+          to="/calendar"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <CalendarDays size={16} /> Calendar
         </Link>
         <Link
           to="/profile"

@@ -86,12 +86,20 @@ production always reads the real clock.
   60% and 25% over 14 daily quizzes:
   - the first quiz spread 4/3/3;
   - by the last week the weak topic got most of each quiz (8-12 of 15);
-  - estimated strengths were 93%, 65% and 30%, and Elo abilities 1681, 1515
-    and 1327, both in the true order.
+  - estimated strengths were 93%, 65% and 30%, in the true order.
+  - *Correction (Phase 8):* this first said the Elo abilities (1681, 1515,
+    1327) also came out in the true order, and the test asserted it. That
+    was not a sound check, and it failed in about 1 seed in 16. Ability is
+    fitted together with that topic's question ratings, so it is only
+    meaningful against them, not across topics; a strong topic that is
+    rarely practised also stays near its 1500 start. The test now compares
+    *predicted success* (mean P(correct) over the topic's questions): the
+    weak topic is predicted lowest and within 0.15 of its true 25%.
+    Strength is the cross-topic measure. 40 of 40 seeds pass.
 
 ## Consequences
 
 - Recomputing a module costs one query per table: fine for one student's
   history, but at scale it would need incremental updates.
-- Exam proximity, availability and the exam-window card cap are wired in
-  and wait for Phase 8.
+- Exam proximity, availability and the exam-window card rule were wired in
+  and are now fed by the planner (ADR 14).

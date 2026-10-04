@@ -6,16 +6,18 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     DateTime,
     Enum,
     ForeignKey,
     LargeBinary,
+    SmallInteger,
     String,
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -54,6 +56,22 @@ class UserSettings(Base):
     accent_colour: Mapped[str] = mapped_column(
         String(7), server_default="#4f46e5", default="#4f46e5"
     )
+    # Planner preferences (None: planner.yaml's defaults).
+    session_minutes: Mapped[int | None] = mapped_column(SmallInteger)
+    max_sessions_per_day: Mapped[int | None] = mapped_column(SmallInteger)
+    # Days with no planned revision (0 Monday ... 6 Sunday).
+    rest_weekdays: Mapped[list[int]] = mapped_column(
+        ARRAY(SmallInteger), server_default="{}", default=list
+    )
+    # Notifications: which kinds, the quiz reminder's hour, and quiet hours
+    # (no new reminders between quiet_from and quiet_to, local time).
+    notify_exams: Mapped[bool] = mapped_column(Boolean, server_default="true", default=True)
+    notify_quiz: Mapped[bool] = mapped_column(Boolean, server_default="true", default=True)
+    notify_neglected: Mapped[bool] = mapped_column(Boolean, server_default="true", default=True)
+    notify_flashcards: Mapped[bool] = mapped_column(Boolean, server_default="true", default=True)
+    quiz_reminder_hour: Mapped[int | None] = mapped_column(SmallInteger)
+    quiet_from: Mapped[int | None] = mapped_column(SmallInteger)
+    quiet_to: Mapped[int | None] = mapped_column(SmallInteger)
     updated_at: Mapped[UpdatedAt]
 
     user: Mapped[User] = relationship(back_populates="settings")

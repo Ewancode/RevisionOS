@@ -27,6 +27,13 @@ from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "notifications",
+    "study_sessions",
+    "revision_plans",
+    "exam_topics",
+    "exams",
+    "availability_overrides",
+    "availability_rules",
     "flashcard_reviews",
     "topic_mastery",
     "learning_profile_snapshots",

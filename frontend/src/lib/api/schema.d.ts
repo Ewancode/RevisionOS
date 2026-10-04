@@ -250,6 +250,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Availability */
+        get: operations["get_availability_api_v1_availability_get"];
+        /** Set Availability */
+        put: operations["set_availability_api_v1_availability_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/availability/overrides/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Override */
+        delete: operations["delete_override_api_v1_availability_overrides__day__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/availability/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Parse Availability
+         * @description Turn "3 hours every weekday, 1 hour at weekends" into rules to confirm.
+         *     Nothing is saved.
+         */
+        post: operations["parse_availability_api_v1_availability_parse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calendar */
+        get: operations["calendar_api_v1_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/conversations": {
         parameters: {
             query?: never;
@@ -635,6 +708,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Exams */
+        get: operations["list_exams_api_v1_exams_get"];
+        put?: never;
+        /**
+         * Create Exam
+         * @description Add an exam; the plan is remade around it.
+         */
+        post: operations["create_exam_api_v1_exams_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Exam */
+        delete: operations["delete_exam_api_v1_exams__exam_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Exam */
+        patch: operations["update_exam_api_v1_exams__exam_id__patch"];
+        trace?: never;
+    };
     "/api/v1/flashcards": {
         parameters: {
             query?: never;
@@ -987,6 +1099,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Notifications */
+        get: operations["list_notifications_api_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read All Notifications */
+        post: operations["read_all_notifications_api_v1_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read Notification */
+        post: operations["read_notification_api_v1_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pending-actions/{action_id}/cancel": {
         parameters: {
             query?: never;
@@ -1023,6 +1186,44 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Plan
+         * @description Today's sessions and the next two weeks, remade first if out of date.
+         */
+        get: operations["get_plan_api_v1_plan_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/planner/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_planner_preferences_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Preferences */
+        patch: operations["set_preferences_api_v1_planner_preferences_patch"];
         trace?: never;
     };
     "/api/v1/profile": {
@@ -1164,6 +1365,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recommendations
+         * @description What to study next, best first, each with the measurements behind it.
+         */
+        get: operations["recommendations_api_v1_recommendations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search": {
         parameters: {
             query?: never;
@@ -1175,6 +1396,63 @@ export interface paths {
         get: operations["search_api_v1_search_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/session-builder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Build Session
+         * @description "I have N minutes": a session from today's priorities, with reasons.
+         */
+        get: operations["build_session_api_v1_session_builder_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Move Session
+         * @description Move or resize a session; it is then locked, and the rest rebalances.
+         */
+        patch: operations["move_session_api_v1_sessions__session_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Session Status */
+        post: operations["session_status_api_v1_sessions__session_id__status_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1495,6 +1773,40 @@ export interface components {
             /** Weak Areas */
             weak_areas: string[];
         };
+        /** AvailabilityIn */
+        AvailabilityIn: {
+            /** Overrides */
+            overrides?: components["schemas"]["Override"][];
+            /** Weekdays */
+            weekdays: (number | null)[];
+        };
+        /** AvailabilityOut */
+        AvailabilityOut: {
+            /** Custom */
+            custom: boolean[];
+            /** Overrides */
+            overrides: {
+                [key: string]: unknown;
+            }[];
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /** AvailabilityProposal */
+        AvailabilityProposal: {
+            /** Dates */
+            dates: {
+                [key: string]: unknown;
+            }[];
+            /** Note */
+            note: string;
+            /** Weekdays */
+            weekdays: (number | null)[];
+        };
+        /** AvailabilityText */
+        AvailabilityText: {
+            /** Text */
+            text: string;
+        };
         /** Breakdown */
         Breakdown: {
             /** Key */
@@ -1524,6 +1836,70 @@ export interface components {
             spent_today: number;
             /** Warning */
             warning: boolean;
+        };
+        /** BuiltBlock */
+        BuiltBlock: {
+            /** Action */
+            action: {
+                [key: string]: unknown;
+            };
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "flashcards" | "mistake_drill" | "topic";
+            /** Minutes */
+            minutes: number;
+            /** Reason */
+            reason: string;
+            /** Title */
+            title: string;
+        };
+        /** BuiltSession */
+        BuiltSession: {
+            /** Blocks */
+            blocks: components["schemas"]["BuiltBlock"][];
+            /** Minutes */
+            minutes: number;
+            /** Summary */
+            summary: string;
+        };
+        /** CalendarDay */
+        CalendarDay: {
+            /** Available Minutes */
+            available_minutes: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Due Cards */
+            due_cards: number;
+            /** Exams */
+            exams: components["schemas"]["ExamOut"][];
+            /** Quizzes */
+            quizzes: {
+                [key: string]: unknown;
+            }[];
+            /** Reviews */
+            reviews: number;
+            /** Sessions */
+            sessions: components["schemas"]["StudySessionOut"][];
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /** Days */
+            days: components["schemas"]["CalendarDay"][];
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -1841,6 +2217,88 @@ export interface components {
             counts: {
                 [key: string]: number;
             };
+        };
+        /** ExamIn */
+        ExamIn: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Duration Minutes */
+            duration_minutes: number;
+            /** Location */
+            location?: string | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
+            /** Topic Ids */
+            topic_ids?: string[];
+            /** Weighting */
+            weighting?: number | null;
+        };
+        /** ExamOut */
+        ExamOut: {
+            /** Confidence */
+            confidence: number | null;
+            /** Days Until */
+            days_until: number;
+            /** Duration Minutes */
+            duration_minutes: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Location */
+            location: string | null;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
+            /** Topic Ids */
+            topic_ids: string[];
+            /** Weighting */
+            weighting: number | null;
+        };
+        /** ExamUpdate */
+        ExamUpdate: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
+            /** Location */
+            location?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Topic Ids */
+            topic_ids?: string[] | null;
+            /** Weighting */
+            weighting?: number | null;
         };
         /** FlashcardCreate */
         FlashcardCreate: {
@@ -2299,6 +2757,45 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** NotificationOut */
+        NotificationOut: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /** Link */
+            link: string | null;
+            /** Read At */
+            read_at: string | null;
+            /** Title */
+            title: string;
+        };
+        /** NotificationsOut */
+        NotificationsOut: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
+        };
+        /** Override */
+        Override: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Minutes */
+            minutes: number;
+            /** Note */
+            note?: string | null;
+        };
         /** PageCorrection */
         PageCorrection: {
             /** Markdown */
@@ -2430,6 +2927,78 @@ export interface components {
             title: string;
             /** Topic Id */
             topic_id: string | null;
+        };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Ends
+             * Format: date
+             */
+            ends: string;
+            /** Exams */
+            exams: components["schemas"]["ExamOut"][];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Shortfalls */
+            shortfalls: components["schemas"]["Shortfall"][];
+            /**
+             * Starts
+             * Format: date
+             */
+            starts: string;
+            /** Today */
+            today: components["schemas"]["StudySessionOut"][];
+            /** Upcoming */
+            upcoming: components["schemas"]["StudySessionOut"][];
+        };
+        /** PreferencesIn */
+        PreferencesIn: {
+            /** Max Sessions Per Day */
+            max_sessions_per_day?: number | null;
+            /** Notify Exams */
+            notify_exams?: boolean | null;
+            /** Notify Flashcards */
+            notify_flashcards?: boolean | null;
+            /** Notify Neglected */
+            notify_neglected?: boolean | null;
+            /** Notify Quiz */
+            notify_quiz?: boolean | null;
+            /** Quiet From */
+            quiet_from?: number | null;
+            /** Quiet To */
+            quiet_to?: number | null;
+            /** Quiz Reminder Hour */
+            quiz_reminder_hour?: number | null;
+            /** Rest Weekdays */
+            rest_weekdays?: number[] | null;
+            /** Session Minutes */
+            session_minutes?: number | null;
+        };
+        /** PreferencesOut */
+        PreferencesOut: {
+            /** Max Sessions Per Day */
+            max_sessions_per_day: number;
+            /** Notify Exams */
+            notify_exams: boolean;
+            /** Notify Flashcards */
+            notify_flashcards: boolean;
+            /** Notify Neglected */
+            notify_neglected: boolean;
+            /** Notify Quiz */
+            notify_quiz: boolean;
+            /** Quiet From */
+            quiet_from: number | null;
+            /** Quiet To */
+            quiet_to: number | null;
+            /** Quiz Reminder Hour */
+            quiz_reminder_hour: number;
+            /** Rest Weekdays */
+            rest_weekdays: number[];
+            /** Session Minutes */
+            session_minutes: number;
         };
         /** ProfileOut */
         ProfileOut: {
@@ -2656,10 +3225,30 @@ export interface components {
             /** Widened */
             widened: boolean;
         };
+        /** SessionMove */
+        SessionMove: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Minutes */
+            minutes?: number | null;
+        };
         /** SessionOut */
         SessionOut: {
             settings: components["schemas"]["SettingsOut"];
             user: components["schemas"]["UserOut"];
+        };
+        /** SessionStatusIn */
+        SessionStatusIn: {
+            /** Actual Minutes */
+            actual_minutes?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "done" | "skipped" | "missed" | "planned";
         };
         /** SettingsOut */
         SettingsOut: {
@@ -2679,6 +3268,73 @@ export interface components {
             display_name?: string | null;
             /** Theme */
             theme?: ("light" | "dark" | "system") | null;
+        };
+        /** Shortfall */
+        Shortfall: {
+            /** Available Minutes */
+            available_minutes: number;
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /** Left Out */
+            left_out: string[];
+            /** Needed Minutes */
+            needed_minutes: number;
+            /** Planned Minutes */
+            planned_minutes: number;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "time" | "spacing";
+            /** Title */
+            title: string;
+        };
+        /** StudySessionOut */
+        StudySessionOut: {
+            /** Actual Minutes */
+            actual_minutes: number | null;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Exam Id */
+            exam_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "topic" | "mock_exam";
+            /** Locked */
+            locked: boolean;
+            /** Minutes */
+            minutes: number;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "planned" | "done" | "missed" | "skipped";
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
         };
         /** TopicCreate */
         TopicCreate: {
@@ -3498,6 +4154,155 @@ export interface operations {
             };
         };
     };
+    get_availability_api_v1_availability_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+        };
+    };
+    set_availability_api_v1_availability_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_override_api_v1_availability_overrides__day__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parse_availability_api_v1_availability_parse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvailabilityText"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityProposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    calendar_api_v1_calendar_get: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_conversations_api_v1_conversations_get: {
         parameters: {
             query?: never;
@@ -4311,6 +5116,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SavedDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_exams_api_v1_exams_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_exam_api_v1_exams_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_exam_api_v1_exams__exam_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_exam_api_v1_exams__exam_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
                 };
             };
             /** @description Validation Error */
@@ -5240,6 +6173,73 @@ export interface operations {
             };
         };
     };
+    list_notifications_api_v1_notifications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsOut"];
+                };
+            };
+        };
+    };
+    read_all_notifications_api_v1_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    read_notification_api_v1_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     cancel_pending_action_api_v1_pending_actions__action_id__cancel_post: {
         parameters: {
             query?: never;
@@ -5289,6 +6289,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PendingActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_api_v1_plan_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+        };
+    };
+    get_preferences_api_v1_planner_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
+                };
+            };
+        };
+    };
+    set_preferences_api_v1_planner_preferences_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
                 };
             };
             /** @description Validation Error */
@@ -5520,6 +6593,37 @@ export interface operations {
             };
         };
     };
+    recommendations_api_v1_recommendations_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuiltBlock"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     search_api_v1_search_get: {
         parameters: {
             query: {
@@ -5541,6 +6645,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    build_session_api_v1_session_builder_get: {
+        parameters: {
+            query: {
+                minutes: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuiltSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_session_api_v1_sessions__session_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionMove"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudySessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    session_status_api_v1_sessions__session_id__status_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionStatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudySessionOut"];
                 };
             };
             /** @description Validation Error */

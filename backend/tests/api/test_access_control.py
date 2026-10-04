@@ -20,16 +20,20 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
+    AvailabilityOverride,
     Draft,
+    Exam,
     Flashcard,
     Material,
     MaterialVersion,
+    Notification,
     PendingAction,
     Question,
     QuestionAttempt,
     Quiz,
     QuizAttempt,
     QuizItem,
+    StudySession,
     User,
 )
 from tests import factories
@@ -227,6 +231,38 @@ async def _seed_practice(db: AsyncSession, owner: User, ids: dict[str, str]) -> 
     }
 
 
+async def _seed_planner(db: AsyncSession, owner: User, ids: dict[str, str]) -> None:
+    """A's exam, planned session and notification."""
+    module = uuid.UUID(ids["module"])
+    exam = Exam(
+        id=uuid.uuid4(),
+        user_id=owner.id,
+        module_id=module,
+        title="Final",
+        starts_at=datetime.now(UTC) + timedelta(days=30),
+        duration_minutes=120,
+    )
+    session = StudySession(
+        id=uuid.uuid4(),
+        user_id=owner.id,
+        module_id=module,
+        kind="topic",
+        day=(datetime.now(UTC) + timedelta(days=2)).date(),
+        minutes=45,
+    )
+    note = Notification(user_id=owner.id, kind="exam", title="t", dedupe_key="k")
+    day = (datetime.now(UTC) + timedelta(days=3)).date()
+    override = AvailabilityOverride(user_id=owner.id, day=day, minutes=30)
+    db.add_all([exam, session, note, override])
+    await db.commit()
+    ids |= {
+        "exam": str(exam.id),
+        "session": str(session.id),
+        "notification": str(note.id),
+        "override_day": day.isoformat(),
+    }
+
+
 # (method, path template, json body) — every route that takes a resource id.
 ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("PATCH", "/api/v1/years/{year}", {"label": "pwned"}),
@@ -286,6 +322,23 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("DELETE", "/api/v1/flashcards/{flashcard}", None),
     ("POST", "/api/v1/flashcards/{trashed_flashcard}/restore", None),
     ("POST", "/api/v1/flashcards/{flashcard}/review", {"rating": 3}),
+    # Phase 8: the planner.
+    (
+        "POST",
+        "/api/v1/exams",
+        {
+            "module_id": "{module}",
+            "title": "x",
+            "starts_at": "2026-12-01T09:00:00Z",
+            "duration_minutes": 60,
+        },
+    ),
+    ("PATCH", "/api/v1/exams/{exam}", {"title": "pwned"}),
+    ("DELETE", "/api/v1/exams/{exam}", None),
+    ("PATCH", "/api/v1/sessions/{session}", {"day": "2030-01-01"}),
+    ("POST", "/api/v1/sessions/{session}/status", {"status": "done"}),
+    ("POST", "/api/v1/notifications/{notification}/read", None),
+    ("DELETE", "/api/v1/availability/overrides/{override_day}", None),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}"}),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}", "question_ids": ["{question}"]}),
     ("POST", "/api/v1/quizzes/{quiz}/attempts", None),
@@ -323,6 +376,7 @@ async def test_other_users_resources_are_invisible(
         ids = await _seed_owner(a, tmp_path)
         await _seed_pending_action(db, owner, ids)
         await _seed_practice(db, owner, ids)
+        await _seed_planner(db, owner, ids)
         before_tree = (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json()
         before_years = (await a.get("/api/v1/years")).json()
         before_trash = (await a.get("/api/v1/trash")).json()

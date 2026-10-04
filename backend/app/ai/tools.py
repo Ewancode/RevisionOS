@@ -328,6 +328,33 @@ class _NoJobs:
         raise RuntimeError("reading progress queues no jobs")
 
 
+class SessionInput(_Input):
+    minutes: int = Field(ge=10, le=240, description="How long the student has, in minutes.")
+
+
+async def plan_session(ctx: ToolContext, args: SessionInput) -> ToolOutput:
+    """'I have N minutes': the planner's session, with its real reasons."""
+    # Imported here: planner -> learning -> quizzes -> ... -> chat -> tools.
+    from app.services.planner import PlannerService
+
+    planner = PlannerService(ctx.db, ctx.user_id, ctx.client, config=ctx.config)
+    built = await planner.build_session(args.minutes)
+    lines = [built.summary, "", "Blocks (title, minutes, why):"]
+    lines += [f"- {b.title}: {b.minutes} min. Why: {b.reason}" for b in built.blocks]
+    upcoming = [e for e in await planner.exams() if e.days_until >= 0]
+    if upcoming:
+        lines.append("")
+        lines.append(
+            "Upcoming exams: "
+            + "; ".join(f"{e.module_code} {e.title} in {e.days_until} days" for e in upcoming[:4])
+        )
+    lines.append(
+        "Present this session with its reasons, using only these numbers. The student "
+        "can start each part from the app (flashcard review, mistake bank, practice)."
+    )
+    return ToolOutput("\n".join(lines))
+
+
 # --- draft tools (preview before anything is saved) --------------------------------------
 
 MaterialKindName = Literal[
@@ -496,6 +523,17 @@ TOOLS: dict[str, Tool] = {
             ProgressInput,
             get_progress,
             lambda _: "Looking at your progress",
+        ),
+        Tool(
+            "plan_session",
+            'Build a revision session for the time the student has ("I have 45 minutes", '
+            '"what should I study next?"), from the planner\'s real priorities: due '
+            "flashcards, recurring mistakes and the topics most in need, with exam urgency. "
+            "Returns each part with its reason.",
+            "read",
+            SessionInput,
+            plan_session,
+            lambda a: f"Planning {a.minutes} minutes",
         ),
         Tool(
             "start_draft",

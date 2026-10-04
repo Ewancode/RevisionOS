@@ -89,13 +89,15 @@ The weights are 1.0, 0.6, 1.0, 0.8 and 0.5. The terms:
 
 - **overdue** rises from 0 just after practice to 1 at 7 days (or if never
   practised);
-- **urgency** is exam proximity, which is 0 until Phase 8;
+- **urgency** is exam proximity, 1 / (1 + days to the topic's next exam / 10),
+  and 0 for a topic with no exam;
 - **recurring** is 1 if the topic has a recurring mistake;
 - **gap** is 1 − min(1, answers / 3).
 
 How the quiz is built:
 
-1. **Length:** the minutes available (default 15) divided by your median time
+1. **Length:** the minutes the planner keeps for the quiz (15% of the day's
+   availability, 5-20 minutes; default 15) divided by your median time
    per question (default 90 s), clamped to 5-20 questions.
 2. **Allocation:**
    - questions are shared out in proportion to priority (largest-remainder
@@ -170,6 +172,124 @@ Each run checks that:
 - the first quiz spreads evenly;
 - in the last week the weak topic gets the most practice and the strong one
   the least;
-- strength and ability rank the topics in their true order.
+- strength ranks the topics in their true order;
+- the weak topic's *predicted success* (mean P(correct) over its questions)
+  is the lowest and within 0.15 of its true 25%.
+
+Elo ability is not compared across topics: it is fitted together with each
+topic's own question ratings, so only P(correct) against those questions
+means anything, and a rarely practised strong topic stays near 1500. (An
+earlier version of this page claimed the abilities came out in order; that
+check was unsound and flaky, see ADR 13.)
 
 In the reference run the estimated strengths were 93%, 65% and 30%.
+
+## Revision planner (`app/planner`)
+
+All numbers are in `config/planner.yaml`.
+
+### Time available
+
+For each day: an exception for that date if you set one; else 0 on a rest
+day; else your weekly hours for that weekday; else the default (2 h on
+weekdays, 1 h at weekends). From that the planner keeps back:
+
+- **daily quiz:** 15% of the day, 5-20 minutes (none if you have no
+  questions);
+- **flashcards:** the cards due that day × 20 s, at most 30 minutes.
+
+What is left is the day's **capacity** for planned sessions.
+
+### Need
+
+For each topic on an exam (all the module's topics, or the ones you chose):
+
+```latex
+\text{need} = 300 \times \frac{\text{weighting}}{100} \times (1 - \text{strength}) \times (1 + 0.5\,\text{gap}) \times (1 + 0.1\,(3 - \text{confidence}))
+```
+
+Weighting defaults to 100% and the confidence factor to 1 when not given.
+Topics with no exam get light upkeep: 30 × (days in the plan / 14) ×
+2 (1 − strength) minutes, at 0.3 of the priority.
+
+Both are then multiplied by the topic's **importance** factor,
+1 + 0.15 (importance − 3), from the importance (1-5, default 3) you set in
+the topic tree: 0.7 for a 1, 1.3 for a 5. A topic not at 3 shows
+"importance n/5" in its reasons.
+
+### Allocation (`allocator.py`)
+
+A pure, deterministic function, tested with Hypothesis properties.
+
+1. One **mock exam** per exam, on the day with room nearest to 4 days before.
+2. Days are filled in order. On each day, blocks (default 45 minutes, at
+   least 20) go to the topic with the highest key:
+   - first, any exam topic that has no time yet (so every exam topic is
+     covered before any gets a second block);
+   - then priority = need left / 300 × urgency × factor, where
+     urgency = 1 / (1 + days to exam / 10), and the factor is 0.7 if the
+     previous block was the same module (modules interleave).
+3. Rules:
+   - at most one block per topic a day, and at most 3 sessions a day;
+   - the same topic at least 2 days apart, except in its exam's last 3 days;
+   - nothing for a topic on or after its exam's day;
+   - never more than the day's capacity.
+4. Sessions you moved are **locked**: they stay put, use their day's
+   capacity and count towards their topic's need.
+5. If an exam's need can't be met, a **shortfall** is reported, not crammed:
+   - "time" when there are not enough minutes before the exam;
+   - "spacing" when there are minutes, but the spacing rules leave them
+     unused (too few days left).
+
+### Replanning
+
+There is no scheduler. The plan is rebuilt when you read it and:
+
+- it was made on an earlier day (in your time zone), or
+- any topic's mastery was recomputed since (you practised).
+
+Changing exams, availability or preferences, or moving a session, replans
+at once. Rebuilding marks past planned sessions as missed, deletes future
+unlocked planned ones, and keeps done, missed and locked sessions.
+
+### "I have N minutes" (`session_builder.py`)
+
+From the minutes you have (10-240):
+
+1. **due flashcards**, up to 35% of the time;
+2. a 10-minute **drill** on a recurring mistake, if you have one (the one whose
+   topic has the nearest exam, then the most frequent);
+3. the rest on the highest-priority topic today (same priority as the
+   allocator), split over the top two topics above 40 minutes.
+
+Each block's reason quotes the measurements behind it, for example
+"est. 30% · 4 mistakes in 30 days · last practised 6 days ago · MATH101 exam
+in 34 days". The assistant's `plan_session` tool returns the same session.
+
+### Recommended next
+
+"What should I study next?" (SPEC 71) uses the same ranking, best first:
+
+1. due flashcards, if 10 or more are due;
+2. then the topics with the highest priority today, each with its factors
+   (strength, importance, recent mistakes, last practice, the exam) and any
+   recurring mistake in it.
+
+Today shows the top three.
+
+### Exams and flashcards
+
+In an exam's final 14 days, every card of that module not reviewed since the
+window opened is due, so each one is seen at least once before the exam.
+
+### Notifications (`notifications.py`)
+
+Made when you open the app, each at most once (a dedupe key per reminder):
+
+- an exam 14, 7 and 1 days away;
+- today's quiz not done after 18:00 (your reminder hour);
+- an exam topic not practised for 9 days;
+- 10 or more flashcards due.
+
+Each kind can be switched off, and none are made in your quiet hours. Read
+reminders older than 30 days are deleted.

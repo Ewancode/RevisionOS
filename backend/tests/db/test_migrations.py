@@ -72,6 +72,13 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
         "flashcard_reviews",
         "topic_mastery",
         "learning_profile_snapshots",
+        "exams",
+        "exam_topics",
+        "availability_rules",
+        "availability_overrides",
+        "revision_plans",
+        "study_sessions",
+        "notifications",
     } <= set(tables)
     assert enums == [
         "ai_interaction_status",
@@ -94,6 +101,8 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
         "question_status",
         "question_type",
         "quiz_kind",
+        "session_kind",
+        "session_status",
         "source_tier",
         "study_material_kind",
         "theme",

@@ -8,7 +8,7 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 7 (adaptive learning). Phase 2 brought
+**Status:** Phase 8 (revision planner). Phase 2 brought
 sign-in with secure sessions, academic years, modules and topic trees,
 theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
@@ -27,8 +27,14 @@ photos of handwritten working, with explanations of every mistake. Phase 7
 makes practice adaptive: a daily quiz that leans towards your weak topics and
 recurring mistakes (explaining why), flashcards scheduled by FSRS, a topic
 strength estimate shown with its evidence, a mistake bank and a learning
-profile built only from what you did. The formulas are in
-[docs/algorithms.md](docs/algorithms.md).
+profile built only from what you did. Phase 8 adds the revision planner:
+add your exams and when you can revise (or describe it in words), and it
+spreads sessions before each exam, weakest topics first, with a mock exam a
+few days before and a reason for every session. It replans as you practise,
+keeps sessions you move, says plainly when there isn't enough time, and
+answers "I have 45 minutes" with an explained session. A calendar shows the
+plan, quizzes and reviews; reminders appear under the bell. The formulas are
+in [docs/algorithms.md](docs/algorithms.md).
 
 ## Layout
 
@@ -36,7 +42,7 @@ profile built only from what you did. The formulas are in
 backend/    FastAPI API + Arq worker (Python 3.12, uv)
   app/        api/v1/ (routers) → services/ (rules) → repositories/ (user-scoped
               data access) → models/; core/ (settings, config, security, errors)
-  config/     learning.yaml, ai.yaml, platform.yaml — every tunable number,
+  config/     learning.yaml, planner.yaml, ai.yaml, platform.yaml — every tunable number,
               validated at startup
   migrations/ Alembic
   tests/      unit/, api/, db/

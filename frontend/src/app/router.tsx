@@ -5,6 +5,8 @@ import { ChatPage } from "@/features/chat/ChatPage";
 import { UsagePage } from "@/features/chat/UsagePage";
 import { Dashboard } from "@/features/dashboard/Dashboard";
 import { DocumentPage } from "@/features/documents/DocumentPage";
+import { CalendarPage } from "@/features/planner/CalendarPage";
+import { PlannerPage } from "@/features/planner/PlannerPage";
 import { MistakesPage } from "@/features/learning/MistakesPage";
 import { ProfilePage } from "@/features/learning/ProfilePage";
 import { ReviewSession } from "@/features/learning/ReviewSession";
@@ -172,6 +174,16 @@ const mistakesRoute = createRoute({
 
 const profileRoute = createRoute({ getParentRoute: () => appRoute, path: "/profile", component: ProfilePage });
 
+const plannerRoute = createRoute({ getParentRoute: () => appRoute, path: "/planner", component: PlannerPage });
+
+const calendarRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/calendar",
+  component: function CalendarRouteView() {
+    return <CalendarPage />;
+  },
+});
+
 const usageRoute = createRoute({ getParentRoute: () => appRoute, path: "/usage", component: UsagePage });
 
 const settingsRoute = createRoute({
@@ -198,6 +210,8 @@ export const routeTree = rootRoute.addChildren([
     reviewRoute,
     mistakesRoute,
     profileRoute,
+    plannerRoute,
+    calendarRoute,
     usageRoute,
     settingsRoute,
   ]),

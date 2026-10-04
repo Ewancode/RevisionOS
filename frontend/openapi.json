@@ -516,6 +516,128 @@
         "title": "AttemptSummary",
         "type": "object"
       },
+      "AvailabilityIn": {
+        "additionalProperties": false,
+        "properties": {
+          "overrides": {
+            "items": {
+              "$ref": "#/components/schemas/Override"
+            },
+            "maxItems": 366,
+            "title": "Overrides",
+            "type": "array"
+          },
+          "weekdays": {
+            "items": {
+              "anyOf": [
+                {
+                  "maximum": 1440.0,
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "required": [
+          "weekdays"
+        ],
+        "title": "AvailabilityIn",
+        "type": "object"
+      },
+      "AvailabilityOut": {
+        "properties": {
+          "custom": {
+            "items": {
+              "type": "boolean"
+            },
+            "title": "Custom",
+            "type": "array"
+          },
+          "overrides": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Overrides",
+            "type": "array"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "required": [
+          "weekdays",
+          "custom",
+          "overrides"
+        ],
+        "title": "AvailabilityOut",
+        "type": "object"
+      },
+      "AvailabilityProposal": {
+        "properties": {
+          "dates": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Dates",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "weekdays": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "required": [
+          "weekdays",
+          "dates",
+          "note"
+        ],
+        "title": "AvailabilityProposal",
+        "type": "object"
+      },
+      "AvailabilityText": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "AvailabilityText",
+        "type": "object"
+      },
       "Breakdown": {
         "properties": {
           "key": {
@@ -590,6 +712,153 @@
           "configured"
         ],
         "title": "BudgetOut",
+        "type": "object"
+      },
+      "BuiltBlock": {
+        "properties": {
+          "action": {
+            "additionalProperties": true,
+            "title": "Action",
+            "type": "object"
+          },
+          "kind": {
+            "enum": [
+              "flashcards",
+              "mistake_drill",
+              "topic"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "title",
+          "minutes",
+          "reason",
+          "action"
+        ],
+        "title": "BuiltBlock",
+        "type": "object"
+      },
+      "BuiltSession": {
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/BuiltBlock"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "minutes",
+          "summary",
+          "blocks"
+        ],
+        "title": "BuiltSession",
+        "type": "object"
+      },
+      "CalendarDay": {
+        "properties": {
+          "available_minutes": {
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "due_cards": {
+            "title": "Due Cards",
+            "type": "integer"
+          },
+          "exams": {
+            "items": {
+              "$ref": "#/components/schemas/ExamOut"
+            },
+            "title": "Exams",
+            "type": "array"
+          },
+          "quizzes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Quizzes",
+            "type": "array"
+          },
+          "reviews": {
+            "title": "Reviews",
+            "type": "integer"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/StudySessionOut"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "day",
+          "available_minutes",
+          "sessions",
+          "exams",
+          "quizzes",
+          "reviews",
+          "due_cards"
+        ],
+        "title": "CalendarDay",
+        "type": "object"
+      },
+      "CalendarOut": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "days"
+        ],
+        "title": "CalendarOut",
         "type": "object"
       },
       "ChangePasswordRequest": {
@@ -1434,6 +1703,316 @@
           "counts"
         ],
         "title": "DueCards",
+        "type": "object"
+      },
+      "ExamIn": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "duration_minutes": {
+            "maximum": 600.0,
+            "minimum": 1.0,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Topic Ids",
+            "type": "array"
+          },
+          "weighting": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighting"
+          }
+        },
+        "required": [
+          "module_id",
+          "title",
+          "starts_at",
+          "duration_minutes"
+        ],
+        "title": "ExamIn",
+        "type": "object"
+      },
+      "ExamOut": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "days_until": {
+            "title": "Days Until",
+            "type": "integer"
+          },
+          "duration_minutes": {
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Topic Ids",
+            "type": "array"
+          },
+          "weighting": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighting"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "module_code",
+          "title",
+          "starts_at",
+          "duration_minutes",
+          "location",
+          "weighting",
+          "confidence",
+          "notes",
+          "topic_ids",
+          "days_until"
+        ],
+        "title": "ExamOut",
+        "type": "object"
+      },
+      "ExamUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "maximum": 600.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "topic_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "maxItems": 200,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Ids"
+          },
+          "weighting": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighting"
+          }
+        },
+        "title": "ExamUpdate",
         "type": "object"
       },
       "FlashcardCreate": {
@@ -2689,6 +3268,120 @@
         "title": "NamedTopic",
         "type": "object"
       },
+      "NotificationOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "link",
+          "read_at",
+          "created_at"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
+      "NotificationsOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unread": {
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unread",
+          "items"
+        ],
+        "title": "NotificationsOut",
+        "type": "object"
+      },
+      "Override": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "day",
+          "minutes"
+        ],
+        "title": "Override",
+        "type": "object"
+      },
       "PageCorrection": {
         "additionalProperties": false,
         "properties": {
@@ -2985,6 +3678,272 @@
           "reasons"
         ],
         "title": "PlanBucket",
+        "type": "object"
+      },
+      "PlanOut": {
+        "properties": {
+          "ends": {
+            "format": "date",
+            "title": "Ends",
+            "type": "string"
+          },
+          "exams": {
+            "items": {
+              "$ref": "#/components/schemas/ExamOut"
+            },
+            "title": "Exams",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "shortfalls": {
+            "items": {
+              "$ref": "#/components/schemas/Shortfall"
+            },
+            "title": "Shortfalls",
+            "type": "array"
+          },
+          "starts": {
+            "format": "date",
+            "title": "Starts",
+            "type": "string"
+          },
+          "today": {
+            "items": {
+              "$ref": "#/components/schemas/StudySessionOut"
+            },
+            "title": "Today",
+            "type": "array"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/StudySessionOut"
+            },
+            "title": "Upcoming",
+            "type": "array"
+          }
+        },
+        "required": [
+          "generated_at",
+          "starts",
+          "ends",
+          "shortfalls",
+          "today",
+          "upcoming",
+          "exams"
+        ],
+        "title": "PlanOut",
+        "type": "object"
+      },
+      "PreferencesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "max_sessions_per_day": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Sessions Per Day"
+          },
+          "notify_exams": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify Exams"
+          },
+          "notify_flashcards": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify Flashcards"
+          },
+          "notify_neglected": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify Neglected"
+          },
+          "notify_quiz": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify Quiz"
+          },
+          "quiet_from": {
+            "anyOf": [
+              {
+                "maximum": 23.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet From"
+          },
+          "quiet_to": {
+            "anyOf": [
+              {
+                "maximum": 23.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet To"
+          },
+          "quiz_reminder_hour": {
+            "anyOf": [
+              {
+                "maximum": 23.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiz Reminder Hour"
+          },
+          "rest_weekdays": {
+            "anyOf": [
+              {
+                "items": {
+                  "maximum": 6.0,
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 7,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rest Weekdays"
+          },
+          "session_minutes": {
+            "anyOf": [
+              {
+                "maximum": 240.0,
+                "minimum": 15.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Minutes"
+          }
+        },
+        "title": "PreferencesIn",
+        "type": "object"
+      },
+      "PreferencesOut": {
+        "properties": {
+          "max_sessions_per_day": {
+            "title": "Max Sessions Per Day",
+            "type": "integer"
+          },
+          "notify_exams": {
+            "title": "Notify Exams",
+            "type": "boolean"
+          },
+          "notify_flashcards": {
+            "title": "Notify Flashcards",
+            "type": "boolean"
+          },
+          "notify_neglected": {
+            "title": "Notify Neglected",
+            "type": "boolean"
+          },
+          "notify_quiz": {
+            "title": "Notify Quiz",
+            "type": "boolean"
+          },
+          "quiet_from": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet From"
+          },
+          "quiet_to": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet To"
+          },
+          "quiz_reminder_hour": {
+            "title": "Quiz Reminder Hour",
+            "type": "integer"
+          },
+          "rest_weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rest Weekdays",
+            "type": "array"
+          },
+          "session_minutes": {
+            "title": "Session Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_minutes",
+          "max_sessions_per_day",
+          "rest_weekdays",
+          "notify_exams",
+          "notify_quiz",
+          "notify_neglected",
+          "notify_flashcards",
+          "quiz_reminder_hour",
+          "quiet_from",
+          "quiet_to"
+        ],
+        "title": "PreferencesOut",
         "type": "object"
       },
       "ProfileOut": {
@@ -3654,6 +4613,34 @@
         "title": "SearchOut",
         "type": "object"
       },
+      "SessionMove": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "maximum": 480.0,
+                "minimum": 5.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          }
+        },
+        "required": [
+          "day"
+        ],
+        "title": "SessionMove",
+        "type": "object"
+      },
       "SessionOut": {
         "properties": {
           "settings": {
@@ -3668,6 +4655,39 @@
           "settings"
         ],
         "title": "SessionOut",
+        "type": "object"
+      },
+      "SessionStatusIn": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "status": {
+            "enum": [
+              "done",
+              "skipped",
+              "missed",
+              "planned"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "SessionStatusIn",
         "type": "object"
       },
       "SettingsOut": {
@@ -3739,6 +4759,166 @@
           }
         },
         "title": "SettingsUpdate",
+        "type": "object"
+      },
+      "Shortfall": {
+        "properties": {
+          "available_minutes": {
+            "title": "Available Minutes",
+            "type": "integer"
+          },
+          "exam_id": {
+            "format": "uuid",
+            "title": "Exam Id",
+            "type": "string"
+          },
+          "left_out": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Left Out",
+            "type": "array"
+          },
+          "needed_minutes": {
+            "title": "Needed Minutes",
+            "type": "integer"
+          },
+          "planned_minutes": {
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "time",
+              "spacing"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exam_id",
+          "title",
+          "needed_minutes",
+          "planned_minutes",
+          "available_minutes",
+          "left_out",
+          "reason"
+        ],
+        "title": "Shortfall",
+        "type": "object"
+      },
+      "StudySessionOut": {
+        "properties": {
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "exam_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "topic",
+              "mock_exam"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "done",
+              "missed",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "module_code",
+          "topic_id",
+          "title",
+          "exam_id",
+          "kind",
+          "day",
+          "minutes",
+          "status",
+          "locked",
+          "actual_minutes",
+          "reason"
+        ],
+        "title": "StudySessionOut",
         "type": "object"
       },
       "TopicCreate": {
@@ -5334,6 +6514,204 @@
         ]
       }
     },
+    "/api/v1/availability": {
+      "get": {
+        "operationId": "get_availability_api_v1_availability_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Availability",
+        "tags": [
+          "planner"
+        ]
+      },
+      "put": {
+        "operationId": "set_availability_api_v1_availability_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Availability",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/availability/overrides/{day}": {
+      "delete": {
+        "operationId": "delete_override_api_v1_availability_overrides__day__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Override",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/availability/parse": {
+      "post": {
+        "description": "Turn \"3 hours every weekday, 1 hour at weekends\" into rules to confirm.\nNothing is saved.",
+        "operationId": "parse_availability_api_v1_availability_parse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityText"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityProposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parse Availability",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/calendar": {
+      "get": {
+        "operationId": "calendar_api_v1_calendar_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "End",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Calendar",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
     "/api/v1/conversations": {
       "get": {
         "operationId": "list_conversations_api_v1_conversations_get",
@@ -6575,6 +7953,187 @@
         "summary": "Save Draft",
         "tags": [
           "materials"
+        ]
+      }
+    },
+    "/api/v1/exams": {
+      "get": {
+        "operationId": "list_exams_api_v1_exams_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExamOut"
+                  },
+                  "title": "Response List Exams Api V1 Exams Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Exams",
+        "tags": [
+          "planner"
+        ]
+      },
+      "post": {
+        "description": "Add an exam; the plan is remade around it.",
+        "operationId": "create_exam_api_v1_exams_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Exam",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/exams/{exam_id}": {
+      "delete": {
+        "operationId": "delete_exam_api_v1_exams__exam_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exam_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exam Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Exam",
+        "tags": [
+          "planner"
+        ]
+      },
+      "patch": {
+        "operationId": "update_exam_api_v1_exams__exam_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exam_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exam Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Exam",
+        "tags": [
+          "planner"
         ]
       }
     },
@@ -7926,6 +9485,76 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "list_notifications_api_v1_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Notifications",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "post": {
+        "operationId": "read_all_notifications_api_v1_notifications_read_all_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Read All Notifications",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "read_notification_api_v1_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "title": "Notification Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Notification",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
     "/api/v1/pending-actions/{action_id}/cancel": {
       "post": {
         "operationId": "cancel_pending_action_api_v1_pending_actions__action_id__cancel_post",
@@ -8010,6 +9639,88 @@
         "summary": "Confirm Pending Action",
         "tags": [
           "chat"
+        ]
+      }
+    },
+    "/api/v1/plan": {
+      "get": {
+        "description": "Today's sessions and the next two weeks, remade first if out of date.",
+        "operationId": "get_plan_api_v1_plan_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Plan",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/planner/preferences": {
+      "get": {
+        "operationId": "get_preferences_api_v1_planner_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Preferences",
+        "tags": [
+          "planner"
+        ]
+      },
+      "patch": {
+        "operationId": "set_preferences_api_v1_planner_preferences_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Preferences",
+        "tags": [
+          "planner"
         ]
       }
     },
@@ -8443,6 +10154,56 @@
         ]
       }
     },
+    "/api/v1/recommendations": {
+      "get": {
+        "description": "What to study next, best first, each with the measurements behind it.",
+        "operationId": "recommendations_api_v1_recommendations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 3,
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BuiltBlock"
+                  },
+                  "title": "Response Recommendations Api V1 Recommendations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recommendations",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
     "/api/v1/search": {
       "get": {
         "operationId": "search_api_v1_search_get",
@@ -8535,6 +10296,158 @@
         "summary": "Search",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/session-builder": {
+      "get": {
+        "description": "\"I have N minutes\": a session from today's priorities, with reasons.",
+        "operationId": "build_session_api_v1_session_builder_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "minutes",
+            "required": true,
+            "schema": {
+              "maximum": 1440,
+              "minimum": 1,
+              "title": "Minutes",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuiltSession"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Build Session",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "patch": {
+        "description": "Move or resize a session; it is then locked, and the rest rebalances.",
+        "operationId": "move_session_api_v1_sessions__session_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionMove"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudySessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Move Session",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/status": {
+      "post": {
+        "operationId": "session_status_api_v1_sessions__session_id__status_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionStatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudySessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Session Status",
+        "tags": [
+          "planner"
         ]
       }
     },

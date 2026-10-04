@@ -492,6 +492,72 @@ class PracticeConfig(_Strict):
     quizzes: QuizzesConfig
 
 
+# --- planner.yaml --------------------------------------------------------------
+
+
+class AllocationConfig(_Strict):
+    session_minutes: PositiveInt
+    max_sessions_per_day: PositiveInt
+    min_block_minutes: PositiveInt
+    need_scale_minutes: PositiveInt
+    coverage_bonus: NonNegative
+    confidence_step: NonNegative
+    importance_step: Annotated[float, Field(ge=0, le=0.5)]
+    maintenance_minutes: NonNegative
+    maintenance_priority: NonNegative
+    min_gap_days: Annotated[int, Field(ge=0)]
+    final_days: Annotated[int, Field(ge=0)]
+    same_module_penalty: Fraction
+    urgency_half_days: Positive
+    mock_exam_days_before: Annotated[int, Field(ge=1)]
+    horizon_days_without_exams: PositiveInt
+    max_horizon_days: PositiveInt
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.min_block_minutes > self.session_minutes:
+            raise ValueError("min_block_minutes cannot exceed session_minutes")
+        return self
+
+
+class ReserveConfig(_Strict):
+    flashcard_seconds: PositiveInt
+    flashcard_max_minutes: Annotated[int, Field(ge=0)]
+    daily_quiz_fraction: Fraction
+    daily_quiz_min_minutes: Annotated[int, Field(ge=0)]
+    daily_quiz_max_minutes: Annotated[int, Field(ge=0)]
+
+
+class AvailabilityConfig(_Strict):
+    default_weekday_minutes: Annotated[int, Field(ge=0)]
+    default_weekend_minutes: Annotated[int, Field(ge=0)]
+    max_minutes_per_day: PositiveInt
+
+
+class SessionBuilderConfig(_Strict):
+    flashcard_share: Fraction
+    mistake_drill_minutes: PositiveInt
+    split_above_minutes: PositiveInt
+    min_minutes: PositiveInt
+    max_minutes: PositiveInt
+
+
+class NotificationsConfig(_Strict):
+    quiz_reminder_hour: Annotated[int, Field(ge=0, le=23)]
+    exam_days: tuple[PositiveInt, ...]
+    neglected_days: PositiveInt
+    flashcards_due_threshold: PositiveInt
+    keep_days: PositiveInt
+
+
+class PlannerConfig(_Strict):
+    allocation: AllocationConfig
+    reserve: ReserveConfig
+    availability: AvailabilityConfig
+    session_builder: SessionBuilderConfig
+    notifications: NotificationsConfig
+
+
 # --- loading -----------------------------------------------------------------
 
 
@@ -501,6 +567,7 @@ class AppConfig(_Strict):
     platform: PlatformConfig
     retrieval: RetrievalConfig
     practice: PracticeConfig
+    planner: PlannerConfig
 
 
 class ConfigError(RuntimeError):
@@ -527,6 +594,7 @@ def load_config(config_dir: Path) -> AppConfig:
         platform=_load_yaml(config_dir / "platform.yaml", PlatformConfig),
         retrieval=_load_yaml(config_dir / "retrieval.yaml", RetrievalConfig),
         practice=_load_yaml(config_dir / "practice.yaml", PracticeConfig),
+        planner=_load_yaml(config_dir / "planner.yaml", PlannerConfig),
     )
 
 

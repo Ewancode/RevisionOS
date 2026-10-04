@@ -161,6 +161,7 @@ async def test_answer_cites_the_page_it_came_from(
         "read_page",
         "list_materials",
         "get_progress",
+        "plan_session",
         "start_draft",
         "request_delete_document",
         "request_delete_topic",

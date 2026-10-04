@@ -5,6 +5,7 @@ import { Button, ErrorText, Field } from "@/components/ui";
 import { useChangePassword, useSession, useUpdateSettings } from "@/features/auth/session";
 import { useMakeYearCurrent, useRestore, useTrash, useYears } from "@/features/structure/queries";
 import { useBudget } from "@/features/documents/queries";
+import { usePreferences, useSetPreferences, type PreferencesIn } from "@/features/planner/queries";
 import { SystemStatus } from "@/features/system/SystemStatus";
 import type { Theme } from "@/lib/theme";
 
@@ -231,6 +232,99 @@ function TrashSection() {
   );
 }
 
+function hourLabel(h: number): string {
+  return `${String(h).padStart(2, "0")}:00`;
+}
+
+const TOGGLES: [keyof PreferencesIn, string][] = [
+  ["notify_exams", "Exams coming up (2 weeks, 1 week and the day before)"],
+  ["notify_quiz", "Today's quiz not done yet"],
+  ["notify_neglected", "A topic on an upcoming exam not practised for a while"],
+  ["notify_flashcards", "Lots of flashcards due"],
+];
+
+function Notifications() {
+  const prefs = usePreferences();
+  const save = useSetPreferences();
+  const p = prefs.data;
+  const hours = Array.from({ length: 24 }, (_, h) => h);
+  return (
+    <Section title="Notifications">
+      <p className="text-sm text-muted">Reminders appear under the bell in the sidebar when you open Revision OS.</p>
+      {p && (
+        <>
+          <div className="flex flex-col gap-1">
+            {TOGGLES.map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={Boolean(p[key as keyof typeof p])}
+                  onChange={(e) => save.mutate({ [key]: e.target.checked })}
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2">
+              Quiz reminder after
+              <select
+                value={p.quiz_reminder_hour}
+                onChange={(e) => save.mutate({ quiz_reminder_hour: Number(e.target.value) })}
+                className="h-8 rounded-md border border-border bg-bg px-2"
+              >
+                {hours.map((h) => (
+                  <option key={h} value={h}>
+                    {hourLabel(h)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2">
+              Quiet from
+              <select
+                value={p.quiet_from ?? ""}
+                onChange={(e) =>
+                  save.mutate(
+                    e.target.value === ""
+                      ? { quiet_from: null, quiet_to: null }
+                      : { quiet_from: Number(e.target.value), quiet_to: p.quiet_to ?? 7 },
+                  )
+                }
+                className="h-8 rounded-md border border-border bg-bg px-2"
+              >
+                <option value="">Off</option>
+                {hours.map((h) => (
+                  <option key={h} value={h}>
+                    {hourLabel(h)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {p.quiet_from !== null && (
+              <label className="flex items-center gap-2">
+                until
+                <select
+                  value={p.quiet_to ?? 7}
+                  onChange={(e) => save.mutate({ quiet_to: Number(e.target.value) })}
+                  className="h-8 rounded-md border border-border bg-bg px-2"
+                >
+                  {hours.map((h) => (
+                    <option key={h} value={h}>
+                      {hourLabel(h)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+        </>
+      )}
+      <ErrorText error={prefs.error ?? save.error} />
+    </Section>
+  );
+}
+
 export function SettingsPage() {
   return (
     <div className="flex max-w-2xl flex-col gap-6">
@@ -238,6 +332,7 @@ export function SettingsPage() {
       <Profile />
       <Appearance />
       <AcademicYears />
+      <Notifications />
       <AiBudget />
       <Security />
       <TrashSection />

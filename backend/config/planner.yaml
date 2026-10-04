@@ -1,0 +1,69 @@
+# The revision planner (ARCHITECTURE.md section 11; docs/algorithms.md).
+# Validated on startup. The allocator is deterministic: same inputs, same plan.
+
+allocation:
+  # Defaults for your preferences (Settings can override them).
+  session_minutes: 45
+  max_sessions_per_day: 3
+  # No block shorter than this is planned.
+  min_block_minutes: 20
+  # A topic's need before its exam, in minutes:
+  #   need_scale * weighting * (1 - strength) * (1 + coverage_bonus * gap) * confidence
+  # where weighting is the exam's share of the module (1 if not given) and
+  # confidence = 1 + confidence_step * (3 - your confidence from 1 to 5).
+  need_scale_minutes: 300
+  coverage_bonus: 0.5
+  confidence_step: 0.1
+  # Both needs are also multiplied by 1 + importance_step * (importance - 3),
+  # from the topic's importance (1 to 5, default 3) in the topic tree.
+  importance_step: 0.15
+  # Topics of modules with no exam in view get light upkeep, per fortnight.
+  maintenance_minutes: 30
+  maintenance_priority: 0.3
+  # The same topic at least this many days apart...
+  min_gap_days: 2
+  # ...except in the final days before its exam.
+  final_days: 3
+  # Priority is multiplied by this for a second block of the same module in a row.
+  same_module_penalty: 0.7
+  # Urgency 1 / (1 + days_to_exam / urgency_half_days): rises as the exam nears.
+  urgency_half_days: 10
+  # Mock exams go this many days before each exam (if a day has room).
+  mock_exam_days_before: 4
+  # How far ahead to plan with no exams; and the furthest ever.
+  horizon_days_without_exams: 14
+  max_horizon_days: 120
+
+reserve:
+  # Daily time kept free for due flashcards and the daily quiz.
+  flashcard_seconds: 20
+  flashcard_max_minutes: 30
+  daily_quiz_fraction: 0.15
+  daily_quiz_min_minutes: 5
+  daily_quiz_max_minutes: 20
+
+availability:
+  # Until you set your own.
+  default_weekday_minutes: 120
+  default_weekend_minutes: 60
+  max_minutes_per_day: 960
+
+session_builder:
+  # "I have N minutes": flashcards take at most this share...
+  flashcard_share: 0.35
+  # ...a recurring mistake gets a drill of this length...
+  mistake_drill_minutes: 10
+  # ...and topic time above this is split over two topics.
+  split_above_minutes: 40
+  min_minutes: 10
+  max_minutes: 240
+
+notifications:
+  # "You haven't completed today's quiz" after this hour (your timezone).
+  quiz_reminder_hour: 18
+  exam_days: [14, 7, 1]
+  # "You haven't reviewed X for N days" (topics with an exam in view).
+  neglected_days: 9
+  flashcards_due_threshold: 10
+  # Read notifications are kept this long.
+  keep_days: 30

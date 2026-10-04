@@ -5,6 +5,15 @@ from app.models.chat import Conversation, Message, PendingAction
 from app.models.content import Document, DocumentPage
 from app.models.identity import AuditLog, AuthSession, User, UserSettings
 from app.models.learning import FlashcardReview, LearningProfileSnapshot, TopicMastery
+from app.models.planner import (
+    AvailabilityOverride,
+    AvailabilityRule,
+    Exam,
+    ExamTopic,
+    Notification,
+    RevisionPlan,
+    StudySession,
+)
 from app.models.practice import (
     Draft,
     Flashcard,
@@ -25,11 +34,15 @@ __all__ = [
     "AcademicYear",
     "AuditLog",
     "AuthSession",
+    "AvailabilityOverride",
+    "AvailabilityRule",
     "Chunk",
     "Conversation",
     "Document",
     "DocumentPage",
     "Draft",
+    "Exam",
+    "ExamTopic",
     "Flashcard",
     "FlashcardReview",
     "LearningProfileSnapshot",
@@ -37,12 +50,15 @@ __all__ = [
     "MaterialVersion",
     "Message",
     "Module",
+    "Notification",
     "PendingAction",
     "Question",
     "QuestionAttempt",
     "Quiz",
     "QuizAttempt",
     "QuizItem",
+    "RevisionPlan",
+    "StudySession",
     "Topic",
     "TopicMastery",
     "User",

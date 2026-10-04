@@ -9,6 +9,7 @@ from app.api.v1 import (
     health,
     learning,
     materials,
+    planner,
     practice,
     search,
     settings,
@@ -33,4 +34,5 @@ protected.include_router(ai.router)
 protected.include_router(materials.router)
 protected.include_router(learning.router)
 protected.include_router(practice.router)
+protected.include_router(planner.router)
 router.include_router(protected)

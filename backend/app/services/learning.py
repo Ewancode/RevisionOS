@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.budget import BudgetGuard
@@ -28,6 +28,7 @@ from app.models import (
     Topic,
     TopicMastery,
 )
+from app.planner import context as planner_context
 from app.retrieval.embeddings import EmbeddingProvider
 from app.services.common import ClientInfo, ScopedService, not_found
 from app.services.quizzes import QuizService, ensure_no_exam
@@ -111,6 +112,7 @@ class LearningService(ScopedService):
             await self.placement(module_id, None)
             stmt = stmt.where(Flashcard.module_id == module_id)
         cards = list((await self.db.scalars(stmt.order_by(Flashcard.due))).all())
+        cards += await self._exam_window_cards(now, module_id, {c.id for c in cards})
         new_today = await self.db.scalar(
             select(func.count())
             .select_from(FlashcardReview)
@@ -132,6 +134,35 @@ class LearningService(ScopedService):
             "new": len(fresh),
         }
         return (seen + fresh)[:limit], counts
+
+    async def _exam_window_cards(
+        self, now: datetime, module_id: uuid.UUID | None, already: set[uuid.UUID]
+    ) -> list[Flashcard]:
+        """Cards for an exam's topics not yet seen in its final window (14
+        days): they are due now, so every card is seen before the exam."""
+        ctx = await planner_context.load(self.db, self.user_id, self.config, now)
+        window = timedelta(days=self.config.learning.spaced_repetition.exam_final_window_days)
+        found: list[Flashcard] = []
+        for exam in ctx.exams:
+            starts = exam.starts_at
+            if not (now < starts <= now + window):
+                continue
+            if module_id is not None and exam.module_id != module_id:
+                continue
+            stmt = select(Flashcard).where(
+                Flashcard.user_id == self.user_id,
+                Flashcard.module_id == exam.module_id,
+                Flashcard.deleted_at.is_(None),
+                Flashcard.due > now,
+                or_(Flashcard.last_review.is_(None), Flashcard.last_review < starts - window),
+            )
+            if exam.topic_ids is not None:
+                stmt = stmt.where(Flashcard.topic_id.in_(exam.topic_ids))
+            for card in await self.db.scalars(stmt):
+                if card.id not in already:
+                    already.add(card.id)
+                    found.append(card)
+        return found
 
     def _day_start(self, now: datetime) -> datetime:
         zone = ZoneInfo(self.config.ai.budget.timezone)
@@ -165,7 +196,21 @@ class LearningService(ScopedService):
     # --- the daily quiz ----------------------------------------------------------------------
 
     async def plan(self, minutes: int | None) -> daily.DailyPlan:
-        return await daily.plan(self.db, self.user_id, self.config, utcnow(), minutes)
+        """Today's quiz: exam urgency from the planner, and (unless you ask for
+        a length) the time the plan keeps for it today."""
+        now = utcnow()
+        ctx = await planner_context.load(self.db, self.user_id, self.config, now)
+        if minutes is None:
+            today = planner_context.available_minutes(ctx, ctx.today, self.config)
+            minutes = planner_context.quiz_minutes(ctx, today, self.config) or None
+        return await daily.plan(
+            self.db,
+            self.user_id,
+            self.config,
+            now,
+            minutes,
+            planner_context.exam_urgency(ctx, self.config),
+        )
 
     async def _open_daily(self, now: datetime) -> QuizAttempt | None:
         return await self.db.scalar(

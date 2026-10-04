@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
 import { Materials } from "@/features/documents/Materials";
 import { ProgressSection } from "@/features/learning/ProgressSection";
+import { ExamsSection } from "@/features/planner/Exams";
 import { StudySection } from "@/features/study/StudySection";
 
 import { EditModuleDialog } from "./forms";
@@ -78,6 +79,7 @@ export function ModulePage({ moduleId }: { moduleId: string }) {
       </header>
       <ErrorText error={update.error} />
 
+      <ExamsSection moduleId={moduleId} />
       <StudySection moduleId={moduleId} />
       <ProgressSection moduleId={moduleId} />
 
