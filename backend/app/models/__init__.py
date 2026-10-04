@@ -4,6 +4,7 @@ from app.models.ai import AIInteraction, AIUsage
 from app.models.chat import Conversation, Message, PendingAction
 from app.models.content import Document, DocumentPage
 from app.models.identity import AuditLog, AuthSession, User, UserSettings
+from app.models.learning import FlashcardReview, LearningProfileSnapshot, TopicMastery
 from app.models.practice import (
     Draft,
     Flashcard,
@@ -30,6 +31,8 @@ __all__ = [
     "DocumentPage",
     "Draft",
     "Flashcard",
+    "FlashcardReview",
+    "LearningProfileSnapshot",
     "Material",
     "MaterialVersion",
     "Message",
@@ -41,6 +44,7 @@ __all__ = [
     "QuizAttempt",
     "QuizItem",
     "Topic",
+    "TopicMastery",
     "User",
     "UserSettings",
 ]

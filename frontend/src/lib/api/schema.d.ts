@@ -90,7 +90,8 @@ export interface paths {
         };
         /**
          * List Attempts
-         * @description Your quizzes and mock exams in a module, newest first.
+         * @description Your quizzes and mock exams in a module, newest first (all of them,
+         *     including daily quizzes, without a module).
          */
         get: operations["list_attempts_api_v1_attempts_get"];
         put?: never;
@@ -305,6 +306,46 @@ export interface paths {
          *     - `error` {code, message, saved: Message}: the answer failed or was refused
          */
         post: operations["send_message_api_v1_conversations__conversation_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily-quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Daily Quiz
+         * @description Start today's quiz (or return the one already open today).
+         */
+        post: operations["start_daily_quiz_api_v1_daily_quiz_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/daily-quiz/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily Plan
+         * @description What today's quiz would cover, and why.
+         */
+        get: operations["daily_plan_api_v1_daily_quiz_plan_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -612,6 +653,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/flashcards/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Due Flashcards
+         * @description Cards to review now (new cards limited per day), with the interval
+         *     each rating would give.
+         */
+        get: operations["due_flashcards_api_v1_flashcards_due_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/flashcards/{card_id}": {
         parameters: {
             query?: never;
@@ -641,6 +703,26 @@ export interface paths {
         put?: never;
         /** Restore Flashcard */
         post: operations["restore_flashcard_api_v1_flashcards__card_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/flashcards/{card_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review Flashcard
+         * @description Record how well you knew it: 1 Again, 2 Hard, 3 Good, 4 Easy.
+         */
+        post: operations["review_flashcard_api_v1_flashcards__card_id__review_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -810,6 +892,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mistakes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mistakes
+         * @description Your mistakes grouped by topic and kind, recurring ones first.
+         */
+        get: operations["mistakes_api_v1_mistakes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/modules": {
         parameters: {
             query?: never;
@@ -917,6 +1019,67 @@ export interface paths {
          *     browser with a CSRF token; the item goes to the trash.
          */
         post: operations["confirm_pending_action_api_v1_pending_actions__action_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learning Profile
+         * @description Measured statistics about your learning, and this week's summary.
+         */
+        get: operations["learning_profile_api_v1_profile_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Module Progress
+         * @description Estimated strength per topic, with its evidence; parents include
+         *     their subtopics, weighted by how much evidence each has.
+         */
+        get: operations["module_progress_api_v1_progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/progress/weakest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Weakest Topics
+         * @description Your weakest topics across this year's modules.
+         */
+        get: operations["weakest_topics_api_v1_progress_weakest_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1235,7 +1398,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "practice" | "mock";
+            kind: "practice" | "mock" | "daily";
             /**
              * Mode
              * @enum {string}
@@ -1455,6 +1618,31 @@ export interface components {
              */
             updated_at: string;
         };
+        /** DailyPlanOut */
+        DailyPlanOut: {
+            /** Buckets */
+            buckets: components["schemas"]["PlanBucket"][];
+            /** Minutes */
+            minutes: number;
+            /** Questions */
+            questions: number;
+            /** Seconds Per Question */
+            seconds_per_question: number;
+        };
+        /** DailyStart */
+        DailyStart: {
+            /** Minutes */
+            minutes?: number | null;
+        };
+        /** DailyStarted */
+        DailyStarted: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            plan: components["schemas"]["DailyPlanOut"];
+        };
         /** DiffLine */
         DiffLine: {
             /**
@@ -1595,6 +1783,65 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** DueCard */
+        DueCard: {
+            /** Back Md */
+            back_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Due
+             * Format: date-time
+             */
+            due: string;
+            /** Front Md */
+            front_md: string;
+            /** Fsrs State */
+            fsrs_state: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Intervals */
+            intervals: {
+                [key: string]: number;
+            };
+            /** Lapses */
+            lapses: number;
+            /** Last Review */
+            last_review: string | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Reps */
+            reps: number;
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /** Topic Id */
+            topic_id: string | null;
+        };
+        /** DueCards */
+        DueCards: {
+            /** Cards */
+            cards: components["schemas"]["DueCard"][];
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+        };
         /** FlashcardCreate */
         FlashcardCreate: {
             /** Back Md */
@@ -1618,13 +1865,24 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Due
+             * Format: date-time
+             */
+            due: string;
             /** Front Md */
             front_md: string;
+            /** Fsrs State */
+            fsrs_state: number;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Lapses */
+            lapses: number;
+            /** Last Review */
+            last_review: string | null;
             /**
              * Module Id
              * Format: uuid
@@ -1635,6 +1893,8 @@ export interface components {
              * @enum {string}
              */
             origin: "user" | "claude";
+            /** Reps */
+            reps: number;
             /** Sources */
             sources: {
                 [key: string]: unknown;
@@ -1867,6 +2127,70 @@ export interface components {
             /** Steps */
             steps: string[];
         };
+        /** MistakeExample */
+        MistakeExample: {
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /** Description */
+            description: string;
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Stem Md */
+            stem_md: string;
+        };
+        /** MistakeGroupOut */
+        MistakeGroupOut: {
+            /** Category */
+            category: string;
+            /** Count */
+            count: number;
+            /** Examples */
+            examples: components["schemas"]["MistakeExample"][];
+            /** Label */
+            label: string;
+            /** Last At */
+            last_at: string | null;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Patterns */
+            patterns: components["schemas"]["MistakePattern"][];
+            /** Recent */
+            recent: number;
+            /** Recurring */
+            recurring: boolean;
+            /** Topic Id */
+            topic_id: string | null;
+            /** Topic Title */
+            topic_title: string;
+        };
+        /** MistakePattern */
+        MistakePattern: {
+            /** Count */
+            count: number;
+            /** Description */
+            description: string;
+        };
         /** ModuleCreate */
         ModuleCreate: {
             /**
@@ -2075,6 +2399,65 @@ export interface components {
             /** Notes */
             notes: string;
         };
+        /** PlanBucket */
+        PlanBucket: {
+            /** Allocated */
+            allocated: number;
+            /** Attempts */
+            attempts: number;
+            /** Available */
+            available: number;
+            /** Low Data */
+            low_data: boolean;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Priority */
+            priority: number;
+            /** Reasons */
+            reasons: string[];
+            /** Strength */
+            strength: number;
+            /** Terms */
+            terms: {
+                [key: string]: number;
+            };
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+        };
+        /** ProfileOut */
+        ProfileOut: {
+            /** Current */
+            current: {
+                [key: string]: unknown;
+            };
+            snapshot: components["schemas"]["ProfileSnapshotOut"] | null;
+        };
+        /** ProfileSnapshotOut */
+        ProfileSnapshotOut: {
+            /**
+             * Computed At
+             * Format: date-time
+             */
+            computed_at: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Summary Md */
+            summary_md: string | null;
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+        };
         /** QuestionOut */
         QuestionOut: {
             /** Answer Spec */
@@ -2199,12 +2582,9 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "practice" | "mock";
-            /**
-             * Module Id
-             * Format: uuid
-             */
-            module_id: string;
+            kind: "practice" | "mock" | "daily";
+            /** Module Id */
+            module_id: string | null;
             /** Time Limit Minutes */
             time_limit_minutes: number | null;
             /** Title */
@@ -2232,6 +2612,13 @@ export interface components {
             self_confidence?: number | null;
             /** Time Ms */
             time_ms?: number | null;
+        };
+        /** ReviewIn */
+        ReviewIn: {
+            /** Duration Ms */
+            duration_ms?: number | null;
+            /** Rating */
+            rating: number;
         };
         /** SavedDraft */
         SavedDraft: {
@@ -2355,6 +2742,37 @@ export interface components {
             position: number;
             /** Title */
             title: string;
+        };
+        /**
+         * TopicProgress
+         * @description A topic's estimated strength with its evidence, e.g.
+         *     "est. 72% · 14 attempts · last practised 6 days ago".
+         */
+        TopicProgress: {
+            /** Accuracy */
+            accuracy: number;
+            /** Attempts */
+            attempts: number;
+            /** Last Practised At */
+            last_practised_at: string | null;
+            /** Low Data */
+            low_data: boolean;
+            /** Parent Id */
+            parent_id: string | null;
+            /** Retrievability */
+            retrievability: number | null;
+            /** Strength */
+            strength: number;
+            /** Subtree Attempts */
+            subtree_attempts: number;
+            /** Subtree Strength */
+            subtree_strength: number;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+            /** Weight */
+            weight: number;
         };
         /** TopicUpdate */
         TopicUpdate: {
@@ -2618,6 +3036,28 @@ export interface components {
             /** Version No */
             version_no: number;
         };
+        /** WeakTopic */
+        WeakTopic: {
+            /** Attempts */
+            attempts: number;
+            /** Last Practised At */
+            last_practised_at: string | null;
+            /** Low Data */
+            low_data: boolean;
+            /** Module Code */
+            module_code: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Strength */
+            strength: number;
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+        };
         /** YearCreate */
         YearCreate: {
             /**
@@ -2797,8 +3237,8 @@ export interface operations {
     };
     list_attempts_api_v1_attempts_get: {
         parameters: {
-            query: {
-                module_id: string;
+            query?: {
+                module_id?: string | null;
             };
             header?: never;
             path?: never;
@@ -3193,6 +3633,70 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_daily_quiz_api_v1_daily_quiz_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyStarted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    daily_plan_api_v1_daily_quiz_plan_get: {
+        parameters: {
+            query?: {
+                minutes?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyPlanOut"];
                 };
             };
             /** @description Validation Error */
@@ -3885,6 +4389,37 @@ export interface operations {
             };
         };
     };
+    due_flashcards_api_v1_flashcards_due_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueCards"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_flashcard_api_v1_flashcards__card_id__delete: {
         parameters: {
             query?: never;
@@ -3959,6 +4494,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_flashcard_api_v1_flashcards__card_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -4382,6 +4952,37 @@ export interface operations {
             };
         };
     };
+    mistakes_api_v1_mistakes_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MistakeGroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_modules_api_v1_modules_get: {
         parameters: {
             query?: {
@@ -4688,6 +5289,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PendingActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learning_profile_api_v1_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+        };
+    };
+    module_progress_api_v1_progress_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicProgress"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weakest_topics_api_v1_progress_weakest_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeakTopic"][];
                 };
             };
             /** @description Validation Error */

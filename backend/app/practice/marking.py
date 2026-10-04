@@ -27,6 +27,7 @@ from app.ai.client import ClaudeClient, parse_json, text_tokens
 from app.core.clock import utcnow
 from app.core.config import AppConfig
 from app.core.errors import AppError
+from app.learning import mastery
 from app.models import Question, QuestionAttempt, QuizAttempt, QuizItem
 from app.practice.answers import (
     AnswerSpec,
@@ -326,6 +327,10 @@ async def mark_attempt(
             logger.warning("explanations skipped", extra={"error": exc.code})
     finish(attempt, [qa for qa, _ in rows])
     await db.commit()
+    # Strength and difficulty follow every marked answer.
+    await mastery.recompute_for_questions(
+        db, attempt.user_id, [qa.question_id for qa, _ in rows], config, utcnow()
+    )
 
 
 def finish(attempt: QuizAttempt, answers: list[QuestionAttempt]) -> None:

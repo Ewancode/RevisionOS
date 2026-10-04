@@ -157,8 +157,11 @@ async def retake_quiz(quiz_id: uuid.UUID, quizzes: Quizzes) -> AttemptStarted:
 
 
 @router.get("/attempts", response_model=list[AttemptListItem])
-async def list_attempts(module_id: uuid.UUID, quizzes: Quizzes) -> list[AttemptListItem]:
-    """Your quizzes and mock exams in a module, newest first."""
+async def list_attempts(
+    quizzes: Quizzes, module_id: uuid.UUID | None = None
+) -> list[AttemptListItem]:
+    """Your quizzes and mock exams in a module, newest first (all of them,
+    including daily quizzes, without a module)."""
     return await quizzes.history(module_id)
 
 

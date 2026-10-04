@@ -565,13 +565,19 @@ export function AttemptPage({ attemptId }: { attemptId: string }) {
     <div className="flex max-w-3xl flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link
-            to="/modules/$moduleId/questions"
-            params={{ moduleId: a.quiz.module_id }}
-            className="text-sm text-muted hover:underline"
-          >
-            Questions and quizzes
-          </Link>
+          {a.quiz.module_id ? (
+            <Link
+              to="/modules/$moduleId/questions"
+              params={{ moduleId: a.quiz.module_id }}
+              className="text-sm text-muted hover:underline"
+            >
+              Questions and quizzes
+            </Link>
+          ) : (
+            <Link to="/" className="text-sm text-muted hover:underline">
+              Today
+            </Link>
+          )}
           <h1 className="text-2xl font-semibold tracking-tight">{a.quiz.title}</h1>
         </div>
         {a.status === "in_progress" && a.deadline && (

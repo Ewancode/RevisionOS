@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import utcnow
 from app.core.config import AppConfig
+from app.learning import mastery
 from app.models import Flashcard, Question, QuestionAttempt
 from app.retrieval.embeddings import EmbeddingProvider
 from app.schemas.practice import (
@@ -131,6 +132,10 @@ class QuestionService(ScopedService):
         for key, value in changes.items():
             setattr(question, key, value)
         await self.db.commit()
+        if {"topic_id", "difficulty"} & changes.keys():
+            await mastery.recompute(
+                self.db, self.user_id, question.module_id, self.config, utcnow()
+            )
         return question
 
 

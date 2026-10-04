@@ -285,6 +285,7 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("PATCH", "/api/v1/flashcards/{flashcard}", {"front_md": "pwned"}),
     ("DELETE", "/api/v1/flashcards/{flashcard}", None),
     ("POST", "/api/v1/flashcards/{trashed_flashcard}/restore", None),
+    ("POST", "/api/v1/flashcards/{flashcard}/review", {"rating": 3}),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}"}),
     ("POST", "/api/v1/quizzes", {"module_id": "{module}", "question_ids": ["{question}"]}),
     ("POST", "/api/v1/quizzes/{quiz}/attempts", None),
@@ -338,7 +339,16 @@ async def test_other_users_resources_are_invisible(
         assert (await b.get("/api/v1/trash")).json()["modules"] == []
         assert (await b.get("/api/v1/documents")).json() == []
         assert (await b.get("/api/v1/conversations")).json() == []
-        for listing in ("materials", "questions", "flashcards", "drafts", "attempts"):
+        for listing in (
+            "materials",
+            "questions",
+            "flashcards",
+            "drafts",
+            "attempts",
+            "progress",
+            "mistakes",
+            "flashcards/due",
+        ):
             response = await b.get(f"/api/v1/{listing}", params={"module_id": ids["module"]})
             assert response.status_code == 404, listing
         # Uploading into A's module is refused too.

@@ -25,10 +25,12 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.clock import utcnow
 from app.db.base import Base
 from app.db.types import CreatedAt, OptionalTimestamp, UpdatedAt, UUIDPk
 from app.models.retrieval import EMBEDDING_DIMENSIONS
@@ -48,7 +50,7 @@ ORIGINS = ("user", "claude")
 DRAFT_KINDS = ("material", "questions", "flashcards")
 DRAFT_STATUSES = ("generating", "ready", "failed", "saved", "discarded")
 QUESTION_STATUSES = ("active", "retired")
-QUIZ_KINDS = ("practice", "mock")
+QUIZ_KINDS = ("practice", "mock", "daily")
 ATTEMPT_MODES = ("normal", "exam")
 ATTEMPT_STATUSES = ("in_progress", "marking", "marked")
 MARKED_BY = ("rule", "sympy", "ai", "override")
@@ -190,7 +192,7 @@ class Question(Base):
 
 
 class Flashcard(Base):
-    """Scheduling state (FSRS) is added in Phase 7."""
+    """A card and its FSRS scheduling state (ARCHITECTURE.md section 10)."""
 
     __tablename__ = "flashcards"
 
@@ -203,6 +205,17 @@ class Flashcard(Base):
     origin: Mapped[str] = mapped_column(Enum(*ORIGINS, name="content_origin"))
     sources: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]", default=list)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    # FSRS state, as the fsrs library's Card: 1 learning, 2 review, 3 relearning.
+    fsrs_state: Mapped[int] = mapped_column(SmallInteger, server_default="1", default=1)
+    fsrs_step: Mapped[int | None] = mapped_column(SmallInteger, server_default="0", default=0)
+    stability: Mapped[float | None] = mapped_column(Float)
+    fsrs_difficulty: Mapped[float | None] = mapped_column(Float)
+    due: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), default=utcnow
+    )
+    last_review: Mapped[OptionalTimestamp]
+    reps: Mapped[int] = mapped_column(Integer, server_default="0", default=0)
+    lapses: Mapped[int] = mapped_column(Integer, server_default="0", default=0)
     deleted_at: Mapped[OptionalTimestamp]
     created_at: Mapped[CreatedAt]
     updated_at: Mapped[UpdatedAt]
@@ -210,6 +223,8 @@ class Flashcard(Base):
     __table_args__ = (
         *_placement("flashcards"),
         Index("ix_flashcards_user_module", "user_id", "module_id"),
+        Index("ix_flashcards_user_due", "user_id", "due"),
+        UniqueConstraint("id", "user_id", name="uq_flashcards_id_user"),
     )
 
 
@@ -218,7 +233,8 @@ class Quiz(Base):
 
     id: Mapped[UUIDPk]
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    module_id: Mapped[uuid.UUID]
+    # None for a daily quiz, which spans modules.
+    module_id: Mapped[uuid.UUID | None]
     kind: Mapped[str] = mapped_column(Enum(*QUIZ_KINDS, name="quiz_kind"))
     title: Mapped[str] = mapped_column(String(200))
     # Exam conditions: answers close at the deadline and AI help is off.

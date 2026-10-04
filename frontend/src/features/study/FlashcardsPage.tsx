@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Plus, Shuffle, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -9,7 +10,7 @@ import { GenerateDialog } from "./GenerateDialog";
 import { useFlashcardActions, useFlashcards, type Flashcard } from "./queries";
 import { ModuleHeader } from "./StudySection";
 
-/** Flip through the cards. Spaced-repetition scheduling (FSRS) arrives in Phase 7. */
+/** Flip through every card, outside the schedule (reviews are under "Review due"). */
 function Study({ cards, onClose }: { cards: Flashcard[]; onClose: () => void }) {
   const [order, setOrder] = useState(() => cards.map((_, i) => i));
   const [index, setIndex] = useState(0);
@@ -119,8 +120,15 @@ export function FlashcardsPage({ moduleId }: { moduleId: string }) {
         <Study cards={list} onClose={() => setStudying(false)} />
       ) : (
         <div className="flex flex-wrap gap-2">
-          <Button variant="primary" disabled={!list.length} onClick={() => setStudying(true)}>
-            Study {list.length} cards
+          <Link
+            to="/review"
+            search={{ module_id: moduleId }}
+            className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-sm font-medium text-on-accent"
+          >
+            Review due
+          </Link>
+          <Button disabled={!list.length} onClick={() => setStudying(true)}>
+            Browse {list.length} cards
           </Button>
           <Button onClick={() => setGenerating(true)}>
             <Sparkles size={14} /> Generate with Claude

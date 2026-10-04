@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 from app.ingestion.pipeline import Deps, process_document, reindex_document, retranscribe_page
+from app.learning.summary import summarise
 from app.practice.generation import run_draft
 from app.practice.marking import mark_attempt
 
@@ -40,3 +41,9 @@ async def mark_attempt_job(ctx: dict[str, Any], attempt_id: str) -> None:
     deps: Deps = ctx["deps"]
     async with deps.sessions() as db:
         await mark_attempt(db, deps.claude, deps.config, uuid.UUID(attempt_id))
+
+
+async def summarise_profile_job(ctx: dict[str, Any], snapshot_id: int) -> None:
+    deps: Deps = ctx["deps"]
+    async with deps.sessions() as db:
+        await summarise(db, deps.claude, deps.config, snapshot_id)

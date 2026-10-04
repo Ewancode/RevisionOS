@@ -26,6 +26,7 @@ dependencies = [
     "tzdata>=2024.1",
     "fastembed>=0.5",
     "sympy>=1.14.0",
+    "fsrs>=6.3.2",
 ]
 
 [dependency-groups]
@@ -39,6 +40,7 @@ dev = [
     "testcontainers[postgres]>=4.8",
     "fakeredis>=2.26",
     "types-openpyxl>=3.1.5.20260827",
+    "hypothesis>=6.168.3",
 ]
 
 [tool.uv]

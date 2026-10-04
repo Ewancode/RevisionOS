@@ -5,6 +5,9 @@ import { ChatPage } from "@/features/chat/ChatPage";
 import { UsagePage } from "@/features/chat/UsagePage";
 import { Dashboard } from "@/features/dashboard/Dashboard";
 import { DocumentPage } from "@/features/documents/DocumentPage";
+import { MistakesPage } from "@/features/learning/MistakesPage";
+import { ProfilePage } from "@/features/learning/ProfilePage";
+import { ReviewSession } from "@/features/learning/ReviewSession";
 import { SearchPage } from "@/features/search/SearchPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { AttemptPage } from "@/features/study/AttemptPage";
@@ -139,6 +142,36 @@ const attemptRoute = createRoute({
   },
 });
 
+const moduleFilter = (search: Record<string, unknown>): { module_id?: string } =>
+  typeof search.module_id === "string" ? { module_id: search.module_id } : {};
+
+const reviewRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/review",
+  validateSearch: moduleFilter,
+  component: function ReviewRouteView() {
+    const { module_id } = reviewRoute.useSearch();
+    return (
+      <div className="flex max-w-2xl flex-col gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Review flashcards</h1>
+        <ReviewSession key={module_id ?? "all"} moduleId={module_id} />
+      </div>
+    );
+  },
+});
+
+const mistakesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/mistakes",
+  validateSearch: moduleFilter,
+  component: function MistakesRouteView() {
+    const { module_id } = mistakesRoute.useSearch();
+    return <MistakesPage key={module_id ?? "all"} moduleId={module_id} />;
+  },
+});
+
+const profileRoute = createRoute({ getParentRoute: () => appRoute, path: "/profile", component: ProfilePage });
+
 const usageRoute = createRoute({ getParentRoute: () => appRoute, path: "/usage", component: UsagePage });
 
 const settingsRoute = createRoute({
@@ -162,6 +195,9 @@ export const routeTree = rootRoute.addChildren([
     materialRoute,
     draftRoute,
     attemptRoute,
+    reviewRoute,
+    mistakesRoute,
+    profileRoute,
     usageRoute,
     settingsRoute,
   ]),

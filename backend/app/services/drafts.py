@@ -81,7 +81,9 @@ class DraftService(ScopedService):
             job_id=f"draft:{draft.id}:{draft.updated_at.timestamp()}",
         )
 
-    async def create(self, body: GenerateRequest) -> Draft:
+    async def create(self, body: GenerateRequest, *, auto: bool = False) -> Draft:
+        """`auto`: the daily quiz's top-up; valid items are saved without a
+        preview (SPEC 40 allows this for quiz questions)."""
         await ensure_no_exam(self.db, self.user_id, self.config, self.jobs)
         await self.placement(body.module_id, body.topic_id)
         generation = self.config.practice.generation
@@ -104,6 +106,8 @@ class DraftService(ScopedService):
                 raise AppError("bad_request", "Only materials can be improved.", 422)
             await MaterialService(self.db, self.user_id, self.client).get(body.improve_material_id)
         request = body.model_dump(mode="json", exclude={"module_id", "topic_id", "kind"})
+        if auto:
+            request["auto"] = True
         if body.kind == "material" and not request.get("material_kind"):
             request["material_kind"] = "guide"
         draft = Draft(

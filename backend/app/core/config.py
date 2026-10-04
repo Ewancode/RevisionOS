@@ -75,16 +75,67 @@ class InitialRatings(_Strict):
 class DifficultyConfig(_Strict):
     initial_ratings: InitialRatings
     target_success: TargetSuccess
+    initial_ability: Positive
+    k_ability: Positive
+    k_question: Positive
 
 
 class SpacedRepetitionConfig(_Strict):
     target_retention: Annotated[float, Field(gt=0.0, lt=1.0)]
     exam_final_window_days: Annotated[int, Field(ge=1)]
+    learning_steps_minutes: tuple[Positive, ...]
+    relearning_steps_minutes: tuple[Positive, ...]
+    maximum_interval_days: PositiveInt
+    fuzz: bool
+    new_cards_per_day: PositiveInt
+
+
+class PriorityWeights(_Strict):
+    weakness: NonNegative
+    overdue: NonNegative
+    urgency: NonNegative
+    recurring: NonNegative
+    gap: NonNegative
+
+
+class TopUpConfig(_Strict):
+    enabled: bool
+    min_questions_per_topic: PositiveInt
+    generate: PositiveInt
+    max_topics_per_day: Annotated[int, Field(ge=0)]
+
+
+class DailyQuizConfig(_Strict):
+    weights: PriorityWeights
+    overdue_after_days: Positive
+    coverage_attempts: PositiveInt
+    default_minutes: PositiveInt
+    default_seconds_per_question: PositiveInt
+    min_questions: PositiveInt
+    max_questions: PositiveInt
+    module_floor: Annotated[int, Field(ge=0)]
+    recurring_targets: Annotated[int, Field(ge=0)]
+    avoid_repeat_days: NonNegative
+    top_up: TopUpConfig
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.min_questions > self.max_questions:
+            raise ValueError("min_questions cannot exceed max_questions")
+        return self
+
+
+class ProfileConfig(_Strict):
+    refresh_days: PositiveInt
+    recent_errors: PositiveInt
+    # A snapshot (and Claude's summary) needs at least this many answers.
+    min_answers: PositiveInt
 
 
 class MistakesConfig(_Strict):
     recurring_min_count: Annotated[int, Field(ge=2)]
     recurring_window_days: Annotated[int, Field(ge=1)]
+    description_similarity: Annotated[float, Field(gt=0.0, le=1.0)]
     categories: Annotated[tuple[str, ...], Field(min_length=1)]
 
     @model_validator(mode="after")
@@ -99,6 +150,8 @@ class LearningConfig(_Strict):
     difficulty: DifficultyConfig
     spaced_repetition: SpacedRepetitionConfig
     mistakes: MistakesConfig
+    daily_quiz: DailyQuizConfig
+    profile: ProfileConfig
 
 
 # --- ai.yaml -----------------------------------------------------------------

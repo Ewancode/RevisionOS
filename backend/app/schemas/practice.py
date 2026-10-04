@@ -184,6 +184,12 @@ class FlashcardOut(Output):
     origin: Origin
     sources: list[dict[str, Any]]
     created_at: datetime
+    # Scheduling (FSRS): 1 learning, 2 review, 3 relearning.
+    fsrs_state: int
+    due: datetime
+    last_review: datetime | None
+    reps: int
+    lapses: int
 
 
 class FlashcardCreate(Input):
@@ -221,8 +227,9 @@ class QuizCreate(Input):
 
 class QuizOut(Output):
     id: uuid.UUID
-    module_id: uuid.UUID
-    kind: Literal["practice", "mock"]
+    # None for a daily quiz, which spans modules.
+    module_id: uuid.UUID | None
+    kind: Literal["practice", "mock", "daily"]
     title: str
     time_limit_minutes: int | None
     created_at: datetime
@@ -299,7 +306,7 @@ class AttemptListItem(Output):
     id: uuid.UUID
     quiz_id: uuid.UUID
     title: str
-    kind: Literal["practice", "mock"]
+    kind: Literal["practice", "mock", "daily"]
     mode: Literal["normal", "exam"]
     status: Literal["in_progress", "marking", "marked"]
     started_at: datetime

@@ -40,6 +40,8 @@ routing:
   classification:       { model: haiku }
   mistake_labelling:    { model: haiku }
   plan_explanation:     { model: haiku }
+  # The weekly learning-profile summary: a few bullets citing measured numbers.
+  learning_profile:     { model: haiku, max_tokens: 800 }
   flashcard_generation: { model: haiku, escalate_to: { model: sonnet, effort: low }, max_tokens: 6000 }
   simple_question_generation: { model: haiku, escalate_to: { model: sonnet, effort: medium }, max_tokens: 8000 }
   simple_marking:       { model: haiku, escalate_to: { model: sonnet, effort: medium } }

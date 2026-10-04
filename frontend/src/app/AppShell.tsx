@@ -1,5 +1,14 @@
 import { Link, Navigate, Outlet, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, LogOut, MessageSquare, Plus, Search as SearchIcon, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Plus,
+  Search as SearchIcon,
+  Settings,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -119,6 +128,21 @@ function Sidebar() {
           activeProps={{ className: "bg-surface font-medium" }}
         >
           <MessageSquare size={16} /> Ask Claude
+        </Link>
+        <Link
+          to="/review"
+          search={{}}
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <Layers size={16} /> Review flashcards
+        </Link>
+        <Link
+          to="/profile"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-surface"
+          activeProps={{ className: "bg-surface font-medium" }}
+        >
+          <BarChart3 size={16} /> Learning profile
         </Link>
       </div>
 

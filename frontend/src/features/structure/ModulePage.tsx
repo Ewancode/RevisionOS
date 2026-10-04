@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button, ConfirmDelete, ErrorText } from "@/components/ui";
 import { Materials } from "@/features/documents/Materials";
+import { ProgressSection } from "@/features/learning/ProgressSection";
 import { StudySection } from "@/features/study/StudySection";
 
 import { EditModuleDialog } from "./forms";
@@ -78,6 +79,7 @@ export function ModulePage({ moduleId }: { moduleId: string }) {
       <ErrorText error={update.error} />
 
       <StudySection moduleId={moduleId} />
+      <ProgressSection moduleId={moduleId} />
 
       <div className="grid gap-8 xl:grid-cols-2">
         <TopicTree moduleId={moduleId} />

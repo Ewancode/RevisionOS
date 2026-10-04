@@ -24,6 +24,7 @@ from app.workers.tasks import (
     process_document_job,
     reindex_document_job,
     retranscribe_page_job,
+    summarise_profile_job,
 )
 
 _config = get_config()
@@ -61,6 +62,7 @@ class WorkerSettings:
         # Not retried: a retry would pay for the same Claude calls twice.
         func(generate_draft_job, name="generate_draft", timeout=_timeout, max_tries=1),
         func(mark_attempt_job, name="mark_attempt", timeout=_timeout, max_tries=1),
+        func(summarise_profile_job, name="summarise_profile", timeout=_timeout, max_tries=1),
     ]
     on_startup = startup
     on_shutdown = shutdown

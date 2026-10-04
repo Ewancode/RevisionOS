@@ -1,5 +1,5 @@
 # Tunable parameters for the adaptive learning engine.
-# Formulas: docs/ARCHITECTURE.md section 10 (docs/algorithms.md from Phase 7).
+# Formulas: docs/algorithms.md (from ARCHITECTURE.md section 10).
 # Validated on startup by app/core/config.py — invalid values stop the app.
 # Sections are added in the phase that first uses them.
 
@@ -34,18 +34,33 @@ difficulty:
   target_success:
     min: 0.65
     max: 0.80
+  # Elo-style ability per topic: P(correct) = 1 / (1 + 10^((b - theta) / 400)).
+  initial_ability: 1500
+  # After each answer: theta += k_ability * (score - P); b -= k_question * (score - P).
+  k_ability: 32
+  k_question: 16
 
 spaced_repetition:
   # FSRS desired retention.
   target_retention: 0.90
-  # Every card in an exam's topics is seen at least once in this window.
+  # Every card in an exam's topics is seen at least once in this window
+  # (applied once exams exist, Phase 8).
   exam_final_window_days: 14
+  # Short steps while a card is new or after a lapse, then FSRS intervals.
+  learning_steps_minutes: [1, 10]
+  relearning_steps_minutes: [10]
+  maximum_interval_days: 3650
+  # Spread due dates slightly so cards learnt together do not stay together.
+  fuzz: true
+  new_cards_per_day: 20
 
 mistakes:
   # A category becomes "recurring" at this many occurrences in one topic
   # within the window.
   recurring_min_count: 3
   recurring_window_days: 30
+  # Mistake descriptions at least this similar are shown as one pattern.
+  description_similarity: 0.9
   categories:
     - arithmetic_or_algebra_slip
     - sign_error
@@ -54,3 +69,43 @@ mistakes:
     - incomplete_justification
     - instance_instead_of_general
     - notation
+
+daily_quiz:
+  # priority = weakness*(1 - strength) + overdue*overdue + urgency*urgency
+  #          + recurring*recurring + gap*gap   (each term in [0, 1])
+  weights:
+    weakness: 1.0
+    overdue: 0.6
+    urgency: 1.0       # exam proximity; zero until exams exist (Phase 8)
+    recurring: 0.8
+    gap: 0.5
+  # A topic is fully overdue this many days after it was last practised.
+  overdue_after_days: 7
+  # The coverage gap closes after this many answered questions in a topic.
+  coverage_attempts: 3
+  # Quiz length = minutes / your median time per question, clamped.
+  default_minutes: 15
+  default_seconds_per_question: 90
+  min_questions: 5
+  max_questions: 20
+  # Every active module with questions gets at least this many.
+  module_floor: 1
+  # Questions per quiz aimed at recurring mistakes.
+  recurring_targets: 2
+  # Questions answered right within this many days are not repeated.
+  avoid_repeat_days: 2
+  # When a topic has too few questions, Claude writes some (auto-saved after
+  # passing the checks, as SPEC 40 allows for quiz questions). Skipped once
+  # the AI budget warning is reached.
+  top_up:
+    enabled: true
+    min_questions_per_topic: 3
+    generate: 4
+    max_topics_per_day: 2
+
+profile:
+  # A new snapshot (with Claude's summary) at most this often.
+  refresh_days: 7
+  # Error categories are counted over this many most recent mistakes.
+  recent_errors: 20
+  min_answers: 10

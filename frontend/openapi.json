@@ -237,7 +237,8 @@
           "kind": {
             "enum": [
               "practice",
-              "mock"
+              "mock",
+              "daily"
             ],
             "title": "Kind",
             "type": "string"
@@ -821,6 +822,75 @@
         "title": "ConversationOut",
         "type": "object"
       },
+      "DailyPlanOut": {
+        "properties": {
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/PlanBucket"
+            },
+            "title": "Buckets",
+            "type": "array"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "questions": {
+            "title": "Questions",
+            "type": "integer"
+          },
+          "seconds_per_question": {
+            "title": "Seconds Per Question",
+            "type": "number"
+          }
+        },
+        "required": [
+          "minutes",
+          "seconds_per_question",
+          "questions",
+          "buckets"
+        ],
+        "title": "DailyPlanOut",
+        "type": "object"
+      },
+      "DailyStart": {
+        "additionalProperties": false,
+        "properties": {
+          "minutes": {
+            "anyOf": [
+              {
+                "maximum": 240.0,
+                "minimum": 5.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          }
+        },
+        "title": "DailyStart",
+        "type": "object"
+      },
+      "DailyStarted": {
+        "properties": {
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/DailyPlanOut"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "plan"
+        ],
+        "title": "DailyStarted",
+        "type": "object"
+      },
       "DiffLine": {
         "properties": {
           "op": {
@@ -1233,6 +1303,139 @@
         "title": "DraftSave",
         "type": "object"
       },
+      "DueCard": {
+        "properties": {
+          "back_md": {
+            "title": "Back Md",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due": {
+            "format": "date-time",
+            "title": "Due",
+            "type": "string"
+          },
+          "front_md": {
+            "title": "Front Md",
+            "type": "string"
+          },
+          "fsrs_state": {
+            "title": "Fsrs State",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intervals": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Intervals",
+            "type": "object"
+          },
+          "lapses": {
+            "title": "Lapses",
+            "type": "integer"
+          },
+          "last_review": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Review"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "user",
+              "claude"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "reps": {
+            "title": "Reps",
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "topic_id",
+          "front_md",
+          "back_md",
+          "origin",
+          "sources",
+          "created_at",
+          "fsrs_state",
+          "due",
+          "last_review",
+          "reps",
+          "lapses",
+          "intervals"
+        ],
+        "title": "DueCard",
+        "type": "object"
+      },
+      "DueCards": {
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/DueCard"
+            },
+            "title": "Cards",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "cards",
+          "counts"
+        ],
+        "title": "DueCards",
+        "type": "object"
+      },
       "FlashcardCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1285,14 +1488,39 @@
             "title": "Created At",
             "type": "string"
           },
+          "due": {
+            "format": "date-time",
+            "title": "Due",
+            "type": "string"
+          },
           "front_md": {
             "title": "Front Md",
             "type": "string"
+          },
+          "fsrs_state": {
+            "title": "Fsrs State",
+            "type": "integer"
           },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "lapses": {
+            "title": "Lapses",
+            "type": "integer"
+          },
+          "last_review": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Review"
           },
           "module_id": {
             "format": "uuid",
@@ -1306,6 +1534,10 @@
             ],
             "title": "Origin",
             "type": "string"
+          },
+          "reps": {
+            "title": "Reps",
+            "type": "integer"
           },
           "sources": {
             "items": {
@@ -1336,7 +1568,12 @@
           "back_md",
           "origin",
           "sources",
-          "created_at"
+          "created_at",
+          "fsrs_state",
+          "due",
+          "last_review",
+          "reps",
+          "lapses"
         ],
         "title": "FlashcardOut",
         "type": "object"
@@ -1993,6 +2230,157 @@
         "title": "MessageOut",
         "type": "object"
       },
+      "MistakeExample": {
+        "properties": {
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "question_id": {
+            "format": "uuid",
+            "title": "Question Id",
+            "type": "string"
+          },
+          "stem_md": {
+            "title": "Stem Md",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer_id",
+          "attempt_id",
+          "question_id",
+          "stem_md",
+          "at",
+          "description"
+        ],
+        "title": "MistakeExample",
+        "type": "object"
+      },
+      "MistakeGroupOut": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/MistakeExample"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last At"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "patterns": {
+            "items": {
+              "$ref": "#/components/schemas/MistakePattern"
+            },
+            "title": "Patterns",
+            "type": "array"
+          },
+          "recent": {
+            "title": "Recent",
+            "type": "integer"
+          },
+          "recurring": {
+            "title": "Recurring",
+            "type": "boolean"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "topic_title": {
+            "title": "Topic Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "module_id",
+          "module_code",
+          "topic_id",
+          "topic_title",
+          "category",
+          "label",
+          "count",
+          "recent",
+          "recurring",
+          "last_at",
+          "patterns",
+          "examples"
+        ],
+        "title": "MistakeGroupOut",
+        "type": "object"
+      },
+      "MistakePattern": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "count"
+        ],
+        "title": "MistakePattern",
+        "type": "object"
+      },
       "ModuleCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2516,6 +2904,152 @@
         "title": "PhotoTranscription",
         "type": "object"
       },
+      "PlanBucket": {
+        "properties": {
+          "allocated": {
+            "title": "Allocated",
+            "type": "integer"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "low_data": {
+            "title": "Low Data",
+            "type": "boolean"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "number"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "strength": {
+            "title": "Strength",
+            "type": "number"
+          },
+          "terms": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Terms",
+            "type": "object"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "module_id",
+          "module_code",
+          "topic_id",
+          "title",
+          "strength",
+          "attempts",
+          "low_data",
+          "priority",
+          "terms",
+          "available",
+          "allocated",
+          "reasons"
+        ],
+        "title": "PlanBucket",
+        "type": "object"
+      },
+      "ProfileOut": {
+        "properties": {
+          "current": {
+            "additionalProperties": true,
+            "title": "Current",
+            "type": "object"
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileSnapshotOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current",
+          "snapshot"
+        ],
+        "title": "ProfileOut",
+        "type": "object"
+      },
+      "ProfileSnapshotOut": {
+        "properties": {
+          "computed_at": {
+            "format": "date-time",
+            "title": "Computed At",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "summary_md": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Md"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "metrics",
+          "summary_md",
+          "computed_at"
+        ],
+        "title": "ProfileSnapshotOut",
+        "type": "object"
+      },
       "QuestionOut": {
         "properties": {
           "answer_spec": {
@@ -2863,15 +3397,23 @@
           "kind": {
             "enum": [
               "practice",
-              "mock"
+              "mock",
+              "daily"
             ],
             "title": "Kind",
             "type": "string"
           },
           "module_id": {
-            "format": "uuid",
-            "title": "Module Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module Id"
           },
           "time_limit_minutes": {
             "anyOf": [
@@ -2975,6 +3517,35 @@
           "response"
         ],
         "title": "ResponseSave",
+        "type": "object"
+      },
+      "ReviewIn": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_ms": {
+            "anyOf": [
+              {
+                "maximum": 3600000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "rating": {
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "ReviewIn",
         "type": "object"
       },
       "SavedDraft": {
@@ -3334,6 +3905,106 @@
           "importance"
         ],
         "title": "TopicOut",
+        "type": "object"
+      },
+      "TopicProgress": {
+        "description": "A topic's estimated strength with its evidence, e.g.\n\"est. 72% \u00b7 14 attempts \u00b7 last practised 6 days ago\".",
+        "properties": {
+          "accuracy": {
+            "title": "Accuracy",
+            "type": "number"
+          },
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "last_practised_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Practised At"
+          },
+          "low_data": {
+            "title": "Low Data",
+            "type": "boolean"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "retrievability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrievability"
+          },
+          "strength": {
+            "title": "Strength",
+            "type": "number"
+          },
+          "subtree_attempts": {
+            "title": "Subtree Attempts",
+            "type": "integer"
+          },
+          "subtree_strength": {
+            "title": "Subtree Strength",
+            "type": "number"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "topic_id",
+          "parent_id",
+          "title",
+          "strength",
+          "accuracy",
+          "retrievability",
+          "attempts",
+          "weight",
+          "low_data",
+          "last_practised_at",
+          "subtree_strength",
+          "subtree_attempts"
+        ],
+        "title": "TopicProgress",
         "type": "object"
       },
       "TopicUpdate": {
@@ -3933,6 +4604,71 @@
         "title": "VersionSummary",
         "type": "object"
       },
+      "WeakTopic": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "last_practised_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Practised At"
+          },
+          "low_data": {
+            "title": "Low Data",
+            "type": "boolean"
+          },
+          "module_code": {
+            "title": "Module Code",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "strength": {
+            "title": "Strength",
+            "type": "number"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "module_id",
+          "module_code",
+          "topic_id",
+          "title",
+          "strength",
+          "attempts",
+          "low_data",
+          "last_practised_at"
+        ],
+        "title": "WeakTopic",
+        "type": "object"
+      },
       "YearCreate": {
         "additionalProperties": false,
         "properties": {
@@ -4226,17 +4962,24 @@
     },
     "/api/v1/attempts": {
       "get": {
-        "description": "Your quizzes and mock exams in a module, newest first.",
+        "description": "Your quizzes and mock exams in a module, newest first (all of them,\nincluding daily quizzes, without a module).",
         "operationId": "list_attempts_api_v1_attempts_get",
         "parameters": [
           {
             "in": "query",
             "name": "module_id",
-            "required": true,
+            "required": false,
             "schema": {
-              "format": "uuid",
-              "title": "Module Id",
-              "type": "string"
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
             }
           }
         ],
@@ -4779,6 +5522,100 @@
         "summary": "Send Message",
         "tags": [
           "chat"
+        ]
+      }
+    },
+    "/api/v1/daily-quiz": {
+      "post": {
+        "description": "Start today's quiz (or return the one already open today).",
+        "operationId": "start_daily_quiz_api_v1_daily_quiz_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyStarted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Daily Quiz",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
+    "/api/v1/daily-quiz/plan": {
+      "get": {
+        "description": "What today's quiz would cover, and why.",
+        "operationId": "daily_plan_api_v1_daily_quiz_plan_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "minutes",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 240,
+                  "minimum": 5,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Minutes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Daily Plan",
+        "tags": [
+          "learning"
         ]
       }
     },
@@ -5844,6 +6681,57 @@
         ]
       }
     },
+    "/api/v1/flashcards/due": {
+      "get": {
+        "description": "Cards to review now (new cards limited per day), with the interval\neach rating would give.",
+        "operationId": "due_flashcards_api_v1_flashcards_due_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DueCards"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Due Flashcards",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
     "/api/v1/flashcards/{card_id}": {
       "delete": {
         "operationId": "delete_flashcard_api_v1_flashcards__card_id__delete",
@@ -5971,6 +6859,60 @@
         "summary": "Restore Flashcard",
         "tags": [
           "practice"
+        ]
+      }
+    },
+    "/api/v1/flashcards/{card_id}/review": {
+      "post": {
+        "description": "Record how well you knew it: 1 Again, 2 Hard, 3 Good, 4 Easy.",
+        "operationId": "review_flashcard_api_v1_flashcards__card_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Card Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlashcardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Flashcard",
+        "tags": [
+          "learning"
         ]
       }
     },
@@ -6551,6 +7493,61 @@
         ]
       }
     },
+    "/api/v1/mistakes": {
+      "get": {
+        "description": "Your mistakes grouped by topic and kind, recurring ones first.",
+        "operationId": "mistakes_api_v1_mistakes_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MistakeGroupOut"
+                  },
+                  "title": "Response Mistakes Api V1 Mistakes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mistakes",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
     "/api/v1/modules": {
       "get": {
         "operationId": "list_modules_api_v1_modules_get",
@@ -7013,6 +8010,126 @@
         "summary": "Confirm Pending Action",
         "tags": [
           "chat"
+        ]
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "description": "Measured statistics about your learning, and this week's summary.",
+        "operationId": "learning_profile_api_v1_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learning Profile",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
+    "/api/v1/progress": {
+      "get": {
+        "description": "Estimated strength per topic, with its evidence; parents include\ntheir subtopics, weighted by how much evidence each has.",
+        "operationId": "module_progress_api_v1_progress_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Module Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TopicProgress"
+                  },
+                  "title": "Response Module Progress Api V1 Progress Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Module Progress",
+        "tags": [
+          "learning"
+        ]
+      }
+    },
+    "/api/v1/progress/weakest": {
+      "get": {
+        "description": "Your weakest topics across this year's modules.",
+        "operationId": "weakest_topics_api_v1_progress_weakest_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WeakTopic"
+                  },
+                  "title": "Response Weakest Topics Api V1 Progress Weakest Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Weakest Topics",
+        "tags": [
+          "learning"
         ]
       }
     },

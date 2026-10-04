@@ -7,6 +7,7 @@ from app.api.v1 import (
     chat,
     documents,
     health,
+    learning,
     materials,
     practice,
     search,
@@ -30,5 +31,6 @@ protected.include_router(search.router)
 protected.include_router(chat.router)
 protected.include_router(ai.router)
 protected.include_router(materials.router)
+protected.include_router(learning.router)
 protected.include_router(practice.router)
 router.include_router(protected)

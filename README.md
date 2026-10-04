@@ -8,7 +8,7 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 6 (revision materials and practice). Phase 2 brought
+**Status:** Phase 7 (adaptive learning). Phase 2 brought
 sign-in with secure sessions, academic years, modules and topic trees,
 theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
@@ -23,7 +23,12 @@ feature, model, module and day. Phase 6 adds revision materials with version
 history, a question bank and flashcards that Claude writes from your
 materials (checked before you can save them), quizzes and timed mock exams
 with AI help switched off, and marking of every answer type, including
-photos of handwritten working, with explanations of every mistake.
+photos of handwritten working, with explanations of every mistake. Phase 7
+makes practice adaptive: a daily quiz that leans towards your weak topics and
+recurring mistakes (explaining why), flashcards scheduled by FSRS, a topic
+strength estimate shown with its evidence, a mistake bank and a learning
+profile built only from what you did. The formulas are in
+[docs/algorithms.md](docs/algorithms.md).
 
 ## Layout
 
@@ -184,4 +189,5 @@ section. For a hard ceiling outside the app as well, load
 matching prepaid credit in the Claude Console with auto-reload off.
 Generation limits, the checks on generated questions, marking tolerances and
 quiz and exam settings are in `practice.yaml`; search settings are in
-`retrieval.yaml`.
+`retrieval.yaml`; the adaptive-learning formulas' numbers (strength, Elo,
+FSRS, the daily quiz's weights, mistake patterns) are in `learning.yaml`.

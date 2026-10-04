@@ -362,13 +362,18 @@ describe("flashcards", () => {
             origin: "claude",
             sources: [],
             created_at: "",
+            fsrs_state: 1,
+            due: "",
+            last_review: null,
+            reps: 0,
+            lapses: 0,
           },
         ],
       ],
     });
     const user = userEvent.setup();
     renderAt("/modules/m1/flashcards");
-    await user.click(await screen.findByRole("button", { name: "Study 1 cards" }));
+    await user.click(await screen.findByRole("button", { name: "Browse 1 cards" }));
     const study = screen.getByRole("region", { name: "Study flashcards" });
     expect(within(study).queryByText(/it converges/)).toBeNull();
     await user.click(within(study).getByRole("button", { name: "Reveal answer" }));

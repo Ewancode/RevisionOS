@@ -29,6 +29,7 @@ from app.core.clock import utcnow
 from app.core.config import AppConfig
 from app.core.errors import AppError
 from app.ingestion.validation import IMAGE_KINDS, validate_upload
+from app.learning import mastery
 from app.models import Question, QuestionAttempt, Quiz, QuizAttempt, QuizItem, Topic
 from app.practice import marking
 from app.practice.answers import (
@@ -127,6 +128,10 @@ async def submit_attempt(
     await db.commit()
     if needs_claude:
         await jobs.enqueue("mark_attempt", str(attempt.id), job_id=f"mark:{attempt.id}")
+    else:
+        await mastery.recompute_for_questions(
+            db, attempt.user_id, [a.question_id for a in answers], config, now
+        )
 
 
 # --- the service -------------------------------------------------------------------------
@@ -220,14 +225,34 @@ class QuizService(ScopedService):
                 "no_questions", "No questions match. Generate some, or loosen the filters.", 422
             )
         default_title = "Mock exam" if body.kind == "mock" else "Practice quiz"
+        return await self.create_from(
+            questions,
+            kind=body.kind,
+            title=body.title or f"{module.code} {default_title.lower()}",
+            module_id=module.id,
+            time_limit_minutes=minutes,
+            config=body.model_dump(mode="json", exclude={"module_id", "title", "kind"}),
+        )
+
+    async def create_from(
+        self,
+        questions: Sequence[Question],
+        *,
+        kind: str,
+        title: str,
+        module_id: uuid.UUID | None,
+        time_limit_minutes: int | None = None,
+        config: dict[str, Any] | None = None,
+    ) -> tuple[Quiz, QuizAttempt]:
+        """A quiz of these questions, in this order, started now."""
         quiz = Quiz(
             id=uuid.uuid4(),
             user_id=self.user_id,
-            module_id=module.id,
-            kind=body.kind,
-            title=body.title or f"{module.code} {default_title.lower()}",
-            time_limit_minutes=minutes,
-            config=body.model_dump(mode="json", exclude={"module_id", "title", "kind"}),
+            module_id=module_id,
+            kind=kind,
+            title=title,
+            time_limit_minutes=time_limit_minutes,
+            config=config or {},
         )
         self.db.add(quiz)
         await self.db.flush()
@@ -290,22 +315,25 @@ class QuizService(ScopedService):
         await self.db.commit()
         return attempt
 
-    async def history(self, module_id: uuid.UUID) -> list[AttemptListItem]:
-        await self.placement(module_id, None)
+    async def history(self, module_id: uuid.UUID | None) -> list[AttemptListItem]:
+        """A module's quizzes, or every quiz (including daily ones) with None."""
+        if module_id is not None:
+            await self.placement(module_id, None)
         count = (
             select(func.count())
             .where(QuizItem.quiz_id == Quiz.id)
             .correlate(Quiz)
             .scalar_subquery()
         )
-        rows = (
-            await self.db.execute(
-                select(QuizAttempt, Quiz, count)
-                .join(Quiz, Quiz.id == QuizAttempt.quiz_id)
-                .where(QuizAttempt.user_id == self.user_id, Quiz.module_id == module_id)
-                .order_by(QuizAttempt.started_at.desc())
-            )
-        ).all()
+        stmt = (
+            select(QuizAttempt, Quiz, count)
+            .join(Quiz, Quiz.id == QuizAttempt.quiz_id)
+            .where(QuizAttempt.user_id == self.user_id)
+            .order_by(QuizAttempt.started_at.desc())
+        )
+        if module_id is not None:
+            stmt = stmt.where(Quiz.module_id == module_id)
+        rows = (await self.db.execute(stmt)).all()
         return [
             AttemptListItem(
                 id=attempt.id,
@@ -467,7 +495,14 @@ class QuizService(ScopedService):
             answer.original_score = before
         await self._rescore(attempt)
         await self.db.commit()
+        await self._relearn(answer)
         return answer
+
+    async def _relearn(self, answer: QuestionAttempt) -> None:
+        """A changed mark changes strength and difficulty: recompute."""
+        await mastery.recompute_for_questions(
+            self.db, self.user_id, [answer.question_id], self.config, utcnow()
+        )
 
     async def override(self, answer_id: uuid.UUID, score: float) -> QuestionAttempt:
         answer, _, attempt = await self._marked_answer(answer_id)
@@ -477,6 +512,7 @@ class QuizService(ScopedService):
         answer.marked_at = utcnow()
         await self._rescore(attempt)
         await self.db.commit()
+        await self._relearn(answer)
         return answer
 
     # --- the view ------------------------------------------------------------------------------

@@ -525,3 +525,25 @@ async def run_draft(
     draft.payload, draft.ai_interaction_id = payload, interaction
     draft.status, draft.error_code = "ready", None
     await db.commit()
+    if draft.request.get("auto") and draft.kind == "questions":
+        await _auto_save(db, config, draft)
+
+
+async def _auto_save(db: AsyncSession, config: AppConfig, draft: Draft) -> None:
+    """Save the valid questions of a daily-quiz top-up straight to the bank."""
+    # Imported here: the drafts service imports this module.
+    from app.schemas.practice import DraftSave
+    from app.services.common import ClientInfo
+    from app.services.drafts import DraftService
+
+    if not any(item.get("valid") for item in (draft.payload or {}).get("items", [])):
+        return
+    service = DraftService(
+        db, draft.user_id, ClientInfo(None, "worker"), config=config, jobs=_NoJobs()
+    )
+    await service.save(draft.id, DraftSave())
+
+
+class _NoJobs:
+    async def enqueue(self, function: str, *args: object, job_id: str | None = None) -> None:
+        raise RuntimeError("saving a draft queues no jobs")

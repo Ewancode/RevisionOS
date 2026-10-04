@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useViewingYear } from "@/app/viewingYear";
 import { Button } from "@/components/ui";
 import { useSession } from "@/features/auth/session";
+import { TodayPanels } from "@/features/learning/TodayPanels";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
 import { useModules } from "@/features/structure/queries";
 import { greeting } from "@/lib/greeting";
 
-/** Phase 2 dashboard: greeting and module overview. Progress, quizzes and
- *  exams join it as their phases land (SPEC §4). */
+/** Today: what to practise now (daily quiz, due flashcards, weak topics,
+ *  recurring mistakes) and your modules. Exams and the plan join in Phase 8. */
 export function Dashboard() {
   const session = useSession();
   const { year, isPending } = useViewingYear();
@@ -51,6 +52,8 @@ export function Dashboard() {
           </Button>
         </section>
       )}
+
+      {year && !!modules.data?.length && <TodayPanels />}
 
       {year && !!modules.data?.length && (
         <section aria-labelledby="modules-heading">

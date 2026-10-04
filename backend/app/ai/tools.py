@@ -278,6 +278,56 @@ async def list_materials(ctx: ToolContext, _: ListInput) -> ToolOutput:
     return ToolOutput("\n".join(lines))
 
 
+class ProgressInput(_Input):
+    pass
+
+
+async def get_progress(ctx: ToolContext, args: ProgressInput) -> ToolOutput:
+    """Measured progress: weakest topics, due flashcards, recurring mistakes."""
+    # Imported here: learning -> quizzes -> marking -> generation -> chat -> tools.
+    from app.services.learning import LearningService
+
+    service = LearningService(ctx.db, ctx.user_id, ctx.client, config=ctx.config, jobs=_NoJobs())
+    lines = []
+    weak = await service.weakest(6)
+    if weak:
+        lines.append("Weakest topics (estimated strength, from marked answers):")
+        for row, code, title in weak:
+            days = f"last practised {row.last_practised_at:%d %b}" if row.last_practised_at else ""
+            low = (
+                ", little data"
+                if row.weight < ctx.config.learning.mastery.low_data_weight_threshold
+                else ""
+            )
+            lines.append(
+                f"- {code} {title}: {round(row.strength * 100)}% over {row.attempts} answers{low}"
+                + (f"; {days}" if days else "")
+            )
+    else:
+        lines.append("No marked answers yet, so no topic strengths.")
+    _, counts = await service.due(None)
+    lines.append(
+        f"Flashcards due now: {counts['due']} ({counts['new']} new, {counts['review']} review)."
+    )
+    recurring = [g for g in await service.mistakes(None) if g.recurring]
+    if recurring:
+        lines.append("Recurring mistakes (in the last 30 days):")
+        lines += [f"- {g.label} in {g.topic_title}: {g.recent} times" for g in recurring[:5]]
+    plan = await service.plan(None)
+    if plan.questions:
+        lines.append(
+            f"Today's daily quiz would have {plan.questions} questions, mostly on: "
+            + ", ".join(f"{b.title} ({b.allocated})" for b in plan.chosen[:4])
+            + "."
+        )
+    return ToolOutput("\n".join(lines))
+
+
+class _NoJobs:
+    async def enqueue(self, function: str, *args: object, job_id: str | None = None) -> None:
+        raise RuntimeError("reading progress queues no jobs")
+
+
 # --- draft tools (preview before anything is saved) --------------------------------------
 
 MaterialKindName = Literal[
@@ -436,6 +486,16 @@ TOOLS: dict[str, Tool] = {
             ListInput,
             list_materials,
             lambda _: "Looking at your modules and files",
+        ),
+        Tool(
+            "get_progress",
+            "The student's measured progress: weakest topics with estimated strength and "
+            "evidence, flashcards due, recurring mistakes, and what today's daily quiz would "
+            "cover. Use it for questions about how they are doing or what to revise.",
+            "read",
+            ProgressInput,
+            get_progress,
+            lambda _: "Looking at your progress",
         ),
         Tool(
             "start_draft",
