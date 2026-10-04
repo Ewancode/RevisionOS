@@ -133,9 +133,17 @@ def test_every_exam_topic_gets_time_when_there_is_room(scenario) -> None:  # typ
         return
     planned, _ = run(scenario)
     exam_topics = [n for n in needs if n.exam_id is not None and n.need_minutes > 0]
+    # Mock exams are placed first and last as long as their exam. Room is
+    # counted as if every mock could land on any day, which is never more
+    # than the allocator really has.
+    mock_minutes = sum(e.duration_minutes for e in exams)
     for exam in exams:
-        slots = sum(min(MAX_SESSIONS, d.capacity // SESSION) for d in days if d.day < exam.day)
-        if slots < len(exam_topics) + len(exams):
+        slots = sum(
+            min(MAX_SESSIONS - len(exams), max(0, d.capacity - mock_minutes) // SESSION)
+            for d in days
+            if d.day < exam.day
+        )
+        if slots < len(exam_topics):
             continue
         got = {(p.module_id, p.topic_id) for p in planned if p.kind == "topic"}
         for need in exam_topics:

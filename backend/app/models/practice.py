@@ -47,7 +47,7 @@ MATERIAL_KINDS = (
     "notes",
 )
 ORIGINS = ("user", "claude")
-DRAFT_KINDS = ("material", "questions", "flashcards")
+DRAFT_KINDS = ("material", "questions", "flashcards", "coding")
 DRAFT_STATUSES = ("generating", "ready", "failed", "saved", "discarded")
 QUESTION_STATUSES = ("active", "retired")
 QUIZ_KINDS = ("practice", "mock", "daily")
@@ -350,6 +350,7 @@ class QuestionAttempt(Base):
             ondelete="CASCADE",
         ),
         UniqueConstraint("quiz_attempt_id", "question_id", name="uq_question_attempts_once"),
+        UniqueConstraint("id", "user_id", name="uq_question_attempts_id_user"),
         CheckConstraint("score IS NULL OR score BETWEEN 0 AND 1", name="score_range"),
         CheckConstraint(
             "self_confidence IS NULL OR self_confidence BETWEEN 1 AND 5", name="confidence_range"

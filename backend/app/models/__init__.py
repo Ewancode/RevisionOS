@@ -2,6 +2,7 @@
 
 from app.models.ai import AIInteraction, AIUsage
 from app.models.chat import Conversation, Message, PendingAction
+from app.models.coding import CodingExercise, CodingSubmission, TutorHint
 from app.models.content import Document, DocumentPage
 from app.models.identity import AuditLog, AuthSession, User, UserSettings
 from app.models.learning import FlashcardReview, LearningProfileSnapshot, TopicMastery
@@ -37,6 +38,8 @@ __all__ = [
     "AvailabilityOverride",
     "AvailabilityRule",
     "Chunk",
+    "CodingExercise",
+    "CodingSubmission",
     "Conversation",
     "Document",
     "DocumentPage",
@@ -61,6 +64,7 @@ __all__ = [
     "StudySession",
     "Topic",
     "TopicMastery",
+    "TutorHint",
     "User",
     "UserSettings",
 ]

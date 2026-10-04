@@ -47,7 +47,8 @@ routing:
   flashcard_generation: { model: haiku, escalate_to: { model: sonnet, effort: low }, max_tokens: 6000 }
   simple_question_generation: { model: haiku, escalate_to: { model: sonnet, effort: medium }, max_tokens: 8000 }
   simple_marking:       { model: haiku, escalate_to: { model: sonnet, effort: medium } }
-  tutoring:             { model: sonnet, effort: medium }
+  tutoring:             { model: sonnet, effort: medium, max_tokens: 1500 }
+  coding_generation:    { model: sonnet, effort: medium, max_tokens: 10000 }
   # Explanations of a quiz's wrong answers, in one call per quiz.
   explanation:          { model: sonnet, effort: medium, max_tokens: 8000 }
   revision_guide:       { model: sonnet, effort: medium, max_tokens: 12000 }

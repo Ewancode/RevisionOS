@@ -199,6 +199,7 @@ function TrashSection() {
     ...(trash.data?.documents.map((d) => ({ kind: "document" as const, id: d.id, label: d.original_filename, deleted: d.deleted_at })) ?? []),
     ...(trash.data?.materials.map((m) => ({ kind: "material" as const, id: m.id, label: m.title, deleted: m.deleted_at })) ?? []),
     ...(trash.data?.flashcards.map((c) => ({ kind: "flashcard" as const, id: c.id, label: c.front_md.slice(0, 80), deleted: c.deleted_at })) ?? []),
+    ...(trash.data?.exercises.map((e) => ({ kind: "exercise" as const, id: e.id, label: e.title, deleted: e.deleted_at })) ?? []),
   ].sort((a, b) => b.deleted.localeCompare(a.deleted));
   const KIND_LABEL = {
     module: "Module",
@@ -206,12 +207,13 @@ function TrashSection() {
     document: "File",
     material: "Material",
     flashcard: "Flashcard",
+    exercise: "Coding exercise",
   } as const;
 
   return (
     <Section title="Trash">
       <p className="text-sm text-muted">
-        Deleted modules, topics, files, materials and flashcards are kept for{" "}
+        Deleted modules, topics, files, materials, flashcards and coding exercises are kept for{" "}
         {trash.data?.retention_days ?? 30} days.
       </p>
       {items.length === 0 && <p className="text-sm">The trash is empty.</p>}

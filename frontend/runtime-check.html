@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Runtime check</title>
+  </head>
+  <body style="font-family: system-ui, sans-serif; padding: 1rem">
+    <!--
+      Development only (not part of the production build): runs real Python
+      and R exercises through the app's runners, to check the pinned runtimes
+      still load and mark code. Open with the URLs from backend/config/coding.yaml:
+      /runtime-check.html?python=<runtimes.python.base_url>&r=<runtimes.r.base_url>
+    -->
+    <h1>Runtime check</h1>
+    <p id="status" data-status="running">Running…</p>
+    <pre id="results"></pre>
+    <script type="module" src="/src/features/coding/runtime/check.ts"></script>
+  </body>
+</html>

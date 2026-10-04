@@ -608,6 +608,52 @@ class AnalyticsConfig(_Strict):
     readiness: ReadinessConfig
 
 
+# --- coding.yaml -------------------------------------------------------------
+
+
+class RuntimeConfig(_Strict):
+    label: str
+    base_url: Annotated[str, Field(pattern=r"^https://.+/$")]
+
+
+class CodingRuntimes(_Strict):
+    python: RuntimeConfig
+    r: RuntimeConfig
+
+
+class CodingLimits(_Strict):
+    run_timeout_seconds: PositiveInt
+    first_run_timeout_seconds: PositiveInt
+    max_output_chars: PositiveInt
+    max_code_chars: PositiveInt
+    max_tests: PositiveInt
+    max_test_chars: PositiveInt
+    max_packages: Annotated[int, Field(ge=0)]
+
+
+class CodingGeneration(_Strict):
+    default_items: PositiveInt
+    max_items: PositiveInt
+
+    @model_validator(mode="after")
+    def _consistent(self) -> Self:
+        if self.default_items > self.max_items:
+            raise ValueError("default_items cannot exceed max_items")
+        return self
+
+
+class TutorConfig(_Strict):
+    history_hints: Annotated[int, Field(ge=0)]
+    max_student_work_chars: PositiveInt
+
+
+class CodingConfig(_Strict):
+    runtimes: CodingRuntimes
+    limits: CodingLimits
+    generation: CodingGeneration
+    tutor: TutorConfig
+
+
 # --- loading -----------------------------------------------------------------
 
 
@@ -619,6 +665,7 @@ class AppConfig(_Strict):
     practice: PracticeConfig
     planner: PlannerConfig
     analytics: AnalyticsConfig
+    coding: CodingConfig
 
 
 class ConfigError(RuntimeError):
@@ -647,6 +694,7 @@ def load_config(config_dir: Path) -> AppConfig:
         practice=_load_yaml(config_dir / "practice.yaml", PracticeConfig),
         planner=_load_yaml(config_dir / "planner.yaml", PlannerConfig),
         analytics=_load_yaml(config_dir / "analytics.yaml", AnalyticsConfig),
+        coding=_load_yaml(config_dir / "coding.yaml", CodingConfig),
     )
 
 

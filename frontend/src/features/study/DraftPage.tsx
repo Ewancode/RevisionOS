@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CitedMarkdown, Sources, type Citation } from "@/components/CitedMarkdown";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Button, ErrorText } from "@/components/ui";
+import { CodingDraft } from "@/features/coding/CodingDraft";
 import { useModule } from "@/features/structure/queries";
 
 import {
@@ -273,7 +274,7 @@ export function DraftPage({ draftId }: { draftId: string }) {
           </Link>
         )}
         <h1 className="text-2xl font-semibold tracking-tight">
-          Draft {d.kind === "material" ? "material" : d.kind}
+          Draft {d.kind === "material" ? "material" : d.kind === "coding" ? "coding exercises" : d.kind}
         </h1>
         {typeof d.request.instructions === "string" && d.request.instructions && (
           <p className="text-sm text-muted">You asked: {d.request.instructions}</p>
@@ -297,7 +298,14 @@ export function DraftPage({ draftId }: { draftId: string }) {
       )}
       {d.status === "discarded" && <p className="text-sm text-muted">Discarded.</p>}
 
-      {d.status === "ready" && (d.kind === "material" ? <MaterialDraft draft={d} /> : <ItemsDraft draft={d} />)}
+      {d.status === "ready" &&
+        (d.kind === "material" ? (
+          <MaterialDraft draft={d} />
+        ) : d.kind === "coding" ? (
+          <CodingDraft draft={d} />
+        ) : (
+          <ItemsDraft draft={d} />
+        ))}
 
       {(d.status === "ready" || d.status === "failed") && <DraftControls draft={d} instructions={instructions} setInstructions={setInstructions} onDiscarded={() => navigate({ to: "/" })} />}
     </div>

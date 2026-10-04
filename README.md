@@ -8,7 +8,7 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 9 (analytics). Phase 2 brought
+**Status:** Phase 10 (coding practice). Phase 2 brought
 sign-in with secure sessions, academic years, modules and topic trees,
 theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
@@ -38,7 +38,11 @@ analytics: Today shows your streak, today's progress, this week's questions,
 accuracy and study time; each module gets an overview; and an Analytics page
 charts accuracy, study time, mistakes and consistency by week, with exam
 readiness built from measured components (never a predicted mark). Every
-figure says what it was computed from. The formulas are in
+figure says what it was computed from. Phase 10 adds coding practice:
+Python and R exercises that run and mark in your browser (Pyodide and
+WebR), written by you or by Claude (whose reference solutions are checked
+against their own tests before saving), and a tutor that gives hints one
+step at a time, also on practice-quiz questions. The formulas are in
 [docs/algorithms.md](docs/algorithms.md).
 
 ## Layout
@@ -47,7 +51,7 @@ figure says what it was computed from. The formulas are in
 backend/    FastAPI API + Arq worker (Python 3.12, uv)
   app/        api/v1/ (routers) → services/ (rules) → repositories/ (user-scoped
               data access) → models/; core/ (settings, config, security, errors)
-  config/     learning.yaml, planner.yaml, analytics.yaml, ai.yaml, platform.yaml — every tunable number,
+  config/     learning.yaml, planner.yaml, analytics.yaml, coding.yaml, ai.yaml, platform.yaml — every tunable number,
               validated at startup
   migrations/ Alembic
   tests/      unit/, api/, db/

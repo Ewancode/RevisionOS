@@ -23,7 +23,12 @@ export function flattenTopics(nodes: TopicNode[], depth = 0): { id: string; titl
   ]);
 }
 
-const KIND_TITLE = { material: "revision material", questions: "practice questions", flashcards: "flashcards" };
+const KIND_TITLE = {
+  material: "revision material",
+  questions: "practice questions",
+  flashcards: "flashcards",
+  coding: "coding exercises",
+};
 
 const field = "flex flex-col gap-1 text-sm";
 const control = "h-9 rounded-md border border-border bg-bg px-2 text-sm";
@@ -51,7 +56,8 @@ export function GenerateDialog({
   const documents = useDocuments(moduleId);
   const [topicId, setTopicId] = useState("");
   const [materialKind, setMaterialKind] = useState<MaterialKind>("guide");
-  const [count, setCount] = useState(8);
+  const [count, setCount] = useState(kind === "coding" ? 2 : 8);
+  const [language, setLanguage] = useState<"python" | "r">("python");
   const [difficulty, setDifficulty] = useState<Difficulty | "mixed">("mixed");
   const [types, setTypes] = useState<QuestionType[]>([]);
   const [files, setFiles] = useState<string[]>([]);
@@ -65,7 +71,8 @@ export function GenerateDialog({
       kind,
       material_kind: kind === "material" && !improveMaterialId ? materialKind : null,
       count: kind === "material" ? null : count,
-      difficulty: kind === "questions" ? difficulty : null,
+      difficulty: kind === "questions" || kind === "coding" ? difficulty : null,
+      language: kind === "coding" ? language : null,
       types: kind === "questions" && types.length ? types : null,
       document_ids: files,
       instructions: instructions.trim() || null,
@@ -122,13 +129,22 @@ export function GenerateDialog({
             </select>
           </label>
         )}
+        {kind === "coding" && (
+          <label className={field}>
+            Language
+            <select className={control} value={language} onChange={(e) => setLanguage(e.target.value as "python" | "r")}>
+              <option value="python">Python</option>
+              <option value="r">R</option>
+            </select>
+          </label>
+        )}
         {kind !== "material" && (
           <label className={field}>
             How many
             <input
               type="number"
               min={1}
-              max={20}
+              max={kind === "coding" ? 4 : 20}
               className={control}
               value={count}
               onChange={(e) => setCount(Number(e.target.value))}

@@ -294,7 +294,7 @@ describe("notifications", () => {
       ],
       "GET /api/v1/trash": () => [
         200,
-        { modules: [], topics: [], documents: [], materials: [], flashcards: [], retention_days: 30 },
+        { modules: [], topics: [], documents: [], materials: [], flashcards: [], exercises: [], retention_days: 30 },
       ],
       "GET /api/v1/health/ready": () => [200, { status: "ready", checks: {} }],
     });

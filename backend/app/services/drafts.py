@@ -11,11 +11,14 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.coding.validation import check_exercise
 from app.core.config import AppConfig
 from app.core.errors import AppError
 from app.models import Document, Draft, Flashcard, Question
 from app.practice.validation import check_flashcard, check_question
+from app.schemas.coding import ExerciseIn
 from app.schemas.practice import DraftOut, DraftSave, GenerateRequest, MaterialCreate, SavedDraft
+from app.services.coding import CodingService
 from app.services.common import ClientInfo, ScopedService, not_found
 from app.services.materials import MaterialService
 from app.services.quizzes import ensure_no_exam
@@ -86,11 +89,15 @@ class DraftService(ScopedService):
         preview (SPEC 40 allows this for quiz questions)."""
         await ensure_no_exam(self.db, self.user_id, self.config, self.jobs)
         await self.placement(body.module_id, body.topic_id)
-        generation = self.config.practice.generation
-        if body.count is not None and body.count > generation.max_items:
-            raise AppError(
-                "too_many_items", f"Ask for at most {generation.max_items} at a time.", 422
-            )
+        most = (
+            self.config.coding.generation.max_items
+            if body.kind == "coding"
+            else self.config.practice.generation.max_items
+        )
+        if body.count is not None and body.count > most:
+            raise AppError("too_many_items", f"Ask for at most {most} at a time.", 422)
+        if body.language is not None and body.kind != "coding":
+            raise AppError("bad_request", "Only coding exercises have a language.", 422)
         if body.document_ids:
             owned = await self.db.scalars(
                 select(Document.id).where(
@@ -228,7 +235,32 @@ class DraftService(ScopedService):
                 for n in item.get("sources", [])
                 if n in passages
             ]
-            if draft.kind == "questions":
+            if draft.kind == "coding":
+                # Re-checked at save time, like questions. Whether the reference
+                # solution passes its tests was checked in your browser.
+                if not check_exercise(item, len(passages), self.config.coding.limits).valid:
+                    raise AppError(
+                        "invalid_item", "Items that failed the checks cannot be saved.", 422
+                    )
+                fields = (
+                    "language", "title", "prompt_md", "starter_code", "solution_code",
+                    "tests", "packages", "difficulty",
+                )  # fmt: skip
+                await CodingService(
+                    self.db, self.user_id, self.client, config=self.config, jobs=self.jobs
+                ).create(
+                    ExerciseIn.model_validate(
+                        {
+                            "module_id": draft.module_id,
+                            "topic_id": draft.topic_id,
+                            **{k: item[k] for k in fields},
+                        }
+                    ),
+                    origin="claude",
+                    sources=sources,
+                    commit=False,
+                )
+            elif draft.kind == "questions":
                 # Re-checked at save time: the bank only ever holds valid questions.
                 checked = check_question(item, len(passages), practice.validation, practice.marking)
                 if not checked.valid or checked.spec is None:

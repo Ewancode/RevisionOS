@@ -220,6 +220,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attempts/{attempt_id}/responses/{question_id}/hints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Question Hints */
+        get: operations["question_hints_api_v1_attempts__attempt_id__responses__question_id__hints_get"];
+        put?: never;
+        /**
+         * Next Question Hint
+         * @description The next hint for a question you are answering (practice quizzes only).
+         */
+        post: operations["next_question_hint_api_v1_attempts__attempt_id__responses__question_id__hints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attempts/{attempt_id}/responses/{question_id}/photo": {
         parameters: {
             query?: never;
@@ -397,6 +418,125 @@ export interface paths {
         get: operations["calendar_api_v1_calendar_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coding/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Coding Config
+         * @description The pinned Python and R runtimes your browser loads, and run limits.
+         */
+        get: operations["coding_config_api_v1_coding_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coding/exercises": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Exercises */
+        get: operations["list_exercises_api_v1_coding_exercises_get"];
+        put?: never;
+        /**
+         * Create Exercise
+         * @description An exercise you write yourself (Claude's come through drafts).
+         */
+        post: operations["create_exercise_api_v1_coding_exercises_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coding/exercises/{exercise_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Exercise */
+        get: operations["get_exercise_api_v1_coding_exercises__exercise_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Exercise */
+        delete: operations["delete_exercise_api_v1_coding_exercises__exercise_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Exercise */
+        patch: operations["update_exercise_api_v1_coding_exercises__exercise_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/coding/exercises/{exercise_id}/hints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exercise Hints */
+        get: operations["exercise_hints_api_v1_coding_exercises__exercise_id__hints_get"];
+        put?: never;
+        /**
+         * Next Exercise Hint
+         * @description The next rung of the hint ladder. Off while a mock exam is open.
+         */
+        post: operations["next_exercise_hint_api_v1_coding_exercises__exercise_id__hints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coding/exercises/{exercise_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Exercise */
+        post: operations["restore_exercise_api_v1_coding_exercises__exercise_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coding/exercises/{exercise_id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Submissions */
+        get: operations["list_submissions_api_v1_coding_exercises__exercise_id__submissions_get"];
+        put?: never;
+        /**
+         * Submit Code
+         * @description Record a submission: your code and the test results your browser got.
+         */
+        post: operations["submit_code_api_v1_coding_exercises__exercise_id__submissions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2014,6 +2154,22 @@ export interface components {
             source_tier: "university" | "own";
         };
         /**
+         * CodingConfigOut
+         * @description What the browser needs to run code: pinned runtimes and limits.
+         */
+        CodingConfigOut: {
+            /** First Run Timeout Seconds */
+            first_run_timeout_seconds: number;
+            /** Max Output Chars */
+            max_output_chars: number;
+            /** Run Timeout Seconds */
+            run_timeout_seconds: number;
+            /** Runtimes */
+            runtimes: {
+                [key: string]: components["schemas"]["RuntimeOut"];
+            };
+        };
+        /**
          * ConversationCreate
          * @description Start a conversation, optionally from a module or topic (searches
          *     start there and widen when they find little).
@@ -2208,7 +2364,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "material" | "questions" | "flashcards";
+            kind: "material" | "questions" | "flashcards" | "coding";
             /**
              * Module Id
              * Format: uuid
@@ -2390,6 +2546,166 @@ export interface components {
             /** Weighting */
             weighting?: number | null;
         };
+        /** ExerciseIn */
+        ExerciseIn: {
+            /**
+             * Assessed
+             * @default false
+             */
+            assessed?: boolean;
+            /**
+             * Difficulty
+             * @default medium
+             * @enum {string}
+             */
+            difficulty?: "easy" | "medium" | "hard" | "exam";
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "python" | "r";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Packages */
+            packages?: string[];
+            /** Prompt Md */
+            prompt_md: string;
+            /** Solution Code */
+            solution_code: string;
+            /**
+             * Starter Code
+             * @default
+             */
+            starter_code?: string;
+            /** Tests */
+            tests: components["schemas"]["TestCase"][];
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
+        /**
+         * ExerciseOut
+         * @description Everything the browser needs to run the tests. The reference solution
+         *     is not included: it is rung 5 of the hint ladder.
+         */
+        ExerciseOut: {
+            /** Assessed */
+            assessed: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard" | "exam";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "python" | "r";
+            /** Latest Code */
+            latest_code: string | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            /** Packages */
+            packages: string[];
+            progress: components["schemas"]["Progress"];
+            /** Prompt Md */
+            prompt_md: string;
+            /** Sources */
+            sources: {
+                [key: string]: unknown;
+            }[];
+            /** Starter Code */
+            starter_code: string;
+            /** Tests */
+            tests: components["schemas"]["TestOut"][];
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+        };
+        /** ExerciseSummary */
+        ExerciseSummary: {
+            /** Assessed */
+            assessed: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard" | "exam";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "python" | "r";
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "claude";
+            progress: components["schemas"]["Progress"];
+            /** Title */
+            title: string;
+            /** Topic Id */
+            topic_id: string | null;
+        };
+        /** ExerciseUpdate */
+        ExerciseUpdate: {
+            /** Assessed */
+            assessed?: boolean | null;
+            /** Difficulty */
+            difficulty?: ("easy" | "medium" | "hard" | "exam") | null;
+            /** Packages */
+            packages?: string[] | null;
+            /** Prompt Md */
+            prompt_md?: string | null;
+            /** Solution Code */
+            solution_code?: string | null;
+            /** Starter Code */
+            starter_code?: string | null;
+            /** Tests */
+            tests?: components["schemas"]["TestCase"][] | null;
+            /** Title */
+            title?: string | null;
+            /** Topic Id */
+            topic_id?: string | null;
+        };
         /** FlashcardCreate */
         FlashcardCreate: {
             /** Back Md */
@@ -2479,7 +2795,9 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "material" | "questions" | "flashcards";
+            kind: "material" | "questions" | "flashcards" | "coding";
+            /** Language */
+            language?: ("python" | "r") | null;
             /** Material Kind */
             material_kind?: ("guide" | "summary" | "formula_sheet" | "worked_examples" | "definitions" | "explanation" | "concept_map" | "notes") | null;
             /**
@@ -2496,6 +2814,43 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HintOut */
+        HintOut: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+        };
+        /** HintRequest */
+        HintRequest: {
+            /** Results */
+            results?: string | null;
+            /**
+             * Work
+             * @default
+             */
+            work?: string;
+        };
+        /** HintsOut */
+        HintsOut: {
+            /** Hints */
+            hints: components["schemas"]["HintOut"][];
+            /** Locked Reason */
+            locked_reason: string | null;
+            /** Next Label */
+            next_label: string | null;
+            /** Next Level */
+            next_level: number | null;
+            /** Top */
+            top: number;
         };
         /** LivenessResponse */
         LivenessResponse: {
@@ -3178,6 +3533,17 @@ export interface components {
              */
             week_start: string;
         };
+        /** Progress */
+        Progress: {
+            /** Best Passed */
+            best_passed: number | null;
+            /** Solved */
+            solved: boolean;
+            /** Submissions */
+            submissions: number;
+            /** Total */
+            total: number;
+        };
         /** QuestionOut */
         QuestionOut: {
             /** Answer Spec */
@@ -3404,12 +3770,31 @@ export interface components {
             /** Time Ms */
             time_ms?: number | null;
         };
+        /** ResultIn */
+        ResultIn: {
+            /**
+             * Message
+             * @default
+             */
+            message?: string;
+            /** Name */
+            name: string;
+            /** Passed */
+            passed: boolean;
+        };
         /** ReviewIn */
         ReviewIn: {
             /** Duration Ms */
             duration_ms?: number | null;
             /** Rating */
             rating: number;
+        };
+        /** RuntimeOut */
+        RuntimeOut: {
+            /** Base Url */
+            base_url: string;
+            /** Label */
+            label: string;
         };
         /** SavedDraft */
         SavedDraft: {
@@ -3563,6 +3948,44 @@ export interface components {
             /** Topic Id */
             topic_id: string | null;
         };
+        /** SubmissionIn */
+        SubmissionIn: {
+            /** Code */
+            code: string;
+            /** Error */
+            error?: string | null;
+            /** Results */
+            results: components["schemas"]["ResultIn"][];
+            /** Runtime Ms */
+            runtime_ms?: number | null;
+        };
+        /** SubmissionOut */
+        SubmissionOut: {
+            /** Code */
+            code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Passed */
+            passed: number;
+            /** Results */
+            results: {
+                [key: string]: unknown;
+            }[];
+            /** Runtime Ms */
+            runtime_ms: number | null;
+            /** Total */
+            total: number;
+        };
         /** SummaryOut */
         SummaryOut: {
             accuracy: components["schemas"]["MetricOut"];
@@ -3573,6 +3996,27 @@ export interface components {
             mistakes: components["schemas"]["MetricOut"];
             reviews: components["schemas"]["MetricOut"];
             study_minutes: components["schemas"]["MetricOut"];
+        };
+        /** TestCase */
+        TestCase: {
+            /** Code */
+            code: string;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden?: boolean;
+            /** Name */
+            name: string;
+        };
+        /** TestOut */
+        TestOut: {
+            /** Code */
+            code: string;
+            /** Hidden */
+            hidden: boolean;
+            /** Name */
+            name: string;
         };
         /** TodayOut */
         TodayOut: {
@@ -3705,6 +4149,8 @@ export interface components {
         TrashOut: {
             /** Documents */
             documents: components["schemas"]["TrashedDocument"][];
+            /** Exercises */
+            exercises: components["schemas"]["TrashedExercise"][];
             /** Flashcards */
             flashcards: components["schemas"]["TrashedFlashcard"][];
             /** Materials */
@@ -3735,6 +4181,26 @@ export interface components {
             module_id: string;
             /** Original Filename */
             original_filename: string;
+        };
+        /** TrashedExercise */
+        TrashedExercise: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Title */
+            title: string;
         };
         /** TrashedFlashcard */
         TrashedFlashcard: {
@@ -4392,6 +4858,74 @@ export interface operations {
             };
         };
     };
+    question_hints_api_v1_attempts__attempt_id__responses__question_id__hints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    next_question_hint_api_v1_attempts__attempt_id__responses__question_id__hints_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HintRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_photo_api_v1_attempts__attempt_id__responses__question_id__photo_post: {
         parameters: {
             query: {
@@ -4695,6 +5229,348 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    coding_config_api_v1_coding_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodingConfigOut"];
+                };
+            };
+        };
+    };
+    list_exercises_api_v1_coding_exercises_get: {
+        parameters: {
+            query: {
+                module_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExerciseSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_exercise_api_v1_coding_exercises_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExerciseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExerciseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exercise_api_v1_coding_exercises__exercise_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExerciseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_exercise_api_v1_coding_exercises__exercise_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_exercise_api_v1_coding_exercises__exercise_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExerciseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExerciseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exercise_hints_api_v1_coding_exercises__exercise_id__hints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    next_exercise_hint_api_v1_coding_exercises__exercise_id__hints_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HintRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_exercise_api_v1_coding_exercises__exercise_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExerciseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_submissions_api_v1_coding_exercises__exercise_id__submissions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_code_api_v1_coding_exercises__exercise_id__submissions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exercise_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmissionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
                 };
             };
             /** @description Validation Error */

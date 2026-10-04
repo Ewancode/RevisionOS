@@ -937,6 +937,38 @@
         "title": "CitationOut",
         "type": "object"
       },
+      "CodingConfigOut": {
+        "description": "What the browser needs to run code: pinned runtimes and limits.",
+        "properties": {
+          "first_run_timeout_seconds": {
+            "title": "First Run Timeout Seconds",
+            "type": "integer"
+          },
+          "max_output_chars": {
+            "title": "Max Output Chars",
+            "type": "integer"
+          },
+          "run_timeout_seconds": {
+            "title": "Run Timeout Seconds",
+            "type": "integer"
+          },
+          "runtimes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RuntimeOut"
+            },
+            "title": "Runtimes",
+            "type": "object"
+          }
+        },
+        "required": [
+          "runtimes",
+          "run_timeout_seconds",
+          "first_run_timeout_seconds",
+          "max_output_chars"
+        ],
+        "title": "CodingConfigOut",
+        "type": "object"
+      },
       "ConversationCreate": {
         "additionalProperties": false,
         "description": "Start a conversation, optionally from a module or topic (searches\nstart there and widen when they find little).",
@@ -1454,7 +1486,8 @@
             "enum": [
               "material",
               "questions",
-              "flashcards"
+              "flashcards",
+              "coding"
             ],
             "title": "Kind",
             "type": "string"
@@ -2034,6 +2067,444 @@
         "title": "ExamUpdate",
         "type": "object"
       },
+      "ExerciseIn": {
+        "additionalProperties": false,
+        "properties": {
+          "assessed": {
+            "default": false,
+            "title": "Assessed",
+            "type": "boolean"
+          },
+          "difficulty": {
+            "default": "medium",
+            "enum": [
+              "easy",
+              "medium",
+              "hard",
+              "exam"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "python",
+              "r"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "packages": {
+            "items": {
+              "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Packages",
+            "type": "array"
+          },
+          "prompt_md": {
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Prompt Md",
+            "type": "string"
+          },
+          "solution_code": {
+            "maxLength": 20000,
+            "title": "Solution Code",
+            "type": "string"
+          },
+          "starter_code": {
+            "default": "",
+            "maxLength": 20000,
+            "title": "Starter Code",
+            "type": "string"
+          },
+          "tests": {
+            "items": {
+              "$ref": "#/components/schemas/TestCase"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Tests",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "module_id",
+          "language",
+          "title",
+          "prompt_md",
+          "solution_code",
+          "tests"
+        ],
+        "title": "ExerciseIn",
+        "type": "object"
+      },
+      "ExerciseOut": {
+        "description": "Everything the browser needs to run the tests. The reference solution\nis not included: it is rung 5 of the hint ladder.",
+        "properties": {
+          "assessed": {
+            "title": "Assessed",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "difficulty": {
+            "enum": [
+              "easy",
+              "medium",
+              "hard",
+              "exam"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "python",
+              "r"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "latest_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Code"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "user",
+              "claude"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "packages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Packages",
+            "type": "array"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/Progress"
+          },
+          "prompt_md": {
+            "title": "Prompt Md",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "starter_code": {
+            "title": "Starter Code",
+            "type": "string"
+          },
+          "tests": {
+            "items": {
+              "$ref": "#/components/schemas/TestOut"
+            },
+            "title": "Tests",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "topic_id",
+          "language",
+          "title",
+          "difficulty",
+          "origin",
+          "assessed",
+          "progress",
+          "created_at",
+          "prompt_md",
+          "starter_code",
+          "tests",
+          "packages",
+          "sources",
+          "latest_code"
+        ],
+        "title": "ExerciseOut",
+        "type": "object"
+      },
+      "ExerciseSummary": {
+        "properties": {
+          "assessed": {
+            "title": "Assessed",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "difficulty": {
+            "enum": [
+              "easy",
+              "medium",
+              "hard",
+              "exam"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "python",
+              "r"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "user",
+              "claude"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/Progress"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "topic_id",
+          "language",
+          "title",
+          "difficulty",
+          "origin",
+          "assessed",
+          "progress",
+          "created_at"
+        ],
+        "title": "ExerciseSummary",
+        "type": "object"
+      },
+      "ExerciseUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "assessed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessed"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "enum": [
+                  "easy",
+                  "medium",
+                  "hard",
+                  "exam"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty"
+          },
+          "packages": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,63}$",
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Packages"
+          },
+          "prompt_md": {
+            "anyOf": [
+              {
+                "maxLength": 50000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Md"
+          },
+          "solution_code": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solution Code"
+          },
+          "starter_code": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starter Code"
+          },
+          "tests": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TestCase"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tests"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "topic_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Id"
+          }
+        },
+        "title": "ExerciseUpdate",
+        "type": "object"
+      },
       "FlashcardCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2295,10 +2766,26 @@
             "enum": [
               "material",
               "questions",
-              "flashcards"
+              "flashcards",
+              "coding"
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "enum": [
+                  "python",
+                  "r"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
           },
           "material_kind": {
             "anyOf": [
@@ -2380,6 +2867,117 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HintOut": {
+        "properties": {
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "level",
+          "label",
+          "content_md",
+          "created_at"
+        ],
+        "title": "HintOut",
+        "type": "object"
+      },
+      "HintRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "results": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Results"
+          },
+          "work": {
+            "default": "",
+            "maxLength": 20000,
+            "title": "Work",
+            "type": "string"
+          }
+        },
+        "title": "HintRequest",
+        "type": "object"
+      },
+      "HintsOut": {
+        "properties": {
+          "hints": {
+            "items": {
+              "$ref": "#/components/schemas/HintOut"
+            },
+            "title": "Hints",
+            "type": "array"
+          },
+          "locked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked Reason"
+          },
+          "next_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Label"
+          },
+          "next_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Level"
+          },
+          "top": {
+            "title": "Top",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hints",
+          "next_level",
+          "next_label",
+          "top",
+          "locked_reason"
+        ],
+        "title": "HintsOut",
         "type": "object"
       },
       "LivenessResponse": {
@@ -4230,6 +4828,41 @@
         "title": "ProfileSnapshotOut",
         "type": "object"
       },
+      "Progress": {
+        "properties": {
+          "best_passed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Passed"
+          },
+          "solved": {
+            "title": "Solved",
+            "type": "boolean"
+          },
+          "submissions": {
+            "title": "Submissions",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "submissions",
+          "best_passed",
+          "total",
+          "solved"
+        ],
+        "title": "Progress",
+        "type": "object"
+      },
       "QuestionOut": {
         "properties": {
           "answer_spec": {
@@ -4840,6 +5473,33 @@
         "title": "ResponseSave",
         "type": "object"
       },
+      "ResultIn": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "passed"
+        ],
+        "title": "ResultIn",
+        "type": "object"
+      },
       "ReviewIn": {
         "additionalProperties": false,
         "properties": {
@@ -4867,6 +5527,24 @@
           "rating"
         ],
         "title": "ReviewIn",
+        "type": "object"
+      },
+      "RuntimeOut": {
+        "properties": {
+          "base_url": {
+            "title": "Base Url",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "base_url"
+        ],
+        "title": "RuntimeOut",
         "type": "object"
       },
       "SavedDraft": {
@@ -5299,6 +5977,123 @@
         "title": "StudySessionOut",
         "type": "object"
       },
+      "SubmissionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 20000,
+            "title": "Code",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ResultIn"
+            },
+            "maxItems": 20,
+            "title": "Results",
+            "type": "array"
+          },
+          "runtime_ms": {
+            "anyOf": [
+              {
+                "maximum": 600000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Ms"
+          }
+        },
+        "required": [
+          "code",
+          "results"
+        ],
+        "title": "SubmissionIn",
+        "type": "object"
+      },
+      "SubmissionOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "integer"
+          },
+          "results": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "runtime_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Ms"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "results",
+          "passed",
+          "total",
+          "error",
+          "runtime_ms",
+          "created_at"
+        ],
+        "title": "SubmissionOut",
+        "type": "object"
+      },
       "SummaryOut": {
         "properties": {
           "accuracy": {
@@ -5334,6 +6129,57 @@
           "mistakes"
         ],
         "title": "SummaryOut",
+        "type": "object"
+      },
+      "TestCase": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "hidden": {
+            "default": false,
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "code"
+        ],
+        "title": "TestCase",
+        "type": "object"
+      },
+      "TestOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "hidden": {
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "code",
+          "hidden"
+        ],
+        "title": "TestOut",
         "type": "object"
       },
       "TodayOut": {
@@ -5713,6 +6559,13 @@
             "title": "Documents",
             "type": "array"
           },
+          "exercises": {
+            "items": {
+              "$ref": "#/components/schemas/TrashedExercise"
+            },
+            "title": "Exercises",
+            "type": "array"
+          },
           "flashcards": {
             "items": {
               "$ref": "#/components/schemas/TrashedFlashcard"
@@ -5752,7 +6605,8 @@
           "topics",
           "documents",
           "materials",
-          "flashcards"
+          "flashcards",
+          "exercises"
         ],
         "title": "TrashOut",
         "type": "object"
@@ -5786,6 +6640,37 @@
           "deleted_at"
         ],
         "title": "TrashedDocument",
+        "type": "object"
+      },
+      "TrashedExercise": {
+        "properties": {
+          "deleted_at": {
+            "format": "date-time",
+            "title": "Deleted At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "module_id": {
+            "format": "uuid",
+            "title": "Module Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "module_id",
+          "title",
+          "deleted_at"
+        ],
+        "title": "TrashedExercise",
         "type": "object"
       },
       "TrashedFlashcard": {
@@ -7021,6 +7906,121 @@
         ]
       }
     },
+    "/api/v1/attempts/{attempt_id}/responses/{question_id}/hints": {
+      "get": {
+        "operationId": "question_hints_api_v1_attempts__attempt_id__responses__question_id__hints_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Question Hints",
+        "tags": [
+          "coding"
+        ]
+      },
+      "post": {
+        "description": "The next hint for a question you are answering (practice quizzes only).",
+        "operationId": "next_question_hint_api_v1_attempts__attempt_id__responses__question_id__hints_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next Question Hint",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
     "/api/v1/attempts/{attempt_id}/responses/{question_id}/photo": {
       "post": {
         "description": "A photo of your handwritten working (raw request body). Returns\nClaude's transcription for you to check and edit into your answer.",
@@ -7435,6 +8435,480 @@
         "summary": "Calendar",
         "tags": [
           "planner"
+        ]
+      }
+    },
+    "/api/v1/coding/config": {
+      "get": {
+        "description": "The pinned Python and R runtimes your browser loads, and run limits.",
+        "operationId": "coding_config_api_v1_coding_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodingConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Coding Config",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
+    "/api/v1/coding/exercises": {
+      "get": {
+        "operationId": "list_exercises_api_v1_coding_exercises_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "module_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Module Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExerciseSummary"
+                  },
+                  "title": "Response List Exercises Api V1 Coding Exercises Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Exercises",
+        "tags": [
+          "coding"
+        ]
+      },
+      "post": {
+        "description": "An exercise you write yourself (Claude's come through drafts).",
+        "operationId": "create_exercise_api_v1_coding_exercises_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Exercise",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
+    "/api/v1/coding/exercises/{exercise_id}": {
+      "delete": {
+        "operationId": "delete_exercise_api_v1_coding_exercises__exercise_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Exercise",
+        "tags": [
+          "coding"
+        ]
+      },
+      "get": {
+        "operationId": "get_exercise_api_v1_coding_exercises__exercise_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Exercise",
+        "tags": [
+          "coding"
+        ]
+      },
+      "patch": {
+        "operationId": "update_exercise_api_v1_coding_exercises__exercise_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Exercise",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
+    "/api/v1/coding/exercises/{exercise_id}/hints": {
+      "get": {
+        "operationId": "exercise_hints_api_v1_coding_exercises__exercise_id__hints_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exercise Hints",
+        "tags": [
+          "coding"
+        ]
+      },
+      "post": {
+        "description": "The next rung of the hint ladder. Off while a mock exam is open.",
+        "operationId": "next_exercise_hint_api_v1_coding_exercises__exercise_id__hints_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next Exercise Hint",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
+    "/api/v1/coding/exercises/{exercise_id}/restore": {
+      "post": {
+        "operationId": "restore_exercise_api_v1_coding_exercises__exercise_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore Exercise",
+        "tags": [
+          "coding"
+        ]
+      }
+    },
+    "/api/v1/coding/exercises/{exercise_id}/submissions": {
+      "get": {
+        "operationId": "list_submissions_api_v1_coding_exercises__exercise_id__submissions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubmissionOut"
+                  },
+                  "title": "Response List Submissions Api V1 Coding Exercises  Exercise Id  Submissions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Submissions",
+        "tags": [
+          "coding"
+        ]
+      },
+      "post": {
+        "description": "Record a submission: your code and the test results your browser got.",
+        "operationId": "submit_code_api_v1_coding_exercises__exercise_id__submissions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "exercise_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Exercise Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmissionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Code",
+        "tags": [
+          "coding"
         ]
       }
     },

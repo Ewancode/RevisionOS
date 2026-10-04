@@ -31,8 +31,10 @@ class GenerateRequest(Input):
 
     module_id: uuid.UUID
     topic_id: uuid.UUID | None = None
-    kind: Literal["material", "questions", "flashcards"]
+    kind: Literal["material", "questions", "flashcards", "coding"]
     material_kind: MaterialKind | None = None
+    # Coding exercises: the language (default Python).
+    language: Literal["python", "r"] | None = None
     instructions: Instructions | None = None
     # Questions or flashcards to write (practice.yaml generation limits).
     count: int | None = Field(default=None, ge=1)
@@ -48,11 +50,11 @@ class DraftOut(Output):
     id: uuid.UUID
     module_id: uuid.UUID
     topic_id: uuid.UUID | None
-    kind: Literal["material", "questions", "flashcards"]
+    kind: Literal["material", "questions", "flashcards", "coding"]
     request: dict[str, Any]
     status: Literal["generating", "ready", "failed", "saved", "discarded"]
     # material: {title, content_md, citations}
-    # questions/flashcards: {items: [{..., problems, valid}], passages: [...]}
+    # questions/flashcards/coding: {items: [{..., problems, valid}], passages: [...]}
     payload: dict[str, Any] | None
     error_code: str | None
     created_at: datetime

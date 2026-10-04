@@ -2,6 +2,8 @@ import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/re
 
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { CodingPage } from "@/features/coding/CodingPage";
+import { ExercisePage } from "@/features/coding/ExercisePage";
 import { ChatPage } from "@/features/chat/ChatPage";
 import { UsagePage } from "@/features/chat/UsagePage";
 import { Dashboard } from "@/features/dashboard/Dashboard";
@@ -118,6 +120,24 @@ const flashcardsRoute = createRoute({
   },
 });
 
+const codingRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/modules/$moduleId/coding",
+  component: function CodingRouteView() {
+    const { moduleId } = codingRoute.useParams();
+    return <CodingPage key={moduleId} moduleId={moduleId} />;
+  },
+});
+
+const exerciseRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/coding/$exerciseId",
+  component: function ExerciseRouteView() {
+    const { exerciseId } = exerciseRoute.useParams();
+    return <ExercisePage key={exerciseId} exerciseId={exerciseId} />;
+  },
+});
+
 const materialRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/materials/$materialId",
@@ -207,6 +227,8 @@ export const routeTree = rootRoute.addChildren([
     materialsRoute,
     questionsRoute,
     flashcardsRoute,
+    codingRoute,
+    exerciseRoute,
     materialRoute,
     draftRoute,
     attemptRoute,

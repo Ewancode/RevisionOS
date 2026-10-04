@@ -339,3 +339,20 @@ out, and the remaining weights are rescaled; it is not counted as 0. The
 index is labelled *Early days* (below 0.4), *Building*, *On track* (0.6+)
 or *Well prepared* (0.8+). It summarises preparation so far and is not a
 predicted mark.
+
+## Coding practice and the hint ladder (`app/coding`)
+
+All numbers are in `config/coding.yaml`.
+
+- **Marking:** an exercise's tests run in your browser after your code. A
+  test passes unless it raises (Python) or errors (R). The submission
+  records how many passed; an exercise is *solved* when one submission
+  passes every test.
+- **Limits:** 120 s to start a runtime and download packages, then 15 s for
+  the run; output is cut at 20,000 characters.
+- **Hint ladder:** 1 guiding question, 2 hint, 3 stronger hint, 4 next step
+  (Claude, without the solution), 5 full solution (the stored reference
+  solution, no AI). One rung at a time. Rung 5 needs a submitted attempt and
+  is never given for assessed work; quiz questions stop at rung 4. Claude
+  sees your current work, the visible tests and results, and the last 4
+  hints.

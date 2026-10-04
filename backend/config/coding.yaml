@@ -1,0 +1,33 @@
+# Coding practice (SPEC 37, 38; ARCHITECTURE.md sections 1 and 9).
+# Code runs in your browser (Pyodide for Python, WebR for R), never on the
+# server. Validated on startup by app/core/config.py.
+
+runtimes:
+  # Pinned versions, loaded from these CDNs into a Web Worker. The SPA's
+  # Content-Security-Policy (Phase 13) must allow these origins.
+  python:
+    label: Python
+    base_url: https://cdn.jsdelivr.net/pyodide/v314.0.7/full/
+  r:
+    label: R
+    base_url: https://webr.r-wasm.org/v0.6.0/
+
+limits:
+  # A run (or a test run) taking longer is stopped and the runtime restarted.
+  run_timeout_seconds: 15
+  # The first run also downloads the runtime; it gets longer.
+  first_run_timeout_seconds: 120
+  max_output_chars: 20000
+  max_code_chars: 20000
+  max_tests: 20
+  max_test_chars: 4000
+  max_packages: 10
+
+generation:
+  default_items: 2
+  max_items: 4
+
+tutor:
+  # Previous hints sent back to Claude with each new one, for continuity.
+  history_hints: 4
+  max_student_work_chars: 6000

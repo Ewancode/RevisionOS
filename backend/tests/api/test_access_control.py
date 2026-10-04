@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
     AvailabilityOverride,
+    CodingExercise,
     Draft,
     Exam,
     Flashcard,
@@ -34,6 +35,7 @@ from app.models import (
     QuizAttempt,
     QuizItem,
     StudySession,
+    TutorHint,
     User,
 )
 from tests import factories
@@ -263,6 +265,34 @@ async def _seed_planner(db: AsyncSession, owner: User, ids: dict[str, str]) -> N
     }
 
 
+async def _seed_coding(db: AsyncSession, owner: User, ids: dict[str, str]) -> None:
+    """A's coding exercise (and a deleted one), a submission and a hint."""
+    module = uuid.UUID(ids["module"])
+
+    def exercise(**extra: Any) -> CodingExercise:
+        return CodingExercise(
+            id=uuid.uuid4(), user_id=owner.id, module_id=module, language="python",
+            title="Median", prompt_md="Write median.", starter_code="", difficulty="easy",
+            solution_code="def median(xs): return 0", origin="user",
+            tests=[{"name": "t", "code": "assert True", "hidden": False}], **extra,
+        )  # fmt: skip
+
+    live, gone = exercise(), exercise(deleted_at=datetime.now(UTC))
+    db.add_all([live, gone])
+    await db.flush()
+    db.add(TutorHint(user_id=owner.id, exercise_id=live.id, level=1, content_md="Hint"))
+    await db.commit()
+    ids |= {"exercise": str(live.id), "trashed_exercise": str(gone.id)}
+
+
+EXERCISE_BODY = {
+    "language": "python",
+    "title": "x",
+    "prompt_md": "x",
+    "solution_code": "x = 1",
+    "tests": [{"name": "t", "code": "assert True"}],
+}
+
 # (method, path template, json body) — every route that takes a resource id.
 ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("PATCH", "/api/v1/years/{year}", {"label": "pwned"}),
@@ -339,6 +369,22 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("POST", "/api/v1/sessions/{session}/status", {"status": "done"}),
     ("POST", "/api/v1/notifications/{notification}/read", None),
     ("DELETE", "/api/v1/availability/overrides/{override_day}", None),
+    # Phase 10: coding practice and hints.
+    ("GET", "/api/v1/coding/exercises/{exercise}", None),
+    ("PATCH", "/api/v1/coding/exercises/{exercise}", {"title": "pwned"}),
+    ("DELETE", "/api/v1/coding/exercises/{exercise}", None),
+    ("POST", "/api/v1/coding/exercises/{trashed_exercise}/restore", None),
+    ("GET", "/api/v1/coding/exercises/{exercise}/submissions", None),
+    (
+        "POST",
+        "/api/v1/coding/exercises/{exercise}/submissions",
+        {"code": "x", "results": [{"name": "t", "passed": True}]},
+    ),
+    ("GET", "/api/v1/coding/exercises/{exercise}/hints", None),
+    ("POST", "/api/v1/coding/exercises/{exercise}/hints", {"work": "x"}),
+    ("POST", "/api/v1/coding/exercises", {**EXERCISE_BODY, "module_id": "{module}"}),
+    ("GET", "/api/v1/attempts/{attempt}/responses/{question}/hints", None),
+    ("POST", "/api/v1/attempts/{attempt}/responses/{question}/hints", {"work": "x"}),
     # Phase 9: analytics.
     ("GET", "/api/v1/analytics/modules/{module}", None),
     ("GET", "/api/v1/analytics/trends?module_id={module}", None),
@@ -380,6 +426,7 @@ async def test_other_users_resources_are_invisible(
         await _seed_pending_action(db, owner, ids)
         await _seed_practice(db, owner, ids)
         await _seed_planner(db, owner, ids)
+        await _seed_coding(db, owner, ids)
         before_tree = (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json()
         before_years = (await a.get("/api/v1/years")).json()
         before_trash = (await a.get("/api/v1/trash")).json()
@@ -405,6 +452,7 @@ async def test_other_users_resources_are_invisible(
             "progress",
             "mistakes",
             "flashcards/due",
+            "coding/exercises",
         ):
             response = await b.get(f"/api/v1/{listing}", params={"module_id": ids["module"]})
             assert response.status_code == 404, listing

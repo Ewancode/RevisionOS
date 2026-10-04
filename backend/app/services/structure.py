@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from app.core.clock import utcnow
 from app.core.config import TrashConfig
 from app.core.errors import AppError
-from app.models import AcademicYear, Document, Flashcard, Material, Module, Topic
+from app.models import AcademicYear, CodingExercise, Document, Flashcard, Material, Module, Topic
 from app.schemas.structure import (
     ModuleCreate,
     ModuleUpdate,
@@ -19,6 +19,7 @@ from app.schemas.structure import (
     TopicNode,
     TopicUpdate,
     TrashedDocument,
+    TrashedExercise,
     TrashedFlashcard,
     TrashedMaterial,
     TrashedModule,
@@ -316,6 +317,13 @@ class TrashService(ScopedService):
                 .order_by(Flashcard.deleted_at.desc())
             )
         ).all()
+        exercises = (
+            await self.db.scalars(
+                select(CodingExercise)
+                .where(CodingExercise.user_id == self.user_id, CodingExercise.deleted_at >= since)
+                .order_by(CodingExercise.deleted_at.desc())
+            )
+        ).all()
         return TrashOut(
             retention_days=config.retention_days,
             modules=[TrashedModule.model_validate(m) for m in modules],
@@ -323,4 +331,5 @@ class TrashService(ScopedService):
             documents=[TrashedDocument.model_validate(d) for d in documents],
             materials=[TrashedMaterial.model_validate(m) for m in materials],
             flashcards=[TrashedFlashcard.model_validate(c) for c in flashcards],
+            exercises=[TrashedExercise.model_validate(e) for e in exercises],
         )

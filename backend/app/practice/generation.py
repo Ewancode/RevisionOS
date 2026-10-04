@@ -31,6 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.chat import Answer
 from app.ai.client import ClaudeClient, parse_json, text_tokens
 from app.ai.tools import Source, passage_header, search_result
+from app.coding.validation import CODING_SCHEMA, check_exercise
 from app.core.config import AppConfig
 from app.core.errors import AppError
 from app.models import (
@@ -60,6 +61,7 @@ PROMPTS = Path(__file__).parent.parent / "ai" / "prompts"
 MATERIAL_PROMPT = "generate_material.v1"
 QUESTIONS_PROMPT = "generate_questions.v2"
 FLASHCARDS_PROMPT = "generate_flashcards.v1"
+CODING_PROMPT = "generate_coding.v1"
 TITLE = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
 KIND_NAMES = {
     "guide": "revision guide",
@@ -490,6 +492,86 @@ async def generate_items(
     return {"items": items, "passages": _source_refs(context.passages)}, interaction
 
 
+async def generate_coding(
+    db: AsyncSession,
+    claude: ClaudeClient,
+    config: AppConfig,
+    draft: Draft,
+    context: Context,
+) -> tuple[dict[str, Any], uuid.UUID]:
+    """Coding exercises, checked (statically: the server never runs code);
+    failures repaired once. Passages ground them when the module has any,
+    but are not required: a coding exercise can stand on its own."""
+    coding = config.coding
+    count = min(
+        draft.request.get("count") or coding.generation.default_items, coding.generation.max_items
+    )
+    language = draft.request.get("language") or "python"
+    language_name = "Python" if language == "python" else "R"
+    n = len(context.passages)
+
+    def check(raw: dict[str, Any]) -> list[str]:
+        problems = check_exercise(raw, n, coding.limits).problems
+        if raw.get("language") != language:
+            problems.append(f"It should be in {language_name}.")
+        return problems
+
+    lines = [
+        f"Write {count} coding exercise{'s' if count != 1 else ''} in {language_name} "
+        f"for {_where(context)}."
+    ]
+    difficulty = draft.request.get("difficulty")
+    if difficulty and difficulty != "mixed":
+        lines.append(f"Difficulty: {difficulty}.")
+    if draft.request.get("instructions"):
+        lines.append(f"The student asks: {draft.request['instructions']}")
+    lines.append(
+        f"Passages:\n\n{_numbered(context.passages)}"
+        if context.passages
+        else "There are no passages: base the exercises on the module's subject."
+    )
+    request_text = "\n\n".join(lines)
+    raw_items, interaction = await _ask_json(
+        db, claude, draft, context,
+        task="coding_generation", version=CODING_PROMPT, text=request_text, schema=CODING_SCHEMA,
+    )  # fmt: skip
+    items = [{**raw, "problems": check(raw)} for raw in raw_items[:count]]
+    for _ in range(config.practice.generation.repair_rounds):
+        broken = [i for i, item in enumerate(items) if item["problems"]]
+        if not broken:
+            break
+        repair_text = (
+            f"{request_text}\n\nThese exercises failed the app's checks. Return corrected "
+            "versions of exactly these, in this order:\n\n"
+            + json.dumps(
+                [
+                    {
+                        "item": {k: v for k, v in items[i].items() if k != "problems"},
+                        "problems": items[i]["problems"],
+                    }
+                    for i in broken
+                ],
+                ensure_ascii=False,
+            )
+        )
+        try:
+            repaired, _ = await _ask_json(
+                db, claude, draft, context,
+                task="coding_generation", version=CODING_PROMPT, text=repair_text,
+                schema=CODING_SCHEMA, escalate=True,
+            )  # fmt: skip
+        except AppError as exc:
+            logger.warning("repair failed", extra={"error": exc.code})
+            break
+        for i, raw in zip(broken, repaired, strict=False):
+            problems = check(raw)
+            if not problems or len(problems) < len(items[i]["problems"]):
+                items[i] = {**raw, "problems": problems, "repaired": True}
+    for item in items:
+        item["valid"] = not item["problems"]
+    return {"items": items, "passages": _source_refs(context.passages)}, interaction
+
+
 # --- the worker job -----------------------------------------------------------------------
 
 
@@ -507,6 +589,8 @@ async def run_draft(
         context = await gather(db, embedder, config, draft)
         if draft.kind == "material":
             payload, interaction = await generate_material(db, claude, config, draft, context)
+        elif draft.kind == "coding":
+            payload, interaction = await generate_coding(db, claude, config, draft, context)
         else:
             payload, interaction = await generate_items(
                 db, claude, embedder, config, draft, context

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BookText, Layers, ListChecks, RefreshCw } from "lucide-react";
+import { BookText, Code2, Layers, ListChecks, RefreshCw } from "lucide-react";
 
 import type { Module } from "@/features/structure/queries";
 
@@ -23,7 +23,12 @@ export function ModuleHeader({ module, title }: { module: Module | undefined; ti
   );
 }
 
-const DRAFT_NAMES = { material: "Material", questions: "Questions", flashcards: "Flashcards" } as const;
+const DRAFT_NAMES = {
+  material: "Material",
+  questions: "Questions",
+  flashcards: "Flashcards",
+  coding: "Coding exercises",
+} as const;
 
 /** On a module's page: where to revise, and drafts awaiting your decision. */
 export function StudySection({ moduleId }: { moduleId: string }) {
@@ -35,7 +40,7 @@ export function StudySection({ moduleId }: { moduleId: string }) {
       <h2 id="study" className="text-base font-semibold">
         Study
       </h2>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Link to="/modules/$moduleId/materials" params={{ moduleId }} className={link}>
           <BookText size={16} /> Revision materials
         </Link>
@@ -44,6 +49,9 @@ export function StudySection({ moduleId }: { moduleId: string }) {
         </Link>
         <Link to="/modules/$moduleId/flashcards" params={{ moduleId }} className={link}>
           <Layers size={16} /> Flashcards
+        </Link>
+        <Link to="/modules/$moduleId/coding" params={{ moduleId }} className={link}>
+          <Code2 size={16} /> Coding practice
         </Link>
       </div>
       {(drafts.data?.length ?? 0) > 0 && (

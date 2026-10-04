@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Camera, CheckCircle2, CircleDashed, Clock, Gavel, RefreshCw, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, CircleDashed, Clock, Gavel, Lightbulb, RefreshCw, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Button, ErrorText, Modal } from "@/components/ui";
+import { HintLadder } from "@/features/coding/HintLadder";
+import { useQuestionHints } from "@/features/coding/queries";
 import type { ApiError } from "@/lib/api/client";
 
 import {
@@ -27,6 +29,40 @@ function pct(score: number | null | undefined) {
 }
 
 // --- answering --------------------------------------------------------------------------------
+
+/** Your answer so far, as text, so the tutor's hint can respond to it. */
+function workText(item: AttemptItem, response: Response): string {
+  if (!response) return "";
+  const view = item.view as { options?: string[] };
+  if (typeof response.choice === "number") return `Chose: ${view.options?.[response.choice] ?? response.choice}`;
+  if (typeof response.answer === "boolean") return `Answered: ${response.answer ? "true" : "false"}`;
+  return Object.values(response)
+    .filter((v) => typeof v === "string" || typeof v === "number")
+    .join("\n");
+}
+
+/** The tutor's hint ladder for one question (practice quizzes, not exams). */
+function QuestionHints({ attemptId, item, response }: { attemptId: string; item: AttemptItem; response: Response }) {
+  const [open, setOpen] = useState(false);
+  const { query, next } = useQuestionHints(attemptId, item.question_id, open);
+  if (!open) {
+    return (
+      <div>
+        <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+          <Lightbulb size={14} /> Stuck? Get a hint
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <HintLadder
+      hints={query.data}
+      pending={next.isPending}
+      error={next.error ?? query.error}
+      onNext={() => next.mutate({ work: workText(item, response).slice(0, 20_000) })}
+    />
+  );
+}
 
 function AnswerInput({
   item,
@@ -288,6 +324,9 @@ function Answering({ attempt }: { attempt: Attempt }) {
                 persist(item.question_id, response);
               }}
             />
+            {attempt.mode === "normal" && (
+              <QuestionHints attemptId={attempt.id} item={item} response={responses[item.question_id] ?? null} />
+            )}
           </li>
         ))}
       </ol>
