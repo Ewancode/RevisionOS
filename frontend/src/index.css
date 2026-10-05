@@ -12,6 +12,13 @@
   --color-danger: #b3261e;
   --color-accent: #4f46e5;
   --color-on-accent: #ffffff;
+  --color-on-danger: #ffffff;
+  /* The accent as text, readable on each theme's background. Recomputed for
+     a custom accent by applyAppearance (src/lib/theme.ts); these suit the
+     default. */
+  --accent-on-light: #4f46e5;
+  --accent-on-dark: #7b74ec;
+  --color-accent-text: var(--accent-on-light);
   color-scheme: light;
 }
 
@@ -24,6 +31,8 @@
     --color-muted: #a0a4a8;
     --color-success: #6fcf8f;
     --color-danger: #f28b82;
+    --color-on-danger: #18181b;
+    --color-accent-text: var(--accent-on-dark);
     color-scheme: dark;
   }
 }
@@ -36,6 +45,8 @@
   --color-muted: #a0a4a8;
   --color-success: #6fcf8f;
   --color-danger: #f28b82;
+  --color-on-danger: #18181b;
+  --color-accent-text: var(--accent-on-dark);
   color-scheme: dark;
 }
 
@@ -49,6 +60,8 @@
   --color-danger: var(--color-danger);
   --color-accent: var(--color-accent);
   --color-on-accent: var(--color-on-accent);
+  --color-on-danger: var(--color-on-danger);
+  --color-accent-text: var(--color-accent-text);
 }
 
 body {

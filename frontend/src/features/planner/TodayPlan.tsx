@@ -105,7 +105,7 @@ function SessionRow({ session }: { session: StudySession }) {
 }
 
 /** Today's planned revision, with the reasons behind each session. */
-function TodaysRevision() {
+export function TodaysRevision() {
   const plan = usePlan();
   const today = plan.data?.today ?? [];
   const shortfalls = plan.data?.shortfalls ?? [];
@@ -143,7 +143,7 @@ function TodaysRevision() {
   );
 }
 
-function UpcomingExams() {
+export function UpcomingExams() {
   const plan = usePlan();
   const exams = plan.data?.exams ?? [];
   if (!exams.length) return null;
@@ -244,7 +244,7 @@ export function SessionBuilder() {
   );
 }
 
-function RecommendedNext() {
+export function RecommendedNext() {
   const recommendations = useRecommendations();
   const items = recommendations.data ?? [];
   if (!items.length) return null;
@@ -260,16 +260,5 @@ function RecommendedNext() {
       </ol>
       <ErrorText error={recommendations.error} />
     </section>
-  );
-}
-
-export function TodayPlan() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <RecommendedNext />
-      <TodaysRevision />
-      <SessionBuilder />
-      <UpcomingExams />
-    </div>
   );
 }

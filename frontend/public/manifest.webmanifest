@@ -1,0 +1,23 @@
+{
+  "name": "Revision OS",
+  "short_name": "Revision OS",
+  "description": "Your revision: materials, practice, plan and progress.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "lang": "en-GB",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Today", "url": "/" },
+    { "name": "Review flashcards", "url": "/review" },
+    { "name": "Ask Claude", "url": "/chat" }
+  ]
+}

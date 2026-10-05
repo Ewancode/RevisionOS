@@ -219,11 +219,11 @@ describe("calendar", () => {
     const user = userEvent.setup();
     renderAt("/calendar");
 
-    const grid = await screen.findByRole("grid");
+    const grid = await screen.findByRole("list", { name: /–/ });
     expect(await within(grid).findByText("Integration")).toBeInTheDocument();
     // Open today in day view for the full controls.
-    const todayCell = within(grid).getAllByRole("gridcell").find((c) => c.textContent?.includes("Integration"))!;
-    await user.click(within(todayCell).getByRole("button", { name: String(new Date().getDate()) }));
+    const todayCell = within(grid).getAllByRole("listitem").find((c) => c.getAttribute("aria-label") && c.textContent?.includes("Integration"))!;
+    await user.click(within(todayCell).getByRole("button", { name: /^Open / }));
     expect(await screen.findByText(/MATH101 exam in 34 days/)).toBeInTheDocument();
 
     const target = addDays(today, 2);

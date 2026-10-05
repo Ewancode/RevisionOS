@@ -71,6 +71,12 @@ services:
     # Hard memory ceiling for document parsing (ARCHITECTURE.md section 12).
     mem_limit: 2g
 
+  # Cron jobs (ARCHITECTURE.md section 4): pushes reminders to your devices.
+  scheduler:
+    <<: *backend
+    command: arq app.workers.scheduler.SchedulerSettings --watch app
+    mem_limit: 512m
+
   frontend:
     image: node:22-alpine
     working_dir: /app

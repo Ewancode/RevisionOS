@@ -1,15 +1,66 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { ArrowUp } from "lucide-react";
+import { useState, type ComponentType } from "react";
 
 import { useViewingYear } from "@/app/viewingYear";
 import { Button } from "@/components/ui";
 import { useSession } from "@/features/auth/session";
-import { TodayGlance } from "@/features/analytics/TodayGlance";
-import { TodayPanels } from "@/features/learning/TodayPanels";
-import { TodayPlan } from "@/features/planner/TodayPlan";
+import { useDashboardOrder } from "@/features/analytics/queries";
+import { Glance, RecentlyAdded } from "@/features/analytics/TodayGlance";
+import { DailyQuiz, DueCards, RecurringMistakes, WeakTopics } from "@/features/learning/TodayPanels";
+import { RecommendedNext, SessionBuilder, TodaysRevision, UpcomingExams } from "@/features/planner/TodayPlan";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
 import { useModules } from "@/features/structure/queries";
 import { greeting } from "@/lib/greeting";
+
+const PANELS: Record<string, ComponentType> = {
+  glance: Glance,
+  recommended: RecommendedNext,
+  todays_revision: TodaysRevision,
+  daily_quiz: DailyQuiz,
+  flashcards: DueCards,
+  builder: SessionBuilder,
+  exams: UpcomingExams,
+  weak_topics: WeakTopics,
+  mistakes: RecurringMistakes,
+  recent: RecentlyAdded,
+};
+const USUAL = Object.keys(PANELS);
+const WIDE = new Set(["glance"]);
+
+/** Today's panels, most pressing first (the server ranks them, and says
+ *  why a panel moved up). Empty panels take no space. */
+function TodayGrid() {
+  const order = useDashboardOrder();
+  const panels = order.data?.panels ?? USUAL.map((key) => ({ key, reason: null }));
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {panels.map(({ key, reason }) => {
+        const Panel = PANELS[key];
+        if (!Panel) return null;
+        return (
+          <div
+            key={key}
+            data-panel={key}
+            className={`flex flex-col gap-1 empty:hidden ${WIDE.has(key) ? "md:col-span-2" : ""}`}
+          >
+            {reason && <PanelReason reason={reason} />}
+            <Panel />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Shown above a panel that moved up; hidden if the panel itself is empty. */
+function PanelReason({ reason }: { reason: string }) {
+  return (
+    <p className="flex items-center gap-1 text-xs font-medium text-accent-text only:hidden">
+      <ArrowUp size={12} aria-hidden /> {reason}
+    </p>
+  );
+}
 
 /** Today: figures at a glance (each traceable), the planned revision, "I have N minutes", upcoming exams, then what
  *  to practise now (daily quiz, due flashcards, weak topics, recurring
@@ -56,11 +107,7 @@ export function Dashboard() {
         </section>
       )}
 
-      {year && !!modules.data?.length && <TodayGlance />}
-
-      {year && !!modules.data?.length && <TodayPlan />}
-
-      {year && !!modules.data?.length && <TodayPanels />}
+      {year && !!modules.data?.length && <TodayGrid />}
 
       {year && !!modules.data?.length && (
         <section aria-labelledby="modules-heading">

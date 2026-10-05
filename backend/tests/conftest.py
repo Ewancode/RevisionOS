@@ -27,6 +27,7 @@ from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "push_subscriptions",
     "tutor_hints",
     "coding_submissions",
     "coding_exercises",
@@ -170,6 +171,7 @@ def db_app(
     app.state.storage = storage
     app.state.jobs = queue
     app.state.claude = claude
+    app.state.push = None  # tests that push set a fake sender
     app.state.embedder = HashingProvider(get_config().retrieval.embeddings.dimensions)
     return app
 

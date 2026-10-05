@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     # Required from Phase 5; optional until the AI layer exists.
     anthropic_api_key: SecretStr | None = None
 
+    # Web Push (Phase 11). Generate with `make vapid-keys`, which writes them
+    # to .env. Push is off until all three are set.
+    vapid_public_key: str | None = None
+    vapid_private_key: SecretStr | None = None
+    # A contact the push services can reach, e.g. mailto:you@example.com.
+    vapid_subject: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

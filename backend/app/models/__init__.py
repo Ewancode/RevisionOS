@@ -12,6 +12,7 @@ from app.models.planner import (
     Exam,
     ExamTopic,
     Notification,
+    PushSubscription,
     RevisionPlan,
     StudySession,
 )
@@ -55,6 +56,7 @@ __all__ = [
     "Module",
     "Notification",
     "PendingAction",
+    "PushSubscription",
     "Question",
     "QuestionAttempt",
     "Quiz",

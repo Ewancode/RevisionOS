@@ -194,6 +194,32 @@ class NotificationOut(Output):
     created_at: datetime
 
 
+class PushConfig(Output):
+    # Push is off until the server has VAPID keys (make vapid-keys).
+    enabled: bool
+    public_key: str | None
+    devices: int
+
+
+class PushKeys(Input):
+    p256dh: Annotated[str, Field(min_length=1, max_length=200)]
+    auth: Annotated[str, Field(min_length=1, max_length=100)]
+
+
+class PushSubscriptionIn(Input):
+    endpoint: Annotated[str, Field(pattern=r"^https://", max_length=2000)]
+    keys: PushKeys
+    label: Annotated[str, Field(max_length=100)] | None = None
+
+
+class PushUnsubscribe(Input):
+    endpoint: Annotated[str, Field(max_length=2000)]
+
+
+class PushTestOut(Output):
+    delivered: int
+
+
 class NotificationsOut(Output):
     unread: int
     items: list[NotificationOut]

@@ -24,7 +24,7 @@ from app.models import Notification, Quiz, QuizAttempt, UserSettings
 from app.planner.context import DAY_SECONDS, PlannerContext
 
 
-def _quiet(settings: UserSettings | None, hour: int) -> bool:
+def is_quiet(settings: UserSettings | None, hour: int) -> bool:
     if settings is None or settings.quiet_from is None or settings.quiet_to is None:
         return False
     start, end = settings.quiet_from, settings.quiet_to
@@ -37,7 +37,7 @@ async def refresh(
     settings = await db.get(UserSettings, user_id)
     rules = config.planner.notifications
     local = now.astimezone(ctx.zone)
-    if _quiet(settings, local.hour):
+    if is_quiet(settings, local.hour):
         return
     wanted: list[dict[str, object]] = []
 

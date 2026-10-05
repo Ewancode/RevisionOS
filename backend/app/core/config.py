@@ -543,6 +543,10 @@ class SessionBuilderConfig(_Strict):
 
 
 class NotificationsConfig(_Strict):
+    push_every_minutes: Annotated[int, Field(ge=1, le=60)]
+    push_max_age_hours: PositiveInt
+    push_ttl_seconds: PositiveInt
+    push_max_failures: PositiveInt
     quiz_reminder_hour: Annotated[int, Field(ge=0, le=23)]
     exam_days: tuple[PositiveInt, ...]
     neglected_days: PositiveInt
@@ -601,7 +605,41 @@ class ReadinessConfig(_Strict):
         return self
 
 
+PANELS = (
+    "glance",
+    "recommended",
+    "todays_revision",
+    "daily_quiz",
+    "flashcards",
+    "builder",
+    "exams",
+    "weak_topics",
+    "mistakes",
+    "recent",
+)
+
+
+class DashboardBoosts(_Strict):
+    exam_soon: NonNegative
+    quiz_not_done: NonNegative
+    cards_due: NonNegative
+    recurring_mistakes: NonNegative
+
+
+class DashboardConfig(_Strict):
+    order: list[str]
+    boosts: DashboardBoosts
+    exam_soon_days: PositiveInt
+
+    @model_validator(mode="after")
+    def _every_panel_once(self) -> Self:
+        if sorted(self.order) != sorted(PANELS):
+            raise ValueError(f"dashboard.order must list each panel once: {', '.join(PANELS)}")
+        return self
+
+
 class AnalyticsConfig(_Strict):
+    dashboard: DashboardConfig
     windows: WindowsConfig
     study_time: StudyTimeConfig
     topics: AnalyticsTopicsConfig

@@ -43,3 +43,26 @@ readiness:
     - [0.4, "Building"]
     - [0.6, "On track"]
     - [0.8, "Well prepared"]
+
+dashboard:
+  # Today's panels in their usual order, top first. What is pressing moves
+  # up (SPEC 4: the dashboard shows what is most useful now).
+  order:
+    - glance
+    - recommended
+    - todays_revision
+    - daily_quiz
+    - flashcards
+    - builder
+    - exams
+    - weak_topics
+    - mistakes
+    - recent
+  # Each boost is added to a panel's place score (the bottom panel scores 1,
+  # the top one as many as there are panels) when its condition holds.
+  boosts:
+    exam_soon: 12        # exams and today's revision, with an exam this close
+    quiz_not_done: 8     # the daily quiz, not yet done today
+    cards_due: 7         # flashcards, with at least notifications.flashcards_due_threshold due
+    recurring_mistakes: 3
+  exam_soon_days: 7

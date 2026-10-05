@@ -18,6 +18,7 @@ from app.core.middleware import RequestContextMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.settings import Settings, get_settings
 from app.db.session import create_engine, create_session_factory
+from app.planner.push import create_sender
 from app.retrieval.embeddings import create_provider
 from app.storage import create_storage
 from app.workers.queue import ArqQueue
@@ -41,6 +42,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.jobs = ArqQueue(arq)
         app.state.storage = create_storage(settings)
         app.state.claude = create_client(key, get_config().ai)
+        app.state.push = create_sender(
+            settings.vapid_public_key,
+            settings.vapid_private_key.get_secret_value() if settings.vapid_private_key else None,
+            settings.vapid_subject,
+        )
         embedder = create_provider(get_config().retrieval.embeddings, settings.model_cache_dir)
         app.state.embedder = embedder
         # Load the model in the background so startup is not blocked; the

@@ -17,6 +17,11 @@ const BACKGROUND: Record<string, Handler> = {
   ],
   "GET /api/v1/exams": () => [200, []],
   "GET /api/v1/recommendations": () => [200, []],
+  "GET /api/v1/push/config": () => [200, { enabled: false, public_key: null, devices: 0 }],
+  "GET /api/v1/analytics/dashboard": () => [
+    200,
+    { panels: ["glance", "recommended", "todays_revision", "daily_quiz", "flashcards", "builder", "exams", "weak_topics", "mistakes", "recent"].map((key) => ({ key, reason: null })) },
+  ],
   "GET /api/v1/analytics/overview": () => [
     200,
     {

@@ -8,7 +8,7 @@ import { StrengthBar } from "./StrengthBar";
 
 const card = "flex flex-col gap-3 rounded-lg border border-border p-4";
 
-function DailyQuiz() {
+export function DailyQuiz() {
   const plan = useDailyPlan();
   const start = useStartDaily();
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ function DailyQuiz() {
   );
 }
 
-function DueCards() {
+export function DueCards() {
   const due = useDueCards();
   const counts = due.data?.counts;
   return (
@@ -83,7 +83,7 @@ function DueCards() {
   );
 }
 
-function WeakTopics() {
+export function WeakTopics() {
   const weakest = useWeakest();
   if (!weakest.data?.length) return null;
   return (
@@ -108,7 +108,7 @@ function WeakTopics() {
   );
 }
 
-function RecurringMistakes() {
+export function RecurringMistakes() {
   const mistakes = useMistakes();
   const recurring = (mistakes.data ?? []).filter((g) => g.recurring);
   if (!recurring.length) return null;
@@ -134,17 +134,5 @@ function RecurringMistakes() {
         ))}
       </ul>
     </section>
-  );
-}
-
-/** The adaptive part of Today: what to do now, and why. */
-export function TodayPanels() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <DailyQuiz />
-      <DueCards />
-      <WeakTopics />
-      <RecurringMistakes />
-    </div>
   );
 }

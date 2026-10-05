@@ -59,6 +59,14 @@ session_builder:
   max_minutes: 240
 
 notifications:
+  # Push to your devices (Phase 11): the scheduler sends unread reminders
+  # every `push_every_minutes`, each once, if no older than `push_max_age_hours`.
+  push_every_minutes: 5
+  push_max_age_hours: 24
+  # How long a push service keeps trying to deliver one.
+  push_ttl_seconds: 43200
+  # A device that fails this many times in a row is forgotten.
+  push_max_failures: 3
   # "You haven't completed today's quiz" after this hour (your timezone).
   quiz_reminder_hour: 18
   exam_days: [14, 7, 1]

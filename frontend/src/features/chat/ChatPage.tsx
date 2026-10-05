@@ -29,7 +29,7 @@ const PROVENANCE: Record<string, { label: string; icon: ReactNode; className: st
   university: {
     label: "From your university material",
     icon: <GraduationCap size={12} />,
-    className: "border-accent text-accent",
+    className: "border-accent text-accent-text",
   },
   own: { label: "From your notes", icon: <NotebookPen size={12} />, className: "border-border" },
   general: {
@@ -94,7 +94,7 @@ function Links({ links }: { links: MessageLink[] }) {
           <Link
             to="/drafts/$draftId"
             params={{ draftId: link.id }}
-            className="inline-flex items-center gap-1 rounded-md border border-accent px-2 py-1 text-xs font-medium text-accent hover:bg-surface"
+            className="inline-flex items-center gap-1 rounded-md border border-accent px-2 py-1 text-xs font-medium text-accent-text hover:bg-surface"
           >
             <FileText size={12} /> Review draft: {link.label}
           </Link>

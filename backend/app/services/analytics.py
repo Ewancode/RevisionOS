@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.analytics import compute
+from app.analytics import compute, dashboard
 from app.analytics.compute import Answer, Metric, Review, Session
 from app.core.clock import utcnow
 from app.core.config import AppConfig
@@ -34,11 +34,13 @@ from app.models import (
 from app.planner import session_builder
 from app.planner.context import PlannerContext, available_minutes, load, quiz_minutes
 from app.schemas.analytics import (
+    DashboardOut,
     DayActivity,
     MetricOut,
     ModuleAnalyticsOut,
     ModuleCard,
     OverviewOut,
+    PanelOut,
     ReadinessOut,
     RecentMaterial,
     RecentUpload,
@@ -519,6 +521,42 @@ class AnalyticsService(ScopedService):
                     f"and past planned sessions done each week, in {scope}"
                 ),
             },
+        )
+
+    async def dashboard(self) -> DashboardOut:
+        """Today's panels, most pressing first."""
+        now = utcnow()
+        ctx = await load(self.db, self.user_id, self.config, now)
+        upcoming = sorted((e for e in ctx.exams if e.day >= ctx.today), key=lambda e: e.day)
+        quiz_done = False
+        if ctx.has_questions:
+            start = datetime.combine(ctx.today, datetime.min.time(), self.zone)
+            quiz_done = bool(
+                await self.db.scalar(
+                    select(func.count())
+                    .select_from(QuizAttempt)
+                    .join(Quiz, Quiz.id == QuizAttempt.quiz_id)
+                    .where(
+                        QuizAttempt.user_id == self.user_id,
+                        Quiz.kind == "daily",
+                        QuizAttempt.submitted_at >= start,
+                    )
+                )
+            )
+        groups = await mistake_bank(self.db, self.user_id, self.config, now)
+        pressing = dashboard.Pressing(
+            exam_days=(upcoming[0].day - ctx.today).days if upcoming else None,
+            exam_title=f"{upcoming[0].module_code} {upcoming[0].title}" if upcoming else "",
+            quiz_not_done=ctx.has_questions and not quiz_done,
+            cards_due=sum(n for day, n in ctx.due_by_day.items() if day <= ctx.today),
+            cards_threshold=self.config.planner.notifications.flashcards_due_threshold,
+            recurring_mistakes=sum(1 for g in groups if g.recurring),
+        )
+        return DashboardOut(
+            panels=[
+                PanelOut(key=p.key, reason=p.reason)
+                for p in dashboard.rank(self.config.analytics.dashboard, pressing)
+            ]
         )
 
     async def readiness(self) -> list[ReadinessOut]:

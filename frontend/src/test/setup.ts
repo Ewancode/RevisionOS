@@ -11,6 +11,14 @@ const noRects = () => Object.assign([], { item: () => null }) as unknown as DOMR
 Range.prototype.getClientRects = noRects;
 Range.prototype.getBoundingClientRect = () => new DOMRect();
 
+// jsdom has no ResizeObserver or scrollIntoView (the command palette uses both).
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof ResizeObserver;
+Element.prototype.scrollIntoView ??= () => {};
+
 afterEach(() => {
   cleanup();
   localStorage.clear();

@@ -1192,6 +1192,22 @@
         "title": "DailyStarted",
         "type": "object"
       },
+      "DashboardOut": {
+        "properties": {
+          "panels": {
+            "items": {
+              "$ref": "#/components/schemas/PanelOut"
+            },
+            "title": "Panels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "panels"
+        ],
+        "title": "DashboardOut",
+        "type": "object"
+      },
       "DayActivity": {
         "properties": {
           "day": {
@@ -4267,6 +4283,31 @@
         "title": "PageOut",
         "type": "object"
       },
+      "PanelOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "key",
+          "reason"
+        ],
+        "title": "PanelOut",
+        "type": "object"
+      },
       "PassageOut": {
         "properties": {
           "chunk_id": {
@@ -4861,6 +4902,119 @@
           "solved"
         ],
         "title": "Progress",
+        "type": "object"
+      },
+      "PushConfig": {
+        "properties": {
+          "devices": {
+            "title": "Devices",
+            "type": "integer"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          }
+        },
+        "required": [
+          "enabled",
+          "public_key",
+          "devices"
+        ],
+        "title": "PushConfig",
+        "type": "object"
+      },
+      "PushKeys": {
+        "additionalProperties": false,
+        "properties": {
+          "auth": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Auth",
+            "type": "string"
+          },
+          "p256dh": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "P256Dh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "PushKeys",
+        "type": "object"
+      },
+      "PushSubscriptionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": {
+            "maxLength": 2000,
+            "pattern": "^https://",
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushKeys"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "PushSubscriptionIn",
+        "type": "object"
+      },
+      "PushTestOut": {
+        "properties": {
+          "delivered": {
+            "title": "Delivered",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "delivered"
+        ],
+        "title": "PushTestOut",
+        "type": "object"
+      },
+      "PushUnsubscribe": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": {
+            "maxLength": 2000,
+            "title": "Endpoint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint"
+        ],
+        "title": "PushUnsubscribe",
         "type": "object"
       },
       "QuestionOut": {
@@ -7507,6 +7661,28 @@
         "summary": "Ai Usage",
         "tags": [
           "ai"
+        ]
+      }
+    },
+    "/api/v1/analytics/dashboard": {
+      "get": {
+        "description": "The order of Today's panels: what is pressing comes first, with why.",
+        "operationId": "dashboard_api_v1_analytics_dashboard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Dashboard",
+        "tags": [
+          "analytics"
         ]
       }
     },
@@ -12041,6 +12217,119 @@
         "summary": "Weakest Topics",
         "tags": [
           "learning"
+        ]
+      }
+    },
+    "/api/v1/push/config": {
+      "get": {
+        "description": "Whether push is on, the public key browsers subscribe with, and how\nmany of your devices are subscribed.",
+        "operationId": "push_config_api_v1_push_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Push Config",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/push/subscriptions": {
+      "post": {
+        "description": "Receive reminders on this device.",
+        "operationId": "subscribe_push_api_v1_push_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Subscribe Push",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/push/test": {
+      "post": {
+        "description": "Send a test notification to your devices.",
+        "operationId": "test_push_api_v1_push_test_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushTestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Test Push",
+        "tags": [
+          "planner"
+        ]
+      }
+    },
+    "/api/v1/push/unsubscribe": {
+      "post": {
+        "operationId": "unsubscribe_push_api_v1_push_unsubscribe_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushUnsubscribe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unsubscribe Push",
+        "tags": [
+          "planner"
         ]
       }
     },

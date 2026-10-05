@@ -81,13 +81,13 @@ describe("search", () => {
     expect(await screen.findByText("No matches in your materials.")).toBeInTheDocument();
   });
 
-  it("Ctrl+K focuses the sidebar search and Enter opens results", async () => {
+  it('"/" focuses the sidebar search and Enter opens results', async () => {
     fakeApi({ ...base, "GET /api/v1/search": () => [200, result] });
     const user = userEvent.setup();
     const router = renderAt("/");
     const box = await screen.findByRole("searchbox", { name: "Search your materials" });
 
-    await user.keyboard("{Control>}k{/Control}");
+    await user.keyboard("/");
     expect(box).toHaveFocus();
     await user.type(box, "ratio test{Enter}");
 

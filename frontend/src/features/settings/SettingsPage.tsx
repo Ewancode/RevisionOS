@@ -5,6 +5,7 @@ import { Button, ErrorText, Field } from "@/components/ui";
 import { useChangePassword, useSession, useUpdateSettings } from "@/features/auth/session";
 import { useMakeYearCurrent, useRestore, useTrash, useYears } from "@/features/structure/queries";
 import { useBudget } from "@/features/documents/queries";
+import { PushSettings } from "@/features/planner/PushSettings";
 import { usePreferences, useSetPreferences, type PreferencesIn } from "@/features/planner/queries";
 import { SystemStatus } from "@/features/system/SystemStatus";
 import type { Theme } from "@/lib/theme";
@@ -252,7 +253,9 @@ function Notifications() {
   const hours = Array.from({ length: 24 }, (_, h) => h);
   return (
     <Section title="Notifications">
-      <p className="text-sm text-muted">Reminders appear under the bell in the sidebar when you open Revision OS.</p>
+      <p className="text-sm text-muted">
+        Reminders appear under the bell when you open Revision OS, and on devices where you turn them on below.
+      </p>
       {p && (
         <>
           <div className="flex flex-col gap-1">
@@ -323,6 +326,7 @@ function Notifications() {
         </>
       )}
       <ErrorText error={prefs.error ?? save.error} />
+      <PushSettings />
     </Section>
   );
 }

@@ -1,4 +1,10 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  type ErrorComponentProps,
+} from "@tanstack/react-router";
 
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { LoginPage } from "@/features/auth/LoginPage";
@@ -25,7 +31,35 @@ import { ModulePage } from "@/features/structure/ModulePage";
 
 import { AppShell } from "./AppShell";
 
-const rootRoute = createRootRoute({ component: Outlet });
+/** If a page crashes: say so, and offer a way back, never a blank screen. */
+function CrashPage({ error, reset }: ErrorComponentProps) {
+  return (
+    <main className="mx-auto flex max-w-lg flex-col gap-3 p-6">
+      <h1 className="text-xl font-semibold">Something went wrong on this page</h1>
+      <p className="text-sm text-muted">
+        Your work is saved on the server. Try again, or go back to Today.
+      </p>
+      <pre className="overflow-x-auto rounded-md bg-surface p-2 text-xs text-muted">{error instanceof Error ? error.message : String(error)}</pre>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            reset();
+            window.location.reload();
+          }}
+          className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent"
+        >
+          Try again
+        </button>
+        <a href="/" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium">
+          Go to Today
+        </a>
+      </div>
+    </main>
+  );
+}
+
+const rootRoute = createRootRoute({ component: Outlet, errorComponent: CrashPage });
 
 const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: "/login", component: LoginPage });
 

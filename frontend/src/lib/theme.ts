@@ -5,7 +5,13 @@
  * returns.
  */
 
+import { readableAccent, textOn } from "./contrast";
+
 export type Theme = "light" | "dark" | "system";
+
+// The darkest light and lightest dark backgrounds text sits on (index.css).
+const LIGHT_BG = "#f7f7f8";
+const DARK_SURFACE = "#1b1b1f";
 
 const STORAGE_KEY = "revision-os:appearance";
 export const DEFAULT_ACCENT = "#4f46e5";
@@ -19,6 +25,10 @@ export function applyAppearance({ theme, accent_colour }: Appearance, root = doc
   if (theme === "system") delete root.dataset.theme;
   else root.dataset.theme = theme;
   root.style.setProperty("--color-accent", accent_colour);
+  // Keep text on and in the accent readable, whatever colour you chose.
+  root.style.setProperty("--color-on-accent", textOn(accent_colour));
+  root.style.setProperty("--accent-on-light", readableAccent(accent_colour, LIGHT_BG));
+  root.style.setProperty("--accent-on-dark", readableAccent(accent_colour, DARK_SURFACE));
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ theme, accent_colour }));
   } catch {

@@ -14,6 +14,14 @@ if (appearance) applyAppearance(appearance);
 const root = document.getElementById("root");
 if (!root) throw new Error("#root element missing from index.html");
 
+// The service worker (public/sw.js) receives push notifications and shows
+// an offline page. Service workers need HTTPS, or localhost.
+if ("serviceWorker" in navigator && window.isSecureContext) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+  });
+}
+
 createRoot(root).render(
   <StrictMode>
     <Providers>

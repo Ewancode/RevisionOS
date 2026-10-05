@@ -8,7 +8,7 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 10 (coding practice). Phase 2 brought
+**Status:** Phase 11 (polish). Phase 2 brought
 sign-in with secure sessions, academic years, modules and topic trees,
 theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
@@ -42,13 +42,18 @@ figure says what it was computed from. Phase 10 adds coding practice:
 Python and R exercises that run and mark in your browser (Pyodide and
 WebR), written by you or by Claude (whose reference solutions are checked
 against their own tests before saving), and a tutor that gives hints one
-step at a time, also on practice-quiz questions. The formulas are in
+step at a time, also on practice-quiz questions. Phase 11 polishes it: a
+command palette (Ctrl+K) and keyboard shortcuts (press ?), a phone layout,
+an installable app with push reminders (run `make vapid-keys` once to turn
+push on; phones need HTTPS, so phone push comes with deployment), Today's
+panels ordered by what is pressing, and an accessibility pass checked with
+axe. The formulas are in
 [docs/algorithms.md](docs/algorithms.md).
 
 ## Layout
 
 ```
-backend/    FastAPI API + Arq worker (Python 3.12, uv)
+backend/    FastAPI API + Arq worker and scheduler (Python 3.12, uv)
   app/        api/v1/ (routers) → services/ (rules) → repositories/ (user-scoped
               data access) → models/; core/ (settings, config, security, errors)
   config/     learning.yaml, planner.yaml, analytics.yaml, coding.yaml, ai.yaml, platform.yaml — every tunable number,
@@ -73,7 +78,7 @@ docs/       spec, architecture, ADRs
 
 ```bash
 cp .env.example .env        # then set POSTGRES_PASSWORD (and DATABASE_URL to match)
-make dev                    # db, redis, api, worker, frontend
+make dev                    # db, redis, api, worker, scheduler, frontend
 make create-user            # in a second terminal: your account (asks for a password)
 ```
 

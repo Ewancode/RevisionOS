@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml --env-file .env
 BACKEND := cd backend &&
 FRONTEND := cd frontend &&
 
-.PHONY: help dev down logs migrate migration create-user reindex eval-search eval-chat eval-practice \
+.PHONY: help dev down logs migrate migration create-user vapid-keys reindex eval-search eval-chat eval-practice \
         test test-backend test-frontend \
         lint typecheck fmt api-client check
 
@@ -12,6 +12,7 @@ help:
 	@echo "make migrate        Apply database migrations"
 	@echo "make migration m=.. Create a new Alembic migration"
 	@echo "make create-user    Create your account (registration is closed)"
+	@echo "make vapid-keys     Generate Web Push keys into .env (never printed)"
 	@echo "make reindex        Rebuild search chunks for every document"
 	@echo "make eval-search    Score search on samples/golden.yaml (local only)"
 	@echo "make eval-chat      Check the assistant cites the right pages (ARGS=--yes spends money)"
@@ -39,6 +40,9 @@ migration:
 
 create-user:
 	$(COMPOSE) run --rm api python -m scripts.create_user
+
+vapid-keys:
+	$(BACKEND) uv run python -m scripts.vapid_keys
 
 reindex:
 	$(COMPOSE) exec worker python -m scripts.reindex

@@ -121,6 +121,16 @@ class ReadinessOut(Output):
     note: str
 
 
+class PanelOut(Output):
+    key: str
+    # Why it moved up, if it did.
+    reason: str | None
+
+
+class DashboardOut(Output):
+    panels: list[PanelOut]
+
+
 class ModuleAnalyticsOut(Output):
     module_id: uuid.UUID
     progress: MetricOut

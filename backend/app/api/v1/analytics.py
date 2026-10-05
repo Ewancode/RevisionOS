@@ -7,7 +7,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.deps import Client, Config, CurrentUser, DbSession
-from app.schemas.analytics import ModuleAnalyticsOut, OverviewOut, ReadinessOut, TrendsOut
+from app.schemas.analytics import (
+    DashboardOut,
+    ModuleAnalyticsOut,
+    OverviewOut,
+    ReadinessOut,
+    TrendsOut,
+)
 from app.services.analytics import AnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -20,6 +26,12 @@ def _analytics(
 
 
 Analytics = Annotated[AnalyticsService, Depends(_analytics)]
+
+
+@router.get("/dashboard", response_model=DashboardOut)
+async def dashboard(analytics: Analytics) -> DashboardOut:
+    """The order of Today's panels: what is pressing comes first, with why."""
+    return await analytics.dashboard()
 
 
 @router.get("/overview", response_model=OverviewOut)

@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 
 from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.core.settings import get_settings
 from app.schemas.planner import (
     AvailabilityIn,
     AvailabilityOut,
@@ -25,6 +26,10 @@ from app.schemas.planner import (
     PlanOut,
     PreferencesIn,
     PreferencesOut,
+    PushConfig,
+    PushSubscriptionIn,
+    PushTestOut,
+    PushUnsubscribe,
     SessionMove,
     SessionStatusIn,
     StudySessionOut,
@@ -169,3 +174,32 @@ async def read_notification(notification_id: int, planner: Planner) -> None:
 @router.post("/notifications/read-all", status_code=status.HTTP_204_NO_CONTENT)
 async def read_all_notifications(planner: Planner) -> None:
     await planner.read(None)
+
+
+# --- push -------------------------------------------------------------------------------------
+
+
+@router.get("/push/config", response_model=PushConfig)
+async def push_config(planner: Planner, request: Request) -> PushConfig:
+    """Whether push is on, the public key browsers subscribe with, and how
+    many of your devices are subscribed."""
+    return await planner.push_config(
+        get_settings().vapid_public_key, request.app.state.push is not None
+    )
+
+
+@router.post("/push/subscriptions", status_code=status.HTTP_204_NO_CONTENT)
+async def subscribe_push(body: PushSubscriptionIn, planner: Planner) -> None:
+    """Receive reminders on this device."""
+    await planner.subscribe(body)
+
+
+@router.post("/push/unsubscribe", status_code=status.HTTP_204_NO_CONTENT)
+async def unsubscribe_push(body: PushUnsubscribe, planner: Planner) -> None:
+    await planner.unsubscribe(body.endpoint)
+
+
+@router.post("/push/test", response_model=PushTestOut)
+async def test_push(planner: Planner, request: Request) -> PushTestOut:
+    """Send a test notification to your devices."""
+    return PushTestOut(delivered=await planner.test_push(request.app.state.push))

@@ -27,6 +27,7 @@ dependencies = [
     "fastembed>=0.5",
     "sympy>=1.14.0",
     "fsrs>=6.3.2",
+    "pywebpush>=2.5.0",
 ]
 
 [dependency-groups]
@@ -67,7 +68,7 @@ files = ["app", "scripts", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*"]
+module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*", "pywebpush.*", "py_vapid.*", "http_ece.*"]
 ignore_missing_imports = true
 
 # PyMuPDF and SymPy ship without type hints; allow calling them where used.

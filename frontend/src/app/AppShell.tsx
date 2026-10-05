@@ -1,18 +1,22 @@
-import { Link, Navigate, Outlet, useNavigate } from "@tanstack/react-router";
+import * as Dialog from "@radix-ui/react-dialog";
+import { Link, Navigate, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
   ChartLine,
   CalendarDays,
   CalendarRange,
+  Command,
   Layers,
   LayoutDashboard,
   LogOut,
+  Menu,
   MessageSquare,
   Plus,
   Search as SearchIcon,
   Settings,
+  X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { useLogout, useSession } from "@/features/auth/session";
@@ -20,6 +24,8 @@ import { NotificationBell } from "@/features/planner/NotificationBell";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
 import { useModules, type Module } from "@/features/structure/queries";
 
+import { CommandPalette } from "./CommandPalette";
+import { ShortcutsHelp, useShortcuts } from "./shortcuts";
 import { useViewingYear, ViewingYearProvider } from "./viewingYear";
 
 function groupBySubject(modules: Module[]): [string | null, Module[]][] {
@@ -54,23 +60,10 @@ function ModuleLink({ module, yearId }: { module: Module; yearId: string }) {
   );
 }
 
-/** Search box; Ctrl+K (Cmd+K on a Mac) focuses it from anywhere. */
+/** Search box; "/" focuses it from anywhere (Ctrl+K opens the palette). */
 function SidebarSearch() {
   const navigate = useNavigate();
-  const input = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
-
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        input.current?.focus();
-        input.current?.select();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   return (
     <form
@@ -83,11 +76,11 @@ function SidebarSearch() {
     >
       <SearchIcon size={14} className="pointer-events-none absolute left-2.5 top-2.5 text-muted" aria-hidden />
       <input
-        ref={input}
+        id="sidebar-search"
         type="search"
         aria-label="Search your materials"
-        aria-keyshortcuts="Control+K"
-        placeholder="Search  (Ctrl+K)"
+        aria-keyshortcuts="/"
+        placeholder="Search  ( / )"
         value={text}
         onChange={(e) => setText(e.target.value)}
         className="h-9 w-full rounded-md border border-border bg-bg pl-8 pr-2 text-sm"
@@ -96,7 +89,7 @@ function SidebarSearch() {
   );
 }
 
-function Sidebar() {
+function Sidebar({ onOpenPalette, inDrawer = false }: { onOpenPalette: () => void; inDrawer?: boolean }) {
   const { years, year, setYearId } = useViewingYear();
   const [showArchived, setShowArchived] = useState(false);
   const modules = useModules(year?.id, showArchived ? "all" : "active");
@@ -106,18 +99,27 @@ function Sidebar() {
   const navigate = useNavigate();
 
   return (
-    <nav
-      aria-label="Main"
-      className="flex w-full flex-col gap-4 border-b border-border bg-bg p-3 md:h-screen md:w-64 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r"
-    >
+    <nav aria-label="Main" className="flex h-full w-full flex-col gap-4 overflow-y-auto bg-bg p-3">
       <div className="flex items-center justify-between">
         <Link to="/" className="px-2 text-base font-semibold">
           Revision OS
         </Link>
-        <NotificationBell />
+        {/* In the phone drawer the top bar has the bell. */}
+        {!inDrawer && <NotificationBell />}
       </div>
 
       <SidebarSearch />
+      <button
+        type="button"
+        onClick={onOpenPalette}
+        aria-keyshortcuts="Control+K"
+        className="flex items-center justify-between rounded-md px-2 py-1 text-xs text-muted hover:bg-surface"
+      >
+        <span className="flex items-center gap-1.5">
+          <Command size={12} aria-hidden /> Commands
+        </span>
+        <kbd className="font-mono">Ctrl K</kbd>
+      </button>
 
       <div className="flex flex-col gap-1">
         <Link
@@ -263,19 +265,100 @@ function Sidebar() {
   );
 }
 
+/** True on screens at least `md` wide (tests have no matchMedia: desktop). */
+function useIsDesktop(): boolean {
+  const query = "(min-width: 768px)";
+  const [desktop, setDesktop] = useState(() =>
+    typeof window.matchMedia === "function" ? window.matchMedia(query).matches : true,
+  );
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia(query);
+    const update = () => setDesktop(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  return desktop;
+}
+
+/** On a phone: a top bar, with the sidebar in a drawer. */
+function MobileBar({ onOpenPalette }: { onOpenPalette: () => void }) {
+  const [open, setOpen] = useState(false);
+  const location = useRouterState({ select: (s) => s.location.pathname });
+  // Close the drawer once a link in it has been followed.
+  useEffect(() => setOpen(false), [location]);
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-bg px-2 py-2">
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <Dialog.Trigger asChild>
+          <Button variant="ghost" size="sm" aria-label="Open menu">
+            <Menu size={20} />
+          </Button>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
+          <Dialog.Content className="fixed inset-y-0 left-0 z-50 w-[min(18rem,85vw)] border-r border-border bg-bg shadow-xl">
+            <Dialog.Title className="sr-only">Menu</Dialog.Title>
+            <Dialog.Description className="sr-only">Pages, modules and settings.</Dialog.Description>
+            <Dialog.Close asChild>
+              <Button variant="ghost" size="sm" aria-label="Close menu" className="absolute right-2 top-2 z-10">
+                <X size={18} />
+              </Button>
+            </Dialog.Close>
+            <Sidebar
+              inDrawer
+              onOpenPalette={() => {
+                setOpen(false);
+                onOpenPalette();
+              }}
+            />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <Link to="/" className="text-base font-semibold">
+        Revision OS
+      </Link>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" aria-label="Search and commands" onClick={onOpenPalette}>
+          <SearchIcon size={18} />
+        </Button>
+        <NotificationBell />
+      </div>
+    </header>
+  );
+}
+
 /** Layout for every signed-in page; signed-out visitors go to /login. */
 export function AppShell() {
   const session = useSession();
+  const desktop = useIsDesktop();
+  const [palette, setPalette] = useState(false);
+  const [help, setHelp] = useState(false);
+  useShortcuts({ openPalette: () => setPalette(true), openHelp: () => setHelp(true) });
   if (session.isPending) return <p className="p-6 text-sm text-muted">Loading…</p>;
   if (!session.data) return <Navigate to="/login" />;
   return (
     <ViewingYearProvider>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-bg focus:px-3 focus:py-2 focus:shadow"
+      >
+        Skip to content
+      </a>
       <div className="flex min-h-screen flex-col md:flex-row">
-        <Sidebar />
-        <main className="flex-1 px-4 py-6 md:px-10">
+        {desktop ? (
+          <aside className="h-screen w-64 shrink-0 border-r border-border md:sticky md:top-0">
+            <Sidebar onOpenPalette={() => setPalette(true)} />
+          </aside>
+        ) : (
+          <MobileBar onOpenPalette={() => setPalette(true)} />
+        )}
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none md:px-10">
           <Outlet />
         </main>
       </div>
+      <CommandPalette open={palette} onOpenChange={setPalette} />
+      <ShortcutsHelp open={help} onOpenChange={setHelp} />
     </ViewingYearProvider>
   );
 }

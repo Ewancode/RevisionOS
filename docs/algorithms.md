@@ -356,3 +356,24 @@ All numbers are in `config/coding.yaml`.
   is never given for assessed work; quiz questions stop at rung 4. Claude
   sees your current work, the visible tests and results, and the last 4
   hints.
+
+## Today's panel order (`app/analytics/dashboard.py`)
+
+Each panel scores its place in the usual order (`analytics.yaml`
+`dashboard.order`; the bottom one scores 1). Boosts are added when:
+
+- an exam is within 7 days: *exams* and *today's revision* +12;
+- today's quiz is not done (and you have questions): *daily quiz* +8;
+- 10 or more flashcards are due: *flashcards* +7;
+- you have a recurring mistake: *mistakes* +3.
+
+Panels are shown highest first; ties keep the usual order. A boosted panel
+says why it moved up.
+
+## Push reminders (`app/planner/push.py`)
+
+Every 5 minutes, for each user with a subscribed device and not in quiet
+hours: make any reminders now due (as the bell does), then push each one
+that is unread, not yet pushed and under 24 hours old, to every device,
+once. Push services keep trying for 12 hours. A device reported gone
+(404/410) is forgotten; one failing 3 times in a row is dropped.

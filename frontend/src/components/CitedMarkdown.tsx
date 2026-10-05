@@ -42,7 +42,7 @@ export function CitedMarkdown({
                 search={{ page: citation.page_no }}
                 title={citationTitle(citation)}
                 aria-label={`Source ${citation.n}: ${citationTitle(citation)}`}
-                className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded bg-surface px-1 align-super text-[10px] font-semibold text-accent no-underline hover:underline"
+                className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded bg-surface px-1 align-super text-[10px] font-semibold text-accent-text no-underline hover:underline"
               >
                 {citation.n}
               </Link>
@@ -69,7 +69,7 @@ export function Sources({ citations }: { citations: Citation[] }) {
       <ol className="flex flex-col gap-1 text-xs">
         {citations.map((c) => (
           <li key={c.n} className="flex gap-2">
-            <span className="w-4 shrink-0 text-right font-semibold text-accent">{c.n}</span>
+            <span className="w-4 shrink-0 text-right font-semibold text-accent-text">{c.n}</span>
             <span className="min-w-0">
               <Link
                 to="/doc/$documentId"

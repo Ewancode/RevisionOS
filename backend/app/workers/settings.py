@@ -1,7 +1,7 @@
 """Arq worker entry point: ``arq app.workers.settings.WorkerSettings``.
 
-The separate cron ``scheduler`` process from ARCHITECTURE.md section 4 is
-added in the first phase that has a scheduled job.
+The cron ``scheduler`` process from ARCHITECTURE.md section 4 is
+app.workers.scheduler (Phase 11).
 """
 
 from typing import Any, ClassVar

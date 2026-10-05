@@ -195,6 +195,8 @@ class Notification(Base):
     # Each reminder is made once (e.g. "exam:<id>:7").
     dedupe_key: Mapped[str] = mapped_column(String(200))
     read_at: Mapped[OptionalTimestamp]
+    # Sent to your devices by Web Push (once).
+    pushed_at: Mapped[OptionalTimestamp]
     created_at: Mapped[CreatedAt]
     updated_at: Mapped[UpdatedAt]
 
@@ -202,3 +204,22 @@ class Notification(Base):
         UniqueConstraint("user_id", "dedupe_key", name="uq_notifications_once"),
         Index("ix_notifications_user_created", "user_id", "created_at"),
     )
+
+
+class PushSubscription(Base):
+    """A browser or phone that receives Web Push for you (Phase 11)."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[UUIDPk]
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    # The push service's URL for this device: unique, and itself a secret.
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    label: Mapped[str | None] = mapped_column(String(100))
+    failures: Mapped[int] = mapped_column(SmallInteger, server_default="0", default=0)
+    last_sent_at: Mapped[OptionalTimestamp]
+    created_at: Mapped[CreatedAt]
+
+    __table_args__ = (Index("ix_push_subscriptions_user", "user_id"),)

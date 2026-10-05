@@ -411,3 +411,18 @@ async def test_documents_appear_as_recent_uploads(
     await db.commit()
     o = await _get(client, "/api/v1/analytics/overview")
     assert [(u["filename"], u["module_code"]) for u in o["uploads"]] == [("Week 3.pdf", "MATH101")]
+
+
+async def test_todays_panels_put_the_pressing_first(
+    client: httpx.AsyncClient, history: dict[str, Any]
+) -> None:
+    """MATH101's exam is in 10 days (not yet "soon"); 3 reviews but under 10
+    cards due; questions exist and today's quiz is not done."""
+    panels = (await _get(client, "/api/v1/analytics/dashboard"))["panels"]
+    keys = [p["key"] for p in panels]
+    assert keys[0] == "daily_quiz"
+    assert panels[0]["reason"] == "Today's quiz is not done yet"
+    assert sorted(keys) == sorted(
+        ["glance", "recommended", "todays_revision", "daily_quiz", "flashcards", "builder",
+         "exams", "weak_topics", "mistakes", "recent"]
+    )  # fmt: skip

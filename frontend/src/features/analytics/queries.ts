@@ -11,11 +11,20 @@ export type ModuleAnalytics = Schemas["ModuleAnalyticsOut"];
 export type Summary = Schemas["SummaryOut"];
 
 export const analyticsKeys = {
+  dashboard: ["analytics", "dashboard"] as const,
   overview: ["analytics", "overview"] as const,
   trends: (moduleId?: string) => ["analytics", "trends", moduleId ?? "all"] as const,
   readiness: ["analytics", "readiness"] as const,
   module: (moduleId: string) => ["analytics", "module", moduleId] as const,
 };
+
+/** The order of Today's panels, most pressing first. */
+export function useDashboardOrder() {
+  return useQuery({
+    queryKey: analyticsKeys.dashboard,
+    queryFn: () => unwrap(api.GET("/api/v1/analytics/dashboard")),
+  });
+}
 
 export function useOverview() {
   return useQuery({

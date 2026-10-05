@@ -26,15 +26,17 @@ from app.models import (
     FlashcardReview,
     Module,
     Notification,
+    PushSubscription,
     Quiz,
     QuizAttempt,
     StudySession,
     Topic,
     UserSettings,
 )
-from app.planner import availability, notifications, session_builder
+from app.planner import availability, notifications, push, session_builder
 from app.planner.context import PlannerContext, available_minutes, load
 from app.planner.plan import ensure_fresh, replan
+from app.planner.push import Sender
 from app.schemas.planner import (
     AvailabilityIn,
     AvailabilityOut,
@@ -47,6 +49,8 @@ from app.schemas.planner import (
     PlanOut,
     PreferencesIn,
     PreferencesOut,
+    PushConfig,
+    PushSubscriptionIn,
     StudySessionOut,
 )
 from app.services.common import ClientInfo, ScopedService, not_found
@@ -488,6 +492,74 @@ class PlannerService(ScopedService):
         ]
         due = sum(n for day, n in ctx.due_by_day.items() if day <= ctx.today)
         return session_builder.recommend(ctx, due, recurring, self.config, limit)
+
+    # --- push -----------------------------------------------------------------------------------
+
+    async def push_config(self, public_key: str | None, enabled: bool) -> PushConfig:
+        devices = await self.db.scalar(
+            select(func.count())
+            .select_from(PushSubscription)
+            .where(PushSubscription.user_id == self.user_id)
+        )
+        return PushConfig(
+            enabled=enabled, public_key=public_key if enabled else None, devices=int(devices or 0)
+        )
+
+    async def subscribe(self, body: PushSubscriptionIn) -> None:
+        """Register this device. The same browser signed in as someone else
+        moves to them: a device belongs to one account."""
+        stmt = insert(PushSubscription).values(
+            id=uuid.uuid4(),
+            user_id=self.user_id,
+            endpoint=body.endpoint,
+            p256dh=body.keys.p256dh,
+            auth=body.keys.auth,
+            label=body.label,
+        )
+        await self.db.execute(
+            stmt.on_conflict_do_update(
+                index_elements=[PushSubscription.endpoint],
+                set_={
+                    "user_id": self.user_id,
+                    "p256dh": body.keys.p256dh,
+                    "auth": body.keys.auth,
+                    "label": body.label,
+                    "failures": 0,
+                },
+            )
+        )
+        await self.db.commit()
+
+    async def unsubscribe(self, endpoint: str) -> None:
+        await self.db.execute(
+            delete(PushSubscription).where(
+                PushSubscription.user_id == self.user_id, PushSubscription.endpoint == endpoint
+            )
+        )
+        await self.db.commit()
+
+    async def test_push(self, sender: Sender | None) -> int:
+        if sender is None:
+            raise AppError("push_off", "Push is not set up on the server (make vapid-keys).", 409)
+        devices = (
+            await self.db.scalars(
+                select(PushSubscription).where(PushSubscription.user_id == self.user_id)
+            )
+        ).all()
+        if not devices:
+            raise AppError("no_devices", "Turn on notifications on this device first.", 409)
+        note = Notification(
+            user_id=self.user_id,
+            kind="test",
+            title="Notifications are working.",
+            body="Revision OS will remind you here about exams, quizzes and due cards.",
+            link="/settings",
+            dedupe_key=f"test:{uuid.uuid4()}",
+            read_at=utcnow(),
+        )
+        self.db.add(note)
+        await self.db.flush()
+        return await push.deliver(self.db, sender, self.config, devices, [note], utcnow())
 
     async def notifications(self) -> tuple[int, Sequence[Notification]]:
         now = utcnow()

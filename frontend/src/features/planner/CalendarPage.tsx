@@ -120,12 +120,15 @@ function DayCell({
   today,
   detailed,
   faded,
+  compact,
   onOpen,
 }: {
   day: CalendarDay;
   today: string;
   detailed: boolean;
   faded?: boolean;
+  /** Month view on a phone: a count instead of each session. */
+  compact?: boolean;
   onOpen?: () => void;
 }) {
   const { move } = useSessionActions();
@@ -133,8 +136,7 @@ function DayCell({
   const past = day.day < today;
   const date = parseDay(day.day);
   return (
-    <div
-      role="gridcell"
+    <li
       aria-label={date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
       onDragOver={(e) => {
         if (!past) {
@@ -148,33 +150,58 @@ function DayCell({
         const id = e.dataTransfer.getData("text/session");
         if (id && !past) move.mutate({ id, day: day.day });
       }}
-      className={`flex min-h-24 flex-col gap-1 rounded-md border p-1.5 ${
+      className={`flex flex-col gap-1 rounded-md border p-1.5 ${compact ? "min-h-12 md:min-h-24" : "min-h-24"} ${
         day.day === today ? "border-accent" : "border-border"
       } ${over ? "bg-surface" : ""} ${faded ? "opacity-50" : ""}`}
     >
       <div className="flex items-baseline justify-between text-xs">
         {onOpen ? (
-          <button type="button" onClick={onOpen} className="font-medium hover:underline">
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`Open ${date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}`}
+            className="font-medium hover:underline"
+          >
+            {!compact && (
+              <span className="md:hidden">{date.toLocaleDateString(undefined, { weekday: "short" })} </span>
+            )}
             {date.getDate()}
           </button>
         ) : (
           <span className="font-medium">{date.getDate()}</span>
         )}
-        {day.available_minutes > 0 && !past && <span className="text-muted">{formatMinutes(day.available_minutes)}</span>}
+        {day.available_minutes > 0 && !past && (
+          <span className={`text-muted ${compact ? "hidden md:inline" : ""}`}>{formatMinutes(day.available_minutes)}</span>
+        )}
       </div>
+      {compact && (day.sessions.length > 0 || day.exams.length > 0) && (
+        <p className="flex flex-wrap gap-1 text-[11px] leading-tight md:hidden">
+          {day.exams.length > 0 && <span className="rounded bg-danger px-1 font-medium text-on-danger">Exam</span>}
+          {day.sessions.length > 0 && (
+            <span className="text-muted">
+              {day.sessions.length}
+              <span className="sr-only"> planned session{day.sessions.length === 1 ? "" : "s"}</span>
+              <span aria-hidden>×</span>
+            </span>
+          )}
+        </p>
+      )}
       {day.exams.map((e) => (
-        <p key={e.id} className="rounded bg-danger px-1.5 py-0.5 text-xs font-medium text-white">
+        <p
+          key={e.id}
+          className={`rounded bg-danger px-1.5 py-0.5 text-xs font-medium text-on-danger ${compact ? "hidden md:block" : ""}`}
+        >
           {e.module_code} {e.title}{" "}
           {new Date(e.starts_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
         </p>
       ))}
-      <ul className="flex flex-col gap-1">
+      <ul className={`flex flex-col gap-1 ${compact ? "hidden md:flex" : ""}`}>
         {day.sessions.map((s) => (
           <SessionChip key={s.id} session={s} detailed={detailed} today={today} />
         ))}
       </ul>
       {(day.quizzes.length > 0 || day.reviews > 0 || (day.due_cards > 0 && !past)) && (
-        <p className="mt-auto text-[11px] text-muted">
+        <p className={`mt-auto text-[11px] text-muted ${compact ? "hidden md:block" : ""}`}>
           {[
             day.quizzes.length ? `${day.quizzes.length} quiz${day.quizzes.length > 1 ? "zes" : ""}` : "",
             day.reviews ? `${day.reviews} cards reviewed` : "",
@@ -185,7 +212,7 @@ function DayCell({
         </p>
       )}
       <ErrorText error={move.error} />
-    </div>
+    </li>
   );
 }
 
@@ -228,27 +255,40 @@ export function CalendarPage({ initialView = "week" }: { initialView?: CalendarV
       </p>
       <ErrorText error={calendar.error} />
       {view === "day" ? (
-        days[0] && <DayCell day={days[0]} today={today} detailed />
+        days[0] && (
+          <ul aria-label={heading(view, focus, start, end)}>
+            <DayCell day={days[0]} today={today} detailed />
+          </ul>
+        )
       ) : (
-        <div role="grid" aria-label={heading(view, focus, start, end)} className="grid grid-cols-7 gap-1.5">
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-            <div key={d} role="columnheader" className="text-center text-xs font-medium text-muted">
-              {d}
-            </div>
-          ))}
-          {days.map((d) => (
-            <DayCell
-              key={d.day}
-              day={d}
-              today={today}
-              detailed={false}
-              faded={view === "month" && parseDay(d.day).getMonth() !== month}
-              onOpen={() => {
-                setFocus(d.day);
-                setView("day");
-              }}
-            />
-          ))}
+        <div className="flex flex-col gap-1.5">
+          {/* Weekday headings; each day also carries its full date for screen readers. */}
+          <div aria-hidden className={`grid-cols-7 gap-1.5 ${view === "week" ? "hidden md:grid" : "grid"}`}>
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+              <div key={d} className="text-center text-xs font-medium text-muted">
+                {d}
+              </div>
+            ))}
+          </div>
+          <ol
+            aria-label={heading(view, focus, start, end)}
+            className={view === "week" ? "grid grid-cols-1 gap-1.5 md:grid-cols-7" : "grid grid-cols-7 gap-1 md:gap-1.5"}
+          >
+            {days.map((d) => (
+              <DayCell
+                key={d.day}
+                day={d}
+                today={today}
+                detailed={false}
+                compact={view === "month"}
+                faded={view === "month" && parseDay(d.day).getMonth() !== month}
+                onOpen={() => {
+                  setFocus(d.day);
+                  setView("day");
+                }}
+              />
+            ))}
+          </ol>
         </div>
       )}
     </div>
