@@ -181,7 +181,11 @@ class Question(Base):
     # Pages it was written from: [{document_id, filename, page_no, source_tier}].
     sources: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]", default=list)
     # Of the stem, for near-duplicate detection.
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    # Deferred: loaded only when asked for (decoding 384 numbers per row was
+    # most of the time spent listing cards and questions; Phase 12).
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIMENSIONS), deferred=True
+    )
     created_at: Mapped[CreatedAt]
 
     __table_args__ = (
@@ -204,7 +208,11 @@ class Flashcard(Base):
     back_md: Mapped[str] = mapped_column(Text)
     origin: Mapped[str] = mapped_column(Enum(*ORIGINS, name="content_origin"))
     sources: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]", default=list)
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    # Deferred: loaded only when asked for (decoding 384 numbers per row was
+    # most of the time spent listing cards and questions; Phase 12).
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIMENSIONS), deferred=True
+    )
     # FSRS state, as the fsrs library's Card: 1 learning, 2 review, 3 relearning.
     fsrs_state: Mapped[int] = mapped_column(SmallInteger, server_default="1", default=1)
     fsrs_step: Mapped[int | None] = mapped_column(SmallInteger, server_default="0", default=0)

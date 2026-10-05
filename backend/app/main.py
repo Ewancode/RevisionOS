@@ -15,6 +15,7 @@ from app.core.config import get_config
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestContextMiddleware
+from app.core.runtime import freeze_heap
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.settings import Settings, get_settings
 from app.db.session import create_engine, create_session_factory
@@ -46,12 +47,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             settings.vapid_public_key,
             settings.vapid_private_key.get_secret_value() if settings.vapid_private_key else None,
             settings.vapid_subject,
+            get_config().planner.notifications.push_hosts,
         )
         embedder = create_provider(get_config().retrieval.embeddings, settings.model_cache_dir)
         app.state.embedder = embedder
+
         # Load the model in the background so startup is not blocked; the
         # first search waits for it only if it arrives before this finishes.
-        warm = asyncio.create_task(embedder.warm_up())
+        async def warm_up() -> None:
+            await embedder.warm_up()
+            freeze_heap()
+
+        warm = asyncio.create_task(warm_up())
         try:
             yield
         finally:

@@ -19,7 +19,7 @@ from app.ai.chat import (
     LinkAdded,
     Status,
 )
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.core.errors import AppError
 from app.models import Message
 from app.schemas.chat import (
@@ -81,6 +81,7 @@ def _sse(event: str, payload: BaseModel | dict[str, object]) -> str:
     "/conversations/{conversation_id}/messages",
     response_class=StreamingResponse,
     responses={200: {"content": {"text/event-stream": {}}}},
+    dependencies=[rate_limited("ai")],
 )
 async def send_message(
     conversation_id: uuid.UUID,

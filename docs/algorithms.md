@@ -377,3 +377,21 @@ hours: make any reminders now due (as the bell does), then push each one
 that is unread, not yet pushed and under 24 hours old, to every device,
 once. Push services keep trying for 12 hours. A device reported gone
 (404/410) is forgotten; one failing 3 times in a row is dropped.
+
+Only endpoints on a push service in `planner.yaml` `push_hosts` (https,
+port 443) are accepted or sent to.
+
+## Rate limits (`app/api/deps.py`)
+
+A fixed window per account and scope (`platform.yaml` `rate_limits`): 60
+requests that call Claude and 40 uploads per 10 minutes, and 5 test
+pushes. The request over the limit gets a 429 saying how long to wait.
+Logins are limited separately, per IP and per email (5 per 15 minutes).
+
+## Emptying the trash (`app/trash.py`)
+
+Daily at 03:17 UTC, the scheduler permanently removes anything deleted more
+than 30 days ago (`platform.yaml` `trash`): documents (and every document in
+a removed module), then coding exercises, flashcards, materials, topics and
+modules. It commits first, then removes each document's stored files, so a
+storage failure never leaves rows pointing at missing files.

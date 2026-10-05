@@ -27,6 +27,10 @@ def scheduler(config: SpacedRepetitionConfig, *, fuzz: bool | None = None) -> Sc
 
 def to_card(row: Flashcard) -> Card:
     return Card(
+        # Always pass an id: without one, fsrs time.sleep()s 1 ms to make a
+        # unique one, which blocked the event loop for every card shown
+        # (Phase 12 performance tests). The id is unused; ours is the UUID.
+        card_id=row.id.int & 0x7FFF_FFFF_FFFF_FFFF if row.id else 1,
         state=State(row.fsrs_state),
         step=row.fsrs_step,
         stability=row.stability,

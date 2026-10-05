@@ -1,5 +1,6 @@
 """The adaptive-learning formulas: property tests (Hypothesis) and FSRS."""
 
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -175,3 +176,17 @@ def test_rating_previews_order_and_recall_fades() -> None:
     later = scheduling.retrievability(card, now + timedelta(days=60), config)
     assert soon is not None and later is not None and later < soon <= 1
     assert scheduling.retrievability(_card(now), now, config) is None
+
+
+def test_building_an_fsrs_card_never_sleeps(monkeypatch: pytest.MonkeyPatch) -> None:
+    """fsrs sleeps 1 ms to invent a card id unless given one; on the server
+    that blocked the event loop for every card shown (Phase 12)."""
+    import time
+
+    def no_sleep(_: float) -> None:
+        raise AssertionError("fsrs slept: pass card_id")
+
+    monkeypatch.setattr(time, "sleep", no_sleep)
+    card = Flashcard(id=uuid.uuid4(), fsrs_state=2, fsrs_step=None, stability=3.0,
+                     fsrs_difficulty=5.0, due=datetime.now(UTC), last_review=None)  # fmt: skip
+    assert scheduling.to_card(card).card_id > 0

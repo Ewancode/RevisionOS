@@ -48,7 +48,10 @@ self.addEventListener("push", (event) => {
 // Open (or focus) the app at the reminder's page.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  // Only ever a page of this app, whatever the payload says.
+  let url = new URL(event.notification.data?.url || "/", self.location.origin);
+  if (url.origin !== self.location.origin) url = new URL("/", self.location.origin);
+  url = url.href;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
       const open = windows.find((w) => new URL(w.url).origin === self.location.origin);

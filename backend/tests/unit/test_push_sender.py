@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 
+from app.core.config import get_config
 from app.models import PushSubscription
 from app.planner.push import VapidSender
 from scripts.vapid_keys import b64url, generate
@@ -105,5 +106,22 @@ async def test_a_device_that_is_gone_is_reported() -> None:
             subscription, "{}", ttl=60
         )
         assert not result.ok and result.gone
+    finally:
+        await server.close()
+
+
+async def test_the_sender_never_calls_anything_but_a_push_service() -> None:
+    server, received = await push_service(201)
+    try:
+        _, private = generate()
+        subscription = PushSubscription(
+            endpoint=str(server.make_url("/push/x")), p256dh="k", auth="a"
+        )
+        hosts = get_config().planner.notifications.push_hosts
+        result = await VapidSender(private, "mailto:test@example.com", hosts).send(
+            subscription, "{}", ttl=60
+        )
+        assert not result.ok and result.gone
+        assert received == []  # no request was made
     finally:
         await server.close()

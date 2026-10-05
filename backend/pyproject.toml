@@ -68,7 +68,7 @@ files = ["app", "scripts", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*", "pywebpush.*", "py_vapid.*", "http_ece.*"]
+module = ["asyncpg.*", "arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*", "pywebpush.*", "py_vapid.*", "http_ece.*"]
 ignore_missing_imports = true
 
 # PyMuPDF and SymPy ship without type hints; allow calling them where used.

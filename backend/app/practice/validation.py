@@ -279,8 +279,31 @@ def check_question(
         problems.append(f"{where}: {error['msg']}")
         return checked
     problems.extend(_check_spec(spec, config, marking))
+    if (given := _answer_in_stem(spec, stem)) is not None:
+        problems.append(f"the question gives its own answer away ({given!r} appears in it)")
     checked.spec = spec
     return checked
+
+
+def _squash(text: str) -> str:
+    """Compare maths loosely: no spaces, $ or braces, lower case."""
+    return re.sub(r"[\s${}]", "", text).lower()
+
+
+def _answer_in_stem(spec: AnswerSpec, stem: str) -> str | None:
+    """An expected answer printed in the question itself (found by the
+    Phase 12 AI evaluation: "find (A+B)/2 - M ..." answered "(A+B)/2 - M").
+    Only answers long enough not to appear by chance are checked."""
+    candidates: list[str] = []
+    if isinstance(spec, ExpressionSpec):
+        candidates = [spec.answer]
+    elif isinstance(spec, ShortAnswerSpec):
+        candidates = list(spec.accepted)
+    squashed = _squash(stem)
+    for answer in candidates:
+        if len(_squash(answer)) >= 5 and _squash(answer) in squashed:
+            return answer
+    return None
 
 
 def check_flashcard(

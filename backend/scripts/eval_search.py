@@ -14,14 +14,13 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from sqlalchemy import select
 
 from app.core.config import get_config
 from app.core.settings import BACKEND_ROOT, get_settings
 from app.db.session import create_engine, create_session_factory
-from app.models import User
 from app.retrieval.embeddings import create_provider
 from app.retrieval.search import Scope, SearchService
+from scripts.owner import owner
 
 GOLDEN = BACKEND_ROOT.parent / "samples" / "golden.yaml"
 # Agreed targets (ARCHITECTURE.md section 13: "above agreed thresholds").
@@ -47,14 +46,14 @@ async def main(questions: list[dict[str, Any]]) -> int:
     hits, reciprocal, misses = 0, 0.0, []
     try:
         async with create_session_factory(engine)() as db:
-            users = (await db.scalars(select(User))).all()
-            if len(users) != 1:
+            user = await owner(db)
+            if user is None:
                 print(
-                    "Expected exactly one account; this script evaluates the owner's.",
+                    "Expected exactly one account (besides .test ones): the owner.",
                     file=sys.stderr,
                 )
                 return 2
-            service = SearchService(db, users[0].id, embedder, search_config)
+            service = SearchService(db, user.id, embedder, search_config)
             for item in questions:
                 expected = {(doc, page) for doc, pages in item["expect"].items() for page in pages}
                 result = await service.search(item["q"], Scope())

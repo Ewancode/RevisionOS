@@ -16,10 +16,23 @@ rate_limits:
   login:
     max_attempts: 5
     window_seconds: 900
+  # Per account (security audit, Phase 12). The AI budget guard caps spend;
+  # these stop a runaway client or a stolen session flooding the worker.
+  # Requests that call Claude (chat, drafts, hints, marking, transcription):
+  ai:
+    max_attempts: 60
+    window_seconds: 600
+  uploads:
+    max_attempts: 40
+    window_seconds: 600
+  push_test:
+    max_attempts: 5
+    window_seconds: 600
 
 trash:
-  # Soft-deleted modules and topics can be restored for this long; the purge
-  # job arrives with the scheduler.
+  # Deleted items can be restored for this long; after that the scheduler
+  # empties them from the trash for good (daily, at purge_hour UTC; app/trash.py).
+  purge_hour: 3
   retention_days: 30
 
 uploads:
@@ -74,3 +87,35 @@ ingestion:
   job_timeout_seconds: 1800
   # How often the progress stream checks for changes.
   progress_poll_seconds: 1.0
+
+performance:
+  # Response-time targets (ARCHITECTURE.md section 13), set before measuring
+  # and checked by `make perf` against a seeded heavy year of use
+  # (scripts/perf.py). p95 of `samples` timed requests per endpoint after a
+  # warm-up, measured in the server process (no network, which a deployed
+  # app adds).
+  samples: 30
+  targets_ms:
+    page: 300        # anything a page needs before it can show (Today, a module, the planner)
+    history: 600     # whole-history views: trends, readiness, a month of calendar
+    search: 800      # includes embedding the query on the CPU
+  # Then this many clients at once for `burst_seconds`: no errors, and p95
+  # no worse than `burst_slowdown` times the page target.
+  concurrency: 8
+  burst_seconds: 20
+  burst_slowdown: 3
+  # The seeded year: a heavy user, well beyond what one student makes.
+  seed:
+    modules: 8
+    topics_per_module: 12
+    documents_per_module: 25
+    pages_per_document: 30
+    chunks_per_page: 2
+    questions_per_module: 500
+    days: 180
+    quizzes_per_day: 4
+    answers_per_quiz: 12
+    flashcards_per_module: 400
+    reviews_per_day: 200
+    materials_per_module: 25
+    exercises_per_module: 12

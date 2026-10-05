@@ -12,7 +12,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.api.uploads import receive_to_file
 from app.schemas.documents import (
     DocumentOut,
@@ -46,7 +46,12 @@ def _service(
 Documents = Annotated[DocumentService, Depends(_service)]
 
 
-@router.post("/documents", response_model=DocumentOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/documents",
+    response_model=DocumentOut,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[rate_limited("uploads")],
+)
 async def upload_document(
     request: Request,
     documents: Documents,
@@ -95,7 +100,11 @@ async def update_document(
     return DocumentOut.model_validate(await documents.update(document_id, body))
 
 
-@router.post("/documents/{document_id}/reprocess", response_model=DocumentOut)
+@router.post(
+    "/documents/{document_id}/reprocess",
+    response_model=DocumentOut,
+    dependencies=[rate_limited("ai")],
+)
 async def reprocess_document(document_id: uuid.UUID, documents: Documents) -> DocumentOut:
     return DocumentOut.model_validate(await documents.reprocess(document_id))
 
@@ -177,6 +186,7 @@ async def correct_page(
 @router.post(
     "/documents/{document_id}/pages/{page_no}/retranscribe",
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[rate_limited("ai")],
 )
 async def retranscribe_page(
     document_id: uuid.UUID, page_no: int, documents: Documents

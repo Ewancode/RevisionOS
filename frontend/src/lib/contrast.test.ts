@@ -1,3 +1,4 @@
+/// <reference types="node" />  // these tests read files from disk
 import { describe, expect, it } from "vitest";
 
 import { readFileSync } from "node:fs";

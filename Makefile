@@ -2,7 +2,7 @@ COMPOSE := docker compose -f infra/docker-compose.yml --env-file .env
 BACKEND := cd backend &&
 FRONTEND := cd frontend &&
 
-.PHONY: help dev down logs migrate migration create-user vapid-keys reindex eval-search eval-chat eval-practice \
+.PHONY: help dev down logs migrate migration create-user vapid-keys perf reindex eval-search eval-chat eval-practice eval-content \
         test test-backend test-frontend \
         lint typecheck fmt api-client check
 
@@ -13,10 +13,12 @@ help:
 	@echo "make migration m=.. Create a new Alembic migration"
 	@echo "make create-user    Create your account (registration is closed)"
 	@echo "make vapid-keys     Generate Web Push keys into .env (never printed)"
+	@echo "make perf           Seed a separate database and check response-time targets"
 	@echo "make reindex        Rebuild search chunks for every document"
 	@echo "make eval-search    Score search on samples/golden.yaml (local only)"
 	@echo "make eval-chat      Check the assistant cites the right pages (ARGS=--yes spends money)"
 	@echo "make eval-practice  Check question generation and marking (ARGS=--yes spends money)"
+	@echo "make eval-content   Judge grounding, duplicates and hint leaks (ARGS=--yes spends money)"
 	@echo "make test           Run backend and frontend test suites"
 	@echo "make lint           Ruff + ESLint"
 	@echo "make typecheck      mypy + tsc"
@@ -44,6 +46,9 @@ create-user:
 vapid-keys:
 	$(BACKEND) uv run python -m scripts.vapid_keys
 
+perf:
+	$(COMPOSE) exec api python -m scripts.perf $(ARGS)
+
 reindex:
 	$(COMPOSE) exec worker python -m scripts.reindex
 
@@ -55,6 +60,9 @@ eval-chat:
 
 eval-practice:
 	$(COMPOSE) exec -T worker python -m scripts.eval_practice $(ARGS)
+
+eval-content:
+	$(COMPOSE) exec -T worker python -m scripts.eval_content $(ARGS)
 
 test: test-backend test-frontend
 

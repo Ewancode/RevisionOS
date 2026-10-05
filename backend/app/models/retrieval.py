@@ -42,7 +42,9 @@ class Chunk(Base):
     heading_path: Mapped[str] = mapped_column(Text, server_default="", default="")
     content: Mapped[str] = mapped_column(Text)
     token_estimate: Mapped[int] = mapped_column(Integer)
-    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSIONS))
+    # Deferred: loaded only when asked for (decoding 384 numbers per row was
+    # most of the time spent listing cards and questions; Phase 12).
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSIONS), deferred=True)
     embedding_model: Mapped[str] = mapped_column(String(100))
     # Headings weigh more than body text in keyword ranking.
     tsv: Mapped[str] = mapped_column(

@@ -25,10 +25,11 @@ from app.ai.client import create_client
 from app.core.config import get_config
 from app.core.settings import get_settings
 from app.db.session import create_engine, create_session_factory
-from app.models import AIUsage, Conversation, User
+from app.models import AIUsage, Conversation
 from app.retrieval.embeddings import create_provider
 from app.services.common import ClientInfo
 from scripts.eval_search import GOLDEN, load_questions
+from scripts.owner import owner
 
 TARGET_CITED_HIT = 0.8
 # Rough worst case per question in the budget currency, for the estimate only (two calls of
@@ -56,11 +57,14 @@ async def main(questions: list[dict[str, Any]]) -> int:
     hits, misses, failures, cited_pages, on_target = 0, [], 0, 0, 0
     try:
         async with create_session_factory(engine)() as db:
-            users = (await db.scalars(select(User))).all()
-            if len(users) != 1:
-                print("Expected exactly one account; this evaluates the owner's.", file=sys.stderr)
+            found = await owner(db)
+            if found is None:
+                print(
+                    "Expected exactly one account (besides .test ones): the owner.",
+                    file=sys.stderr,
+                )
                 return 2
-            user = users[0]
+            user = found
             started = await db.scalar(select(AIUsage.id).order_by(AIUsage.id.desc()).limit(1)) or 0
             for item in questions:
                 expected = {(doc, page) for doc, pages in item["expect"].items() for page in pages}

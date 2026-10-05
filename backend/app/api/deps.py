@@ -5,7 +5,7 @@ Every router except health and login is mounted with `require_auth` and
 placed on the public router.
 """
 
-from typing import Annotated
+from typing import Annotated, Any, Literal
 
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,4 +73,28 @@ def current_user(context: AuthCtx) -> User:
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
+
+LimitScope = Literal["ai", "uploads", "push_test"]
+
+
+def rate_limited(scope: LimitScope) -> Any:
+    """A per-account rate limit (platform.yaml rate_limits), as a route
+    dependency: ``dependencies=[rate_limited("ai")]``."""
+
+    async def check(request: Request, user: CurrentUser, config: Config) -> None:
+        limiter = RateLimiter(request.app.state.redis)
+        result = await limiter.hit(
+            limiter.key(scope, str(user.id)), getattr(config.platform.rate_limits, scope)
+        )
+        if not result.allowed:
+            raise AppError(
+                "rate_limited",
+                f"Too many requests just now. Try again in {result.retry_after_seconds} s.",
+                429,
+            )
+
+    check.rate_limit_scope = scope  # type: ignore[attr-defined]  # read by the tests
+    return Depends(check)
+
+
 PROTECTED = [Depends(require_auth), Depends(require_csrf)]

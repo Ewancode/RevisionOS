@@ -67,6 +67,13 @@ notifications:
   push_ttl_seconds: 43200
   # A device that fails this many times in a row is forgotten.
   push_max_failures: 3
+  # The server only sends to these push services (and their subdomains), so
+  # a registered "device" cannot make it call anything else (security audit).
+  push_hosts:
+    - fcm.googleapis.com              # Chrome, Edge (Android too)
+    - push.services.mozilla.com       # Firefox
+    - push.apple.com                  # Safari, iOS home-screen apps
+    - notify.windows.com              # Edge on Windows (legacy)
   # "You haven't completed today's quiz" after this hour (your timezone).
   quiz_reminder_hour: 18
   exam_days: [14, 7, 1]

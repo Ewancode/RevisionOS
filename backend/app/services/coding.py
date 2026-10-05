@@ -435,19 +435,13 @@ class CodingService(ScopedService):
         state = tutor.ladder([h.level for h in given], kind="question")
         if state.next_level is None:
             raise AppError("no_more_hints", state.locked_reason or "You have had every hint.", 409)
-        options = (
-            question.answer_spec.get("options") if question.type == "multiple_choice" else None
-        )
-        text = question.stem_md + (
-            "\n\nOptions:\n" + "\n".join(f"- {o}" for o in options) if options else ""
-        )
         content, interaction = await tutor.ask(
             self.db,
             self._require_claude(),
             self.config,
             user_id=self.user_id,
             module_id=question.module_id,
-            problem=tutor.Problem(kind="question", title="Question", text_md=text, work=body.work),
+            problem=tutor.question_problem(question.stem_md, question.answer_spec, body.work),
             level=state.next_level,
             previous=[(h.level, h.content_md) for h in given],
         )

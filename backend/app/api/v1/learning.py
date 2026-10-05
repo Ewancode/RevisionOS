@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.learning.daily import DailyPlan
 from app.schemas.learning import (
     DailyPlanOut,
@@ -190,7 +190,7 @@ async def daily_plan(
     return _plan_out(await learning.plan(minutes))
 
 
-@router.post("/daily-quiz", response_model=DailyStarted)
+@router.post("/daily-quiz", response_model=DailyStarted, dependencies=[rate_limited("ai")])
 async def start_daily_quiz(body: DailyStart, learning: Learning) -> DailyStarted:
     """Start today's quiz (or return the one already open today)."""
     attempt, plan = await learning.start_daily(body.minutes)

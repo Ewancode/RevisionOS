@@ -16,6 +16,7 @@ worked through, 5. the full solution.
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +24,7 @@ from app.ai.client import ClaudeClient, text_tokens
 from app.core.config import AppConfig
 from app.practice.generation import prompt
 
-PROMPT = "tutor_hint.v1"
+PROMPT = "tutor_hint.v4"
 LEVELS = {
     1: "Guiding question",
     2: "Hint",
@@ -45,6 +46,14 @@ class Problem:
     language: str | None = None
     visible_tests: list[str] = field(default_factory=list)
     results: str | None = None
+
+
+def question_problem(stem_md: str, answer_spec: dict[str, Any], work: str = "") -> Problem:
+    """A quiz question as the tutor sees it: the question, and its options if
+    it is multiple choice; never which option is right."""
+    options = answer_spec.get("options") if answer_spec.get("type") == "multiple_choice" else None
+    text = stem_md + ("\n\nOptions:\n" + "\n".join(f"- {o}" for o in options) if options else "")
+    return Problem(kind="question", title="Question", text_md=text, work=work)
 
 
 @dataclass(frozen=True)

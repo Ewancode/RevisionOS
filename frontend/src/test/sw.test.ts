@@ -1,3 +1,4 @@
+/// <reference types="node" />  // these tests read files from disk
 /**
  * The service worker (public/sw.js), run against a fake worker scope: it
  * shows each pushed reminder, opens the right page when one is tapped, and
@@ -62,6 +63,10 @@ describe("the service worker", () => {
     await sw.fire("notificationclick", { notification: { close, data: { url: "/planner" } } });
     expect(sw.focus).toHaveBeenCalled();
     expect(sw.navigate).toHaveBeenCalledWith("https://revision.example/planner");
+
+    // A link to another site opens the app instead.
+    await sw.fire("notificationclick", { notification: { close, data: { url: "https://evil.example/x" } } });
+    expect(sw.navigate).toHaveBeenLastCalledWith("https://revision.example/");
   });
 
   it("handles page loads only, with the offline page as fallback", async () => {

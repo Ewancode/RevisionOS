@@ -28,7 +28,15 @@ async def metrics(
     correct_at = config.practice.marking.correct_at
     rows = (
         await db.execute(
-            select(QuestionAttempt, Question.type, QuizAttempt.mode)
+            # Columns, not ORM objects (Phase 12 performance tests).
+            select(
+                QuestionAttempt.score,
+                QuestionAttempt.hints_used,
+                QuestionAttempt.mistake_category,
+                QuestionAttempt.marked_at,
+                Question.type,
+                QuizAttempt.mode,
+            )
             .join(Question, Question.id == QuestionAttempt.question_id)
             .join(QuizAttempt, QuizAttempt.id == QuestionAttempt.quiz_attempt_id)
             .where(QuestionAttempt.user_id == user_id, QuestionAttempt.score.is_not(None))
@@ -40,15 +48,15 @@ async def metrics(
     hints: list[int] = []
     errors: list[str] = []
     recent_days: set[date] = set()
-    for answer, question_type, mode in rows:
-        score = float(answer.score or 0.0)
+    for raw_score, hints_used, mistake_category, marked_at, question_type, mode in rows:
+        score = float(raw_score or 0.0)
         by_type[question_type].append(score)
         by_mode[mode].append(score)
-        hints.append(answer.hints_used)
-        if answer.mistake_category and score < correct_at:
-            errors.append(str(answer.mistake_category))
-        if answer.marked_at and answer.marked_at >= now - timedelta(days=RECENT_DAYS):
-            recent_days.add(answer.marked_at.date())
+        hints.append(hints_used)
+        if mistake_category and score < correct_at:
+            errors.append(str(mistake_category))
+        if marked_at and marked_at >= now - timedelta(days=RECENT_DAYS):
+            recent_days.add(marked_at.date())
 
     def summary(scores: list[float]) -> dict[str, float | int]:
         return {"answered": len(scores), "accuracy": round(sum(scores) / len(scores), 3)}

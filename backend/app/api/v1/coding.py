@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.schemas.coding import (
     CodingConfigOut,
     ExerciseIn,
@@ -98,7 +98,11 @@ async def exercise_hints(exercise_id: uuid.UUID, coding: Coding) -> HintsOut:
     return await coding.exercise_hints(exercise_id)
 
 
-@router.post("/coding/exercises/{exercise_id}/hints", response_model=HintsOut)
+@router.post(
+    "/coding/exercises/{exercise_id}/hints",
+    response_model=HintsOut,
+    dependencies=[rate_limited("ai")],
+)
 async def next_exercise_hint(exercise_id: uuid.UUID, body: HintRequest, coding: Coding) -> HintsOut:
     """The next rung of the hint ladder. Off while a mock exam is open."""
     return await coding.exercise_hint(exercise_id, body)
@@ -109,7 +113,11 @@ async def question_hints(attempt_id: uuid.UUID, question_id: uuid.UUID, coding: 
     return await coding.question_hints(attempt_id, question_id)
 
 
-@router.post("/attempts/{attempt_id}/responses/{question_id}/hints", response_model=HintsOut)
+@router.post(
+    "/attempts/{attempt_id}/responses/{question_id}/hints",
+    response_model=HintsOut,
+    dependencies=[rate_limited("ai")],
+)
 async def next_question_hint(
     attempt_id: uuid.UUID, question_id: uuid.UUID, body: HintRequest, coding: Coding
 ) -> HintsOut:

@@ -12,6 +12,7 @@ from arq.worker import func
 from app.ai.client import create_client
 from app.core.config import get_config
 from app.core.logging import configure_logging
+from app.core.runtime import freeze_heap
 from app.core.settings import get_settings
 from app.db.session import create_engine, create_session_factory
 from app.ingestion.pipeline import Deps
@@ -39,6 +40,7 @@ async def startup(ctx: dict[str, Any]) -> None:
     embedder = create_provider(get_config().retrieval.embeddings, settings.model_cache_dir)
     # Load (and on first run download) the model now, not mid-document.
     await embedder.warm_up()
+    freeze_heap()
     ctx["engine"] = engine
     ctx["deps"] = Deps(
         sessions=create_session_factory(engine),

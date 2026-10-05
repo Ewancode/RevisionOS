@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.schemas.practice import (
     DiffOut,
     DraftOut,
@@ -45,7 +45,12 @@ Drafts = Annotated[DraftService, Depends(_drafts)]
 # --- drafts ------------------------------------------------------------------------------
 
 
-@router.post("/drafts", response_model=DraftOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/drafts",
+    response_model=DraftOut,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[rate_limited("ai")],
+)
 async def generate(body: GenerateRequest, drafts: Drafts) -> DraftOut:
     """Ask Claude for a material, questions or flashcards. Poll the draft
     until it is ready, then save, regenerate or discard it."""
@@ -69,7 +74,10 @@ async def save_draft(draft_id: uuid.UUID, body: DraftSave, drafts: Drafts) -> Sa
 
 
 @router.post(
-    "/drafts/{draft_id}/regenerate", response_model=DraftOut, status_code=status.HTTP_202_ACCEPTED
+    "/drafts/{draft_id}/regenerate",
+    response_model=DraftOut,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[rate_limited("ai")],
 )
 async def regenerate_draft(draft_id: uuid.UUID, body: DraftRegenerate, drafts: Drafts) -> DraftOut:
     return draft_out(await drafts.regenerate(draft_id, body.instructions))

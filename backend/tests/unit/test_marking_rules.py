@@ -296,3 +296,20 @@ def test_schemas_use_only_what_structured_outputs_accept(schema: dict[str, Any])
         if node.get("type") == "object" or node.get("type") == ["object", "null"]:
             assert node.get("additionalProperties") is False, node
             assert set(node.get("required", [])) == set(node.get("properties", {})), node
+
+
+def test_a_question_that_prints_its_own_answer_is_rejected() -> None:
+    """Found by the Phase 12 AI evaluation."""
+    given = item(
+        "expression",
+        stem_md="Express $(A+B)/2 - M$ in terms of $A$, $B$ and $M$ only.",
+        expression="(A+B)/2 - M",
+        variables=["A", "B", "M"],
+    )
+    assert any("gives its own answer away" in p for p in _problems(given))
+    short = item("short_answer", stem_md="Which theorem? (Hint: Rolle's theorem.)",
+                 accepted_answers=["Rolle's theorem"])  # fmt: skip
+    assert any("gives its own answer away" in p for p in _problems(short))
+    # Short answers that could appear by chance are not checked.
+    assert _problems(item("expression", stem_md="Differentiate $x^2$.", expression="2*x",
+                          variables=["x"])) == []  # fmt: skip

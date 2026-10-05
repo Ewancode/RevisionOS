@@ -508,6 +508,8 @@ class PlannerService(ScopedService):
     async def subscribe(self, body: PushSubscriptionIn) -> None:
         """Register this device. The same browser signed in as someone else
         moves to them: a device belongs to one account."""
+        if not push.is_push_service(body.endpoint, self.config.planner.notifications.push_hosts):
+            raise AppError("not_push_service", "That is not a browser push service.", 422)
         stmt = insert(PushSubscription).values(
             id=uuid.uuid4(),
             user_id=self.user_id,

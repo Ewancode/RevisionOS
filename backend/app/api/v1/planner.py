@@ -8,7 +8,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, Request, status
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.core.settings import get_settings
 from app.schemas.planner import (
     AvailabilityIn,
@@ -90,7 +90,9 @@ async def delete_override(day: date, planner: Planner) -> AvailabilityOut:
     return await planner.delete_override(day)
 
 
-@router.post("/availability/parse", response_model=AvailabilityProposal)
+@router.post(
+    "/availability/parse", response_model=AvailabilityProposal, dependencies=[rate_limited("ai")]
+)
 async def parse_availability(body: AvailabilityText, planner: Planner) -> AvailabilityProposal:
     """Turn "3 hours every weekday, 1 hour at weekends" into rules to confirm.
     Nothing is saved."""
@@ -199,7 +201,7 @@ async def unsubscribe_push(body: PushUnsubscribe, planner: Planner) -> None:
     await planner.unsubscribe(body.endpoint)
 
 
-@router.post("/push/test", response_model=PushTestOut)
+@router.post("/push/test", response_model=PushTestOut, dependencies=[rate_limited("push_test")])
 async def test_push(planner: Planner, request: Request) -> PushTestOut:
     """Send a test notification to your devices."""
     return PushTestOut(delivered=await planner.test_push(request.app.state.push))

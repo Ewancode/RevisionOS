@@ -8,7 +8,7 @@ flashcards, and plan revision around exams.
 - Approved design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decisions: [docs/adr/](docs/adr/)
 
-**Status:** Phase 11 (polish). Phase 2 brought
+**Status:** Phase 12 (hardening). Phase 2 brought
 sign-in with secure sessions, academic years, modules and topic trees,
 theming and settings.
 Phase 3 added uploading lecture materials, which are turned into page-by-page
@@ -47,8 +47,12 @@ command palette (Ctrl+K) and keyboard shortcuts (press ?), a phone layout,
 an installable app with push reminders (run `make vapid-keys` once to turn
 push on; phones need HTTPS, so phone push comes with deployment), Today's
 panels ordered by what is pressing, and an accessibility pass checked with
-axe. The formulas are in
-[docs/algorithms.md](docs/algorithms.md).
+axe. Phase 12 hardens it: a security audit
+([docs/security-audit.md](docs/security-audit.md)) with per-account rate
+limits, push sent only to real push services and the trash emptied after 30
+days; performance targets checked on a seeded heavy year; and the full AI
+evaluations ([ADR 18](docs/adr/0018-hardening-limits-purge-performance.md)).
+The formulas are in [docs/algorithms.md](docs/algorithms.md).
 
 ## Layout
 
@@ -160,6 +164,17 @@ questions through the real API, reports how many pass the app's checks, then
 marks a right and a wrong answer to each with the real marking pipeline
 ([ADR 12](docs/adr/0012-revision-materials-questions-and-marking.md)). It
 cleans up after itself and costs about £0.20.
+
+Content quality: `make eval-content ARGS=--yes` generates questions and
+has a second model (Haiku) judge whether each answer is supported by the
+passages it cites (target 90%). It also checks for near-duplicates and
+coding exercises, and asks the tutor for rungs 1-3 on a few questions to
+check that no hint states the answer. Cleans up after itself; about £0.15.
+
+Performance: `make perf` seeds a separate database with a heavy year of use
+(once), then times every main endpoint and a burst of 8 clients against the
+targets in `config/platform.yaml` `performance`. No API calls; a few
+minutes.
 
 To check extraction on your own lecture files, put a few in `samples/`
 (git-ignored: they are university copyright and the repo is public), then

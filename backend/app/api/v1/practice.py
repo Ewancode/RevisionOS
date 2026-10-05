@@ -9,7 +9,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, status
 
-from app.api.deps import Client, Config, CurrentUser, DbSession
+from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.api.uploads import receive_to_file
 from app.practice.answers import Difficulty, QuestionType
 from app.schemas.practice import (
@@ -182,7 +182,9 @@ async def save_response(
 
 
 @router.post(
-    "/attempts/{attempt_id}/responses/{question_id}/photo", response_model=PhotoTranscription
+    "/attempts/{attempt_id}/responses/{question_id}/photo",
+    response_model=PhotoTranscription,
+    dependencies=[rate_limited("ai")],
 )
 async def upload_photo(
     attempt_id: uuid.UUID,
@@ -205,7 +207,9 @@ async def upload_photo(
     )
 
 
-@router.post("/attempts/{attempt_id}/submit", response_model=AttemptOut)
+@router.post(
+    "/attempts/{attempt_id}/submit", response_model=AttemptOut, dependencies=[rate_limited("ai")]
+)
 async def submit_attempt(attempt_id: uuid.UUID, quizzes: Quizzes) -> AttemptOut:
     """Submit the whole quiz. Exact marks appear at once; Claude's marks and
     explanations follow (status "marking", then "marked")."""
@@ -213,7 +217,9 @@ async def submit_attempt(attempt_id: uuid.UUID, quizzes: Quizzes) -> AttemptOut:
     return await quizzes.view(attempt_id)
 
 
-@router.post("/answers/{answer_id}/dispute", response_model=AttemptOut)
+@router.post(
+    "/answers/{answer_id}/dispute", response_model=AttemptOut, dependencies=[rate_limited("ai")]
+)
 async def dispute_mark(answer_id: uuid.UUID, quizzes: Quizzes) -> AttemptOut:
     """Re-mark a Claude-marked answer with the stronger model."""
     answer = await quizzes.dispute(answer_id)

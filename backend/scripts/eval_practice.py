@@ -28,7 +28,7 @@ from app.ai.client import create_client
 from app.core.config import get_config
 from app.core.settings import get_settings
 from app.db.session import create_engine, create_session_factory
-from app.models import AIUsage, Draft, Module, Question, QuestionAttempt, Quiz, User
+from app.models import AIUsage, Draft, Module, Question, QuestionAttempt, Quiz
 from app.practice.answers import (
     AnswerSpec,
     DerivationSpec,
@@ -47,6 +47,7 @@ from app.schemas.practice import DraftSave, GenerateRequest, QuizCreate
 from app.services.common import ClientInfo
 from app.services.drafts import DraftService
 from app.services.quizzes import QuizService, submit_attempt
+from scripts.owner import owner
 
 ESTIMATE = 0.60  # GBP, worst case for the default run
 RIGHT_AT_LEAST, WRONG_AT_MOST = 0.75, 0.25
@@ -110,7 +111,10 @@ async def main(module_code: str | None, count: int) -> int:
     failures = 0
     try:
         async with sessions() as db:
-            [user] = (await db.scalars(select(User))).all()
+            user = await owner(db)
+            if user is None:
+                print("Expected exactly one account (besides .test ones).", file=sys.stderr)
+                return 2
             stmt = select(Module).where(Module.user_id == user.id, Module.deleted_at.is_(None))
             if module_code:
                 stmt = stmt.where(Module.code == module_code.upper())

@@ -13,7 +13,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import AppConfig
@@ -100,8 +100,22 @@ async def mistake_bank(
 ) -> list[MistakeGroup]:
     settings = config.learning.mistakes
     correct_at = config.practice.marking.correct_at
+    # Columns, not ORM objects: building thousands of full rows dominated the
+    # time on a heavy year of answers (Phase 12 performance tests).
     stmt = (
-        select(QuestionAttempt, Question, Module.code, Topic.title)
+        select(
+            QuestionAttempt.id,
+            QuestionAttempt.quiz_attempt_id,
+            QuestionAttempt.mistake_category,
+            func.coalesce(QuestionAttempt.marked_at, QuestionAttempt.created_at),
+            QuestionAttempt.feedback["explanation"]["mistake"].astext,
+            Question.id,
+            Question.module_id,
+            Question.topic_id,
+            Question.stem_md,
+            Module.code,
+            Topic.title,
+        )
         .join(Question, Question.id == QuestionAttempt.question_id)
         .join(Module, Module.id == Question.module_id)
         .outerjoin(Topic, Topic.id == Question.topic_id)
@@ -118,32 +132,43 @@ async def mistake_bank(
     window_start = now - timedelta(days=settings.recurring_window_days)
     groups: dict[tuple[uuid.UUID | None, str], MistakeGroup] = {}
     descriptions: dict[tuple[uuid.UUID | None, str], list[str]] = {}
-    for answer, question, code, topic_title in (await db.execute(stmt)).all():
-        key = (question.topic_id, str(answer.mistake_category))
+    for (
+        answer_id,
+        attempt_id,
+        category,
+        at,
+        mistake,
+        question_id,
+        question_module,
+        topic_id,
+        stem_md,
+        code,
+        topic_title,
+    ) in (await db.execute(stmt)).all():
+        key = (topic_id, str(category))
         group = groups.setdefault(
             key,
             MistakeGroup(
-                module_id=question.module_id,
+                module_id=question_module,
                 module_code=code,
-                topic_id=question.topic_id,
+                topic_id=topic_id,
                 topic_title=topic_title or f"{code} (no topic)",
-                category=str(answer.mistake_category),
+                category=str(category),
             ),
         )
-        at = answer.marked_at or answer.created_at
         group.count += 1
         if at >= window_start:
             group.recent += 1
         group.last_at = max(group.last_at, at) if group.last_at else at
-        description = str(((answer.feedback or {}).get("explanation") or {}).get("mistake", ""))
+        description = mistake or ""
         descriptions.setdefault(key, []).append(description)
         if len(group.examples) < 5:
             group.examples.append(
                 Example(
-                    answer_id=answer.id,
-                    attempt_id=answer.quiz_attempt_id,
-                    question_id=question.id,
-                    stem_md=question.stem_md,
+                    answer_id=answer_id,
+                    attempt_id=attempt_id,
+                    question_id=question_id,
+                    stem_md=stem_md,
                     at=at,
                     description=description,
                 )

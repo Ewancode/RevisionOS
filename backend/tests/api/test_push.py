@@ -72,7 +72,7 @@ async def client(db_app: FastAPI, owner: User) -> AsyncIterator[httpx.AsyncClien
 
 def device(n: int) -> dict[str, object]:
     return {
-        "endpoint": f"https://push.example.com/send/{n}",
+        "endpoint": f"https://fcm.googleapis.com/fcm/send/{n}",
         "keys": {"p256dh": f"key{n}", "auth": f"auth{n}"},
         "label": f"Device {n}",
     }
@@ -86,19 +86,33 @@ async def test_devices_subscribe_and_unsubscribe(
     for n in (1, 2, 2):  # the same device twice is one device
         assert (await client.post("/api/v1/push/subscriptions", json=device(n))).status_code == 204
     assert (await client.get("/api/v1/push/config")).json()["devices"] == 2
-    insecure = await client.post(
-        "/api/v1/push/subscriptions", json={**device(3), "endpoint": "http://push.example.com/x"}
+    # Only real push services: never an address the server would call for you.
+    for endpoint in (
+        "http://fcm.googleapis.com/fcm/send/x",  # not https
+        "https://localhost/push",
+        "https://10.0.0.5/admin",
+        "https://fcm.googleapis.com.evil.example/x",  # lookalike host
+        "https://fcm.googleapis.com:8443/x",  # odd port
+        "https://me:pw@fcm.googleapis.com/x",  # credentials
+    ):
+        refused = await client.post(
+            "/api/v1/push/subscriptions", json={**device(3), "endpoint": endpoint}
+        )
+        assert refused.status_code == 422, endpoint
+    ok = await client.post(
+        "/api/v1/push/subscriptions",
+        json={**device(4), "endpoint": "https://web.push.apple.com/QGuQ-x"},
     )
-    assert insecure.status_code == 422
+    assert ok.status_code == 204
 
     tested = await client.post("/api/v1/push/test")
-    assert tested.json() == {"delivered": 2}
+    assert tested.json() == {"delivered": 3}
     assert sender.sent[0][1]["title"] == "Notifications are working."
     assert sender.sent[0][1]["url"] == "/settings"
 
     await client.post("/api/v1/push/unsubscribe", json={"endpoint": device(1)["endpoint"]})
     left = (await db.scalars(select(PushSubscription.endpoint))).all()
-    assert left == [device(2)["endpoint"]]
+    assert sorted(left) == sorted([str(device(2)["endpoint"]), "https://web.push.apple.com/QGuQ-x"])
 
 
 async def test_push_is_off_without_keys(client: httpx.AsyncClient) -> None:
@@ -149,10 +163,13 @@ async def test_read_old_and_quiet_hours_are_not_pushed(db: AsyncSession, owner: 
     await _subscribed(db, owner, "https://p/phone")
     db.add_all(
         [
-            Notification(user_id=owner.id, kind="x", title="read", dedupe_key="r", read_at=NOW),
-            Notification(user_id=owner.id, kind="x", title="fresh", dedupe_key="f"),
+            # created_at pinned to the test clock: the database default is real time.
+            Notification(user_id=owner.id, kind="x", title="read", dedupe_key="r", read_at=NOW,
+                         created_at=NOW),
+            Notification(user_id=owner.id, kind="x", title="fresh", dedupe_key="f",
+                         created_at=NOW),
         ]
-    )
+    )  # fmt: skip
     await db.commit()
     settings = await db.get(UserSettings, owner.id)
     assert settings is not None

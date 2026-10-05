@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
+from urllib.parse import urlsplit
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,6 +38,20 @@ class Delivery:
     detail: str = ""
 
 
+def is_push_service(endpoint: str, hosts: Sequence[str]) -> bool:
+    """An https URL on one of the known push services (or a subdomain), with
+    no credentials or unusual port: never an address of our choosing."""
+    try:
+        url = urlsplit(endpoint)
+        port = url.port
+    except ValueError:
+        return False
+    host = (url.hostname or "").lower()
+    if url.scheme != "https" or url.username or url.password or port not in (None, 443):
+        return False
+    return any(host == h or host.endswith("." + h) for h in hosts)
+
+
 class Sender(Protocol):
     async def send(self, subscription: PushSubscription, payload: str, ttl: int) -> Delivery: ...
 
@@ -44,11 +59,16 @@ class Sender(Protocol):
 class VapidSender:
     """Sends with pywebpush, signed with the VAPID keys from the environment."""
 
-    def __init__(self, private_key: str, subject: str) -> None:
+    def __init__(self, private_key: str, subject: str, hosts: Sequence[str] | None = None) -> None:
         self.private_key = private_key
         self.subject = subject
+        # None (tests only): any endpoint.
+        self.hosts = hosts
 
     async def send(self, subscription: PushSubscription, payload: str, ttl: int) -> Delivery:
+        if self.hosts is not None and not is_push_service(subscription.endpoint, self.hosts):
+            # Checked at subscription too; a stored row is never trusted blindly.
+            return Delivery(ok=False, gone=True, detail="not a push service")
         from pywebpush import WebPushException, webpush_async
 
         try:
@@ -76,12 +96,15 @@ class VapidSender:
 
 
 def create_sender(
-    public_key: str | None, private_key: str | None, subject: str | None
+    public_key: str | None,
+    private_key: str | None,
+    subject: str | None,
+    hosts: Sequence[str],
 ) -> Sender | None:
     """Push is on only when all three VAPID settings are present."""
     if not (public_key and private_key and subject):
         return None
-    return VapidSender(private_key, subject)
+    return VapidSender(private_key, subject, hosts)
 
 
 def payload(note: Notification) -> str:

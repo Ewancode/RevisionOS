@@ -307,10 +307,45 @@ class RateLimit(_Strict):
 
 class RateLimitsConfig(_Strict):
     login: RateLimit
+    ai: RateLimit
+    uploads: RateLimit
+    push_test: RateLimit
+
+
+class PerfTargets(_Strict):
+    page: PositiveInt
+    history: PositiveInt
+    search: PositiveInt
+
+
+class PerfSeed(_Strict):
+    modules: PositiveInt
+    topics_per_module: PositiveInt
+    documents_per_module: PositiveInt
+    pages_per_document: PositiveInt
+    chunks_per_page: PositiveInt
+    questions_per_module: PositiveInt
+    days: PositiveInt
+    quizzes_per_day: PositiveInt
+    answers_per_quiz: PositiveInt
+    flashcards_per_module: PositiveInt
+    reviews_per_day: PositiveInt
+    materials_per_module: PositiveInt
+    exercises_per_module: PositiveInt
+
+
+class PerformanceConfig(_Strict):
+    samples: PositiveInt
+    targets_ms: PerfTargets
+    concurrency: PositiveInt
+    burst_seconds: PositiveInt
+    burst_slowdown: Positive
+    seed: PerfSeed
 
 
 class TrashConfig(_Strict):
     retention_days: PositiveInt
+    purge_hour: Annotated[int, Field(ge=0, le=23)]
 
 
 class UploadSizes(_Strict):
@@ -371,6 +406,7 @@ class PlatformConfig(_Strict):
     trash: TrashConfig
     uploads: UploadsConfig
     ingestion: IngestionConfig
+    performance: PerformanceConfig
 
 
 # --- retrieval.yaml ----------------------------------------------------------
@@ -547,6 +583,7 @@ class NotificationsConfig(_Strict):
     push_max_age_hours: PositiveInt
     push_ttl_seconds: PositiveInt
     push_max_failures: PositiveInt
+    push_hosts: list[str] = Field(min_length=1)
     quiz_reminder_hour: Annotated[int, Field(ge=0, le=23)]
     exam_days: tuple[PositiveInt, ...]
     neglected_days: PositiveInt

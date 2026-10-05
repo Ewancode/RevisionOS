@@ -7,10 +7,11 @@ functions in `app.analytics.compute`; every figure carries its basis.
 
 import uuid
 from collections.abc import Sequence
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select
+from sqlalchemy import Date, cast, func, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analytics import compute, dashboard
@@ -71,8 +72,10 @@ class AnalyticsService(ScopedService):
     # --- loading ------------------------------------------------------------------------------
 
     async def _events(
-        self, module_ids: Sequence[uuid.UUID]
+        self, module_ids: Sequence[uuid.UUID], since: datetime
     ) -> tuple[list[Answer], list[Review], list[Session]]:
+        """Events from `since` on: each view loads only the window it shows,
+        not the whole history (Phase 12 performance tests)."""
         answers = [
             Answer(m, t, float(score), at, ms, mistake, kind, attempt)
             for m, t, score, at, ms, mistake, kind, attempt in (
@@ -93,7 +96,7 @@ class AnalyticsService(ScopedService):
                     .where(
                         QuestionAttempt.user_id == self.user_id,
                         QuestionAttempt.score.is_not(None),
-                        QuestionAttempt.marked_at.is_not(None),
+                        QuestionAttempt.marked_at >= since,
                         Question.module_id.in_(module_ids),
                     )
                 )
@@ -113,6 +116,7 @@ class AnalyticsService(ScopedService):
                     .join(Flashcard, Flashcard.id == FlashcardReview.flashcard_id)
                     .where(
                         FlashcardReview.user_id == self.user_id,
+                        FlashcardReview.reviewed_at >= since,
                         Flashcard.module_id.in_(module_ids),
                     )
                 )
@@ -130,11 +134,42 @@ class AnalyticsService(ScopedService):
                     ).where(
                         StudySession.user_id == self.user_id,
                         StudySession.module_id.in_(module_ids),
+                        StudySession.day >= since.astimezone(self.zone).date(),
                     )
                 )
             ).all()
         ]
         return answers, reviews, sessions
+
+    async def _active_days(self, module_ids: Sequence[uuid.UUID]) -> set[date]:
+        """Every local day with an answer, a review or a completed session,
+        as distinct dates from SQL (the streak spans all history)."""
+        zone = self.zone.key
+
+        def local(column: Any) -> Any:
+            return cast(func.timezone(zone, column), Date)
+
+        answered = (
+            select(local(QuestionAttempt.marked_at))
+            .join(Question, Question.id == QuestionAttempt.question_id)
+            .where(
+                QuestionAttempt.user_id == self.user_id,
+                QuestionAttempt.score.is_not(None),
+                QuestionAttempt.marked_at.is_not(None),
+                Question.module_id.in_(module_ids),
+            )
+        )
+        reviewed = (
+            select(local(FlashcardReview.reviewed_at))
+            .join(Flashcard, Flashcard.id == FlashcardReview.flashcard_id)
+            .where(FlashcardReview.user_id == self.user_id, Flashcard.module_id.in_(module_ids))
+        )
+        done = select(StudySession.day).where(
+            StudySession.user_id == self.user_id,
+            StudySession.module_id.in_(module_ids),
+            StudySession.status == "done",
+        )
+        return set((await self.db.scalars(union(answered, reviewed, done))).all())
 
     async def _mastery(self, module_ids: Sequence[uuid.UUID]) -> list[TopicMastery]:
         return list(
@@ -348,12 +383,10 @@ class AnalyticsService(ScopedService):
         now = utcnow()
         ctx = await load(self.db, self.user_id, self.config, now)
         ids = [m.id for m in ctx.modules]
-        answers, reviews, sessions = await self._events(ids)
-        mastery = await self._mastery(ids)
         start, label = self._window(now)
-        current, longest = compute.streak_metrics(
-            set(compute.activity_by_day(answers, reviews, sessions, self.zone)), ctx.today
-        )
+        answers, reviews, _ = await self._events(ids, start)
+        mastery = await self._mastery(ids)
+        current, longest = compute.streak_metrics(await self._active_days(ids), ctx.today)
 
         cards = []
         answers_by = compute.by_module(answers)
@@ -472,8 +505,13 @@ class AnalyticsService(ScopedService):
                 )
             ]
             scope = "all your modules"
-        answers, reviews, sessions = await self._events(ids)
         today = now.astimezone(self.zone).date()
+        first_week = compute.week_start(today) - timedelta(
+            weeks=self.config.analytics.windows.chart_weeks - 1
+        )
+        answers, reviews, sessions = await self._events(
+            ids, datetime.combine(first_week, datetime.min.time(), self.zone)
+        )
         weeks = compute.weekly(
             answers,
             reviews,
@@ -563,14 +601,19 @@ class AnalyticsService(ScopedService):
         now = utcnow()
         ctx = await load(self.db, self.user_id, self.config, now)
         ids = [m.id for m in ctx.modules]
-        answers, _, _ = await self._events(ids)
+        answers, _, _ = await self._events(ids, self._readiness_since(now))
         return self._readiness(ctx, answers, await self._mock_scores(ids), now)
+
+    def _readiness_since(self, now: datetime) -> datetime:
+        return now - timedelta(days=self.config.analytics.readiness.recent_days)
 
     async def module(self, module_id: uuid.UUID) -> ModuleAnalyticsOut:
         await self.placement(module_id, None)
         now = utcnow()
         ctx = await load(self.db, self.user_id, self.config, now)
-        answers, reviews, _ = await self._events([module_id])
+        answers, reviews, _ = await self._events(
+            [module_id], min(self._window(now)[0], self._readiness_since(now))
+        )
         mastery = await self._mastery([module_id])
         progress, coverage, mastered = self._module_figures(ctx, module_id, mastery)
         readiness = self._readiness(ctx, answers, await self._mock_scores([module_id]), now)

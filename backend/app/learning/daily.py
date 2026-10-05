@@ -21,6 +21,7 @@ import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -148,7 +149,7 @@ async def plan(
             )
         ).all()
     }
-    available = await _available(db, user_id, module_ids, config, now)
+    available = await _available_counts(db, user_id, module_ids, config, now)
     recurring: dict[Key, list[MistakeGroup]] = {}
     for group in await mistake_bank(db, user_id, config, now):
         if group.recurring and group.module_id in codes:
@@ -199,7 +200,7 @@ async def plan(
                 ability=row.ability if row else config.learning.difficulty.initial_ability,
                 terms=terms,
                 priority=terms.total(settings.weights),
-                available=len(available.get(key, [])),
+                available=available.get(key, 0),
                 total_questions=totals.get(key, 0),
                 reasons=reasons,
                 recurring=groups,
@@ -219,6 +220,37 @@ async def plan(
     return DailyPlan(minutes, seconds, sum(shares.values()), buckets)
 
 
+def _recently_right(user_id: uuid.UUID, config: AppConfig, now: datetime) -> Any:
+    since = now - timedelta(days=config.learning.daily_quiz.avoid_repeat_days)
+    return select(QuestionAttempt.question_id).where(
+        QuestionAttempt.user_id == user_id,
+        QuestionAttempt.marked_at >= since,
+        QuestionAttempt.score >= config.practice.marking.correct_at,
+    )
+
+
+async def _available_counts(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    module_ids: list[uuid.UUID],
+    config: AppConfig,
+    now: datetime,
+) -> dict[Key, int]:
+    """How many questions each bucket could draw on (counted in SQL: the
+    plan is shown on every visit to Today; Phase 12 performance tests)."""
+    rows = await db.execute(
+        select(Question.module_id, Question.topic_id, func.count())
+        .where(
+            Question.user_id == user_id,
+            Question.module_id.in_(module_ids),
+            Question.status == "active",
+            Question.id.not_in(_recently_right(user_id, config, now)),
+        )
+        .group_by(Question.module_id, Question.topic_id)
+    )
+    return {(module_id, topic_id): n for module_id, topic_id, n in rows.all()}
+
+
 async def _available(
     db: AsyncSession,
     user_id: uuid.UUID,
@@ -227,18 +259,7 @@ async def _available(
     now: datetime,
 ) -> dict[Key, list[Question]]:
     """Active questions per bucket, minus those answered right very recently."""
-    since = now - timedelta(days=config.learning.daily_quiz.avoid_repeat_days)
-    recent_right = set(
-        (
-            await db.scalars(
-                select(QuestionAttempt.question_id).where(
-                    QuestionAttempt.user_id == user_id,
-                    QuestionAttempt.marked_at >= since,
-                    QuestionAttempt.score >= config.practice.marking.correct_at,
-                )
-            )
-        ).all()
-    )
+    recent_right = set((await db.scalars(_recently_right(user_id, config, now))).all())
     found: dict[Key, list[Question]] = {}
     for question in await db.scalars(
         select(Question).where(
