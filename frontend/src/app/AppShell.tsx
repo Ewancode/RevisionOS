@@ -26,6 +26,7 @@ import { useModules, type Module } from "@/features/structure/queries";
 
 import { CommandPalette } from "./CommandPalette";
 import { ShortcutsHelp, useShortcuts } from "./shortcuts";
+import { SidebarResizer, useSidebarWidth } from "./SidebarResizer";
 import { useViewingYear, ViewingYearProvider } from "./viewingYear";
 
 function groupBySubject(modules: Module[]): [string | null, Module[]][] {
@@ -334,6 +335,7 @@ export function AppShell() {
   const desktop = useIsDesktop();
   const [palette, setPalette] = useState(false);
   const [help, setHelp] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useSidebarWidth();
   useShortcuts({ openPalette: () => setPalette(true), openHelp: () => setHelp(true) });
   if (session.isPending) return <p className="p-6 text-sm text-muted">Loading…</p>;
   if (!session.data) return <Navigate to="/login" />;
@@ -347,8 +349,12 @@ export function AppShell() {
       </a>
       <div className="flex min-h-screen flex-col md:flex-row">
         {desktop ? (
-          <aside className="h-screen w-64 shrink-0 border-r border-border md:sticky md:top-0">
+          <aside
+            className="relative h-screen shrink-0 border-r border-border md:sticky md:top-0"
+            style={{ width: sidebarWidth }}
+          >
             <Sidebar onOpenPalette={() => setPalette(true)} />
+            <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
           </aside>
         ) : (
           <MobileBar onOpenPalette={() => setPalette(true)} />

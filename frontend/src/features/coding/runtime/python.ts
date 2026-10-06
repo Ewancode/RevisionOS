@@ -65,7 +65,7 @@ export class PythonRunner implements Runner {
         }
       };
       worker.onerror = (event) => reject(new Error(event.message || "Python could not start."));
-      worker.postMessage({ type: "init", baseUrl: this.options.baseUrl });
+      worker.postMessage({ type: "init", baseUrl: this.options.baseUrl, packageUrl: this.options.packageUrl });
     });
     this.starting = withTimeout(starting, this.options.firstRunTimeoutMs, () => this.reset());
     this.starting.catch(() => this.reset());

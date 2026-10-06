@@ -1,5 +1,6 @@
 /**
- * R via WebR, loaded from its pinned CDN URL. WebR runs R in its own Web
+ * R via the pinned WebR, served from this app's own origin; R packages come
+ * from the WebR project's repository. WebR runs R in its own Web
  * Worker; the PostMessage channel avoids needing cross-origin isolation.
  */
 import {
@@ -88,8 +89,9 @@ export class RRunner implements Runner {
 
   ready(): Promise<void> {
     this.webR ??= (async () => {
-      const { WebR, ChannelType } = await this.loadModule(`${this.options.baseUrl}webr.mjs`);
-      const webR = new WebR({ baseUrl: this.options.baseUrl, channelType: ChannelType.PostMessage });
+      const baseUrl = new URL(this.options.baseUrl, globalThis.location.href).href;
+      const { WebR, ChannelType } = await this.loadModule(`${baseUrl}webr.mjs`);
+      const webR = new WebR({ baseUrl, repoUrl: this.options.packageUrl, channelType: ChannelType.PostMessage });
       await webR.init();
       return webR;
     })();

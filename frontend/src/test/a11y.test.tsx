@@ -71,7 +71,7 @@ const API: Record<string, Handler> = {
   "GET /api/v1/profile": () => [200, { current: { answered: 0, accuracy: null, by_type: {}, exam_conditions: null, untimed: null, recent_errors: { considered: 0, by_category: {} }, hints_per_answer: 0, flashcards: { reviews_30d: 0, recall_rate: null }, recall_minus_application: null, active_days_30d: 0 }, snapshot: null }],
   "GET /api/v1/conversations": () => [200, []],
   "GET /api/v1/coding/exercises": () => [200, []],
-  "GET /api/v1/coding/config": () => [200, { runtimes: { python: { label: "Python", base_url: "https://x/" }, r: { label: "R", base_url: "https://y/" } }, run_timeout_seconds: 15, first_run_timeout_seconds: 120, max_output_chars: 20000 }],
+  "GET /api/v1/coding/config": () => [200, { runtimes: { python: { label: "Python", base_url: "/runtimes/pyodide/1/", package_url: "https://x/" }, r: { label: "R", base_url: "/runtimes/webr/1/", package_url: "https://y/" } }, run_timeout_seconds: 15, first_run_timeout_seconds: 120, max_output_chars: 20000 }],
 };
 
 function renderAt(path: string) {

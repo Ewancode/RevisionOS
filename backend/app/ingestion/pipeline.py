@@ -195,26 +195,33 @@ async def process_document(deps: Deps, document_id: uuid.UUID) -> None:
         doc.status, doc.error_code = "processing", None
         await _set_progress(db, doc, "extracting", 5)
         kind = _kind(doc)
-        renderer: _Renderer | None = None
         try:
-            source = await deps.storage.local_path(doc.storage_key)
-            pages = await asyncio.to_thread(extract, source, kind, deps.config.platform.ingestion)
-            rows = await _save_extracted(db, doc, pages)
-            await _set_progress(db, doc, "transcribing", EXTRACTED)
-
-            todo = [
-                (rows[p.page_no], p.vision_reason)
-                for p in pages
-                if p.vision_reason is not None
-                and rows[p.page_no].extraction_method not in KEEP_METHODS
-            ]
-            renderer = _Renderer(doc, source, kind, deps.config)
-            for done, (row, reason) in enumerate(todo, start=1):
-                assert reason is not None  # noqa: S101  # filtered above
-                await _transcribe_one(deps, db, doc, row, reason, renderer)
-                await _set_progress(
-                    db, doc, "transcribing", EXTRACTED + (INDEXING - EXTRACTED) * done // len(todo)
+            async with deps.storage.local_copy(doc.storage_key) as source:
+                pages = await asyncio.to_thread(
+                    extract, source, kind, deps.config.platform.ingestion
                 )
+                rows = await _save_extracted(db, doc, pages)
+                await _set_progress(db, doc, "transcribing", EXTRACTED)
+
+                todo = [
+                    (rows[p.page_no], p.vision_reason)
+                    for p in pages
+                    if p.vision_reason is not None
+                    and rows[p.page_no].extraction_method not in KEEP_METHODS
+                ]
+                renderer = _Renderer(doc, source, kind, deps.config)
+                try:
+                    for done, (row, reason) in enumerate(todo, start=1):
+                        assert reason is not None  # noqa: S101  # filtered above
+                        await _transcribe_one(deps, db, doc, row, reason, renderer)
+                        await _set_progress(
+                            db,
+                            doc,
+                            "transcribing",
+                            EXTRACTED + (INDEXING - EXTRACTED) * done // len(todo),
+                        )
+                finally:
+                    renderer.close()
 
             await _set_progress(db, doc, "indexing", INDEXING)
             await _index(deps, db, doc)
@@ -228,9 +235,6 @@ async def process_document(deps: Deps, document_id: uuid.UUID) -> None:
                 doc.error_code = exc.code if isinstance(exc, AppError) else "processing_failed"
                 await _set_progress(db, doc, "failed", doc.progress)
             logger.exception("document processing failed", extra={"document_id": str(document_id)})
-        finally:
-            if renderer is not None:
-                renderer.close()
 
 
 async def retranscribe_page(deps: Deps, document_id: uuid.UUID, page_no: int) -> None:
@@ -241,12 +245,12 @@ async def retranscribe_page(deps: Deps, document_id: uuid.UUID, page_no: int) ->
         row = await db.get(DocumentPage, (document_id, page_no))
         if doc is None or row is None or doc.deleted_at is not None:
             return
-        source = await deps.storage.local_path(doc.storage_key)
-        renderer = _Renderer(doc, source, _kind(doc), deps.config)
-        try:
-            await _transcribe_one(deps, db, doc, row, VisionReason.MATHS_DAMAGE, renderer)
-        finally:
-            renderer.close()
+        async with deps.storage.local_copy(doc.storage_key) as source:
+            renderer = _Renderer(doc, source, _kind(doc), deps.config)
+            try:
+                await _transcribe_one(deps, db, doc, row, VisionReason.MATHS_DAMAGE, renderer)
+            finally:
+                renderer.close()
         await _index(deps, db, doc, pages={page_no})
 
 

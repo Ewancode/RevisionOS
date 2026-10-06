@@ -258,10 +258,10 @@ class DocumentService(ScopedService):
             )
         key = page_image_key(self.user_id, doc.id, page_no)
         if not await self.storage.exists(key):
-            source = await self.storage.local_path(doc.storage_key)
-            png = await asyncio.to_thread(
-                render_pdf_page, source, page_no, self.config.platform.ingestion.preview_dpi
-            )
+            async with self.storage.local_copy(doc.storage_key) as source:
+                png = await asyncio.to_thread(
+                    render_pdf_page, source, page_no, self.config.platform.ingestion.preview_dpi
+                )
             await self.storage.put_bytes(key, png)
             return png, "image/png"
         return await self.storage.read_bytes(key), "image/png"

@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { api, ApiError, readCookie, toApiError, unwrap, type Schemas } from "@/lib/api/client";
+import { api, unwrap, type Schemas } from "@/lib/api/client";
+import { uploadRaw } from "@/lib/api/upload";
 
 export type Doc = Schemas["DocumentOut"];
 export type Page = Schemas["PageOut"];
@@ -121,28 +122,7 @@ export function uploadDocument(
   if (params.topicId) query.set("topic_id", params.topicId);
   if (params.week !== undefined) query.set("week", String(params.week));
 
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/v1/documents?${query.toString()}`);
-    xhr.setRequestHeader("Content-Type", "application/octet-stream");
-    const csrf = readCookie("__Host-rev_csrf");
-    if (csrf) xhr.setRequestHeader("X-CSRF-Token", csrf);
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) onProgress(event.loaded / event.total);
-    };
-    xhr.onload = () => {
-      let body: unknown;
-      try {
-        body = JSON.parse(xhr.responseText);
-      } catch {
-        body = undefined;
-      }
-      if (xhr.status === 202) resolve(body as Doc);
-      else reject(toApiError(xhr.status, body));
-    };
-    xhr.onerror = () => reject(new ApiError(0, "network_error", "The upload failed. Check your connection."));
-    xhr.send(file);
-  });
+  return uploadRaw<Doc>(`/api/v1/documents?${query.toString()}`, file, onProgress);
 }
 
 export function useDocumentMutations(id: string) {

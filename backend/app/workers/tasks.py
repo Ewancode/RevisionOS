@@ -3,6 +3,7 @@
 import uuid
 from typing import Any
 
+from app.export.jobs import run_export, run_restore
 from app.ingestion.pipeline import Deps, process_document, reindex_document, retranscribe_page
 from app.learning.summary import summarise
 from app.practice.generation import run_draft
@@ -29,6 +30,20 @@ async def reindex_document_job(
 ) -> None:
     deps: Deps = ctx["deps"]
     await reindex_document(deps, uuid.UUID(document_id), pages)
+
+
+async def run_export_job(ctx: dict[str, Any], job_id: str) -> None:
+    deps: Deps = ctx["deps"]
+    await run_export(deps, uuid.UUID(job_id))
+
+
+async def run_restore_job(ctx: dict[str, Any], job_id: str) -> None:
+    deps: Deps = ctx["deps"]
+
+    async def enqueue(function: str, arg: str) -> None:
+        await ctx["redis"].enqueue_job(function, arg)
+
+    await run_restore(deps, uuid.UUID(job_id), enqueue)
 
 
 async def generate_draft_job(ctx: dict[str, Any], draft_id: str) -> None:

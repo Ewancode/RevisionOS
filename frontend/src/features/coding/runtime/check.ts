@@ -10,8 +10,8 @@ const params = new URLSearchParams(location.search);
 const status = document.getElementById("status")!;
 const results = document.getElementById("results")!;
 
-function options(baseUrl: string) {
-  return { baseUrl, timeoutMs: 15_000, firstRunTimeoutMs: 180_000, maxOutputChars: 20_000 };
+function options(baseUrl: string, packageUrl: string) {
+  return { baseUrl, packageUrl, timeoutMs: 15_000, firstRunTimeoutMs: 180_000, maxOutputChars: 20_000 };
 }
 
 interface Case {
@@ -32,14 +32,15 @@ const rTests = [
 ];
 
 async function main() {
-  const python = params.get("python");
-  const r = params.get("r");
-  if (!python || !r) throw new Error("Give ?python=<base url>&r=<base url> from coding.yaml.");
-  const py = new PythonRunner(options(python));
+  const [python, pythonPackages, r, rPackages] = ["python", "python_packages", "r", "r_packages"].map((k) => params.get(k));
+  if (!python || !pythonPackages || !r || !rPackages) {
+    throw new Error("Give ?python=..&python_packages=..&r=..&r_packages=.. (base_url and package_url from coding.yaml).");
+  }
+  const py = new PythonRunner(options(python, pythonPackages));
   // A short limit, so the infinite-loop case is quick; warmed by its own
   // first case, so the long first-run allowance no longer applies.
-  const loop = new PythonRunner({ ...options(python), timeoutMs: 3000 });
-  const rr = new RRunner(options(r));
+  const loop = new PythonRunner({ ...options(python, pythonPackages), timeoutMs: 3000 });
+  const rr = new RRunner(options(r, rPackages));
   const cases: Case[] = [
     {
       label: "Python: a correct solution passes",

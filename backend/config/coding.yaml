@@ -3,14 +3,24 @@
 # server. Validated on startup by app/core/config.py.
 
 runtimes:
-  # Pinned versions, loaded from these CDNs into a Web Worker. The SPA's
-  # Content-Security-Policy (Phase 13) must allow these origins.
+  # Pinned versions, served from this app's own origin: the security audit
+  # (docs/security.md) found that loading them from a CDN let a third party
+  # change code running on our origin. frontend/scripts/fetch-runtimes.sh
+  # downloads them, checks their SHA-256 and puts them in public/runtimes/;
+  # the versions here must match it (a test checks).
   python:
     label: Python
-    base_url: https://cdn.jsdelivr.net/pyodide/v314.0.7/full/
+    base_url: /runtimes/pyodide/314.0.7/
+    # Packages (numpy, pandas, ...) come from Pyodide's CDN, but each is
+    # checked against the SHA-256 in the self-hosted lock file before it runs.
+    package_url: https://cdn.jsdelivr.net/pyodide/v314.0.7/full/
   r:
     label: R
-    base_url: https://webr.r-wasm.org/v0.6.0/
+    base_url: /runtimes/webr/0.6.0/
+    # R packages an exercise names are installed from the WebR project's
+    # repository (not checksum-verified: see docs/security.md). The
+    # Content-Security-Policy (infra/Caddyfile) must allow both origins.
+    package_url: https://repo.r-wasm.org/
 
 limits:
   # A run (or a test run) taking longer is stopped and the runtime restarted.

@@ -310,6 +310,7 @@ class RateLimitsConfig(_Strict):
     ai: RateLimit
     uploads: RateLimit
     push_test: RateLimit
+    exports: RateLimit
 
 
 class PerfTargets(_Strict):
@@ -346,6 +347,15 @@ class PerformanceConfig(_Strict):
 class TrashConfig(_Strict):
     retention_days: PositiveInt
     purge_hour: Annotated[int, Field(ge=0, le=23)]
+
+
+class ExportConfig(_Strict):
+    keep_days: PositiveInt
+    job_timeout_seconds: PositiveInt
+    max_restore_megabytes: PositiveInt
+    max_restore_entries: PositiveInt
+    max_restore_uncompressed_megabytes: PositiveInt
+    max_restore_compression_ratio: PositiveInt
 
 
 class UploadSizes(_Strict):
@@ -404,6 +414,7 @@ class PlatformConfig(_Strict):
     auth: AuthConfig
     rate_limits: RateLimitsConfig
     trash: TrashConfig
+    export: ExportConfig
     uploads: UploadsConfig
     ingestion: IngestionConfig
     performance: PerformanceConfig
@@ -688,7 +699,9 @@ class AnalyticsConfig(_Strict):
 
 class RuntimeConfig(_Strict):
     label: str
-    base_url: Annotated[str, Field(pattern=r"^https://.+/$")]
+    # Served from this app's own origin (frontend/scripts/fetch-runtimes.sh).
+    base_url: Annotated[str, Field(pattern=r"^/runtimes/[a-z]+/[0-9][0-9.]*/$")]
+    package_url: Annotated[str, Field(pattern=r"^https://.+/$")]
 
 
 class CodingRuntimes(_Strict):

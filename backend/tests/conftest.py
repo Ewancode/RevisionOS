@@ -27,6 +27,7 @@ from tests.support import BASE_URL, create_database, migrate
 
 # Tables emptied between database tests, children first.
 TABLES = (
+    "data_jobs",
     "push_subscriptions",
     "tutor_hints",
     "coding_submissions",

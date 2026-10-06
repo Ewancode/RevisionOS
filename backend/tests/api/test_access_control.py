@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import (
     AvailabilityOverride,
     CodingExercise,
+    DataJob,
     Draft,
     Exam,
     Flashcard,
@@ -285,6 +286,17 @@ async def _seed_coding(db: AsyncSession, owner: User, ids: dict[str, str]) -> No
     ids |= {"exercise": str(live.id), "trashed_exercise": str(gone.id)}
 
 
+async def _seed_export(db: AsyncSession, owner: User, ids: dict[str, str]) -> None:
+    """A's finished export, waiting to be downloaded."""
+    job = DataJob(
+        id=uuid.uuid4(), user_id=owner.id, kind="export", status="done", size_bytes=3,
+        storage_key=f"users/{owner.id}/exports/{uuid.uuid4()}.zip",
+    )  # fmt: skip
+    db.add(job)
+    await db.commit()
+    ids["export"] = str(job.id)
+
+
 EXERCISE_BODY = {
     "language": "python",
     "title": "x",
@@ -397,6 +409,9 @@ ATTACKS: list[tuple[str, str, dict[str, Any] | None]] = [
     ("POST", "/api/v1/attempts/{attempt}/submit", None),
     ("POST", "/api/v1/answers/{answer}/dispute", None),
     ("POST", "/api/v1/answers/{answer}/override", {"score": 1}),
+    # Phase 13: exports.
+    ("GET", "/api/v1/export/{export}", None),
+    ("GET", "/api/v1/export/{export}/file", None),
 ]
 
 
@@ -427,6 +442,7 @@ async def test_other_users_resources_are_invisible(
         await _seed_practice(db, owner, ids)
         await _seed_planner(db, owner, ids)
         await _seed_coding(db, owner, ids)
+        await _seed_export(db, owner, ids)
         before_tree = (await a.get(f"/api/v1/modules/{ids['module']}/topics")).json()
         before_years = (await a.get("/api/v1/years")).json()
         before_trash = (await a.get("/api/v1/trash")).json()
@@ -443,6 +459,7 @@ async def test_other_users_resources_are_invisible(
         assert (await b.get("/api/v1/trash")).json()["modules"] == []
         assert (await b.get("/api/v1/documents")).json() == []
         assert (await b.get("/api/v1/conversations")).json() == []
+        assert (await b.get("/api/v1/export")).json() == []
         for listing in (
             "materials",
             "questions",

@@ -12,8 +12,8 @@ import { PythonRunner } from "./runtime/python";
 import { readResults, rString, testProgram } from "./runtime/r";
 import type { RunRequest, RunResult, Runner } from "./runtime/types";
 
-const PY_URL = "https://cdn.example/pyodide/";
-const R_URL = "https://cdn.example/webr/";
+const PY_URL = "/runtimes/pyodide/1.0/";
+const R_URL = "/runtimes/webr/1.0/";
 const session = {
   user: { id: "u1", email: "ewan@example.com", display_name: "Ewan" },
   settings: { theme: "system", accent_colour: "#4f46e5" },
@@ -24,7 +24,10 @@ const module = {
   subject_tag: null, credits: 15, colour: null, status: "active",
 };
 const config = {
-  runtimes: { python: { label: "Python", base_url: PY_URL }, r: { label: "R", base_url: R_URL } },
+  runtimes: {
+    python: { label: "Python", base_url: PY_URL, package_url: "https://cdn.example/pyodide/" },
+    r: { label: "R", base_url: R_URL, package_url: "https://repo.example/" },
+  },
   run_timeout_seconds: 15, first_run_timeout_seconds: 120, max_output_chars: 20000,
 };
 const exercise = {
@@ -279,7 +282,7 @@ describe("the Python runner", () => {
     try {
       const workers: FakeWorker[] = [];
       const runner = new PythonRunner(
-        { baseUrl: PY_URL, timeoutMs: 1000, firstRunTimeoutMs: 60_000, maxOutputChars: 100 },
+        { baseUrl: PY_URL, packageUrl: "https://cdn.example/pyodide/", timeoutMs: 1000, firstRunTimeoutMs: 60_000, maxOutputChars: 100 },
         () => {
           const w = new FakeWorker();
           workers.push(w);
@@ -288,6 +291,8 @@ describe("the Python runner", () => {
       );
       const pending = runner.run({ code: "while True: pass", tests: [], mode: "run", packages: ["pandas"] });
       await vi.advanceTimersByTimeAsync(0);
+      // The runtime from this origin; packages from where coding.yaml says.
+      expect(workers[0]!.sent[0]).toEqual({ type: "init", baseUrl: PY_URL, packageUrl: "https://cdn.example/pyodide/" });
       workers[0]!.reply({ type: "ready" });
       await vi.advanceTimersByTimeAsync(30_000); // still downloading: not stopped
       const run = workers[0]!.sent.find((m) => m.type === "run")!;

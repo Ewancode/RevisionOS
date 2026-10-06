@@ -395,3 +395,17 @@ than 30 days ago (`platform.yaml` `trash`): documents (and every document in
 a removed module), then coding exercises, flashcards, materials, topics and
 modules. It commits first, then removes each document's stored files, so a
 storage failure never leaves rows pointing at missing files.
+
+## Exports and restores (`app/export/`)
+
+An export is built in the background and kept for 7 days
+(`platform.yaml` `export.keep_days`), then the scheduler deletes the file
+(daily at 03:27 UTC); the job stays in the list as "expired". One export or
+restore runs at a time per account, and at most 6 can be started an hour.
+
+A restore reads the archive's `data/` folder table by table, parents before
+children (and, within topics, each parent topic before its subtopics), in
+one transaction, then copies the files. The rules are in
+[ADR 19](adr/0019-export-restore-and-deployment.md). Limits on an uploaded
+archive: 4 GB, 200,000 entries, 8 GB unpacked, and no entry over 1 MB that
+expands more than 200 times (`export.max_restore_*`).

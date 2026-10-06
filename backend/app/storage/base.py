@@ -8,6 +8,7 @@ still validate every key they are given, as a second line of defence.
 import re
 import uuid
 from collections.abc import AsyncIterator
+from contextlib import AbstractAsyncContextManager
 from pathlib import Path
 from typing import Protocol
 
@@ -17,8 +18,12 @@ _KEY = re.compile(
     r"documents/[0-9a-f-]{36}/(original|pages/[1-9][0-9]{0,4}\.png)"
     # Photos of handwritten working (re-encoded to PNG or JPEG on upload).
     r"|answers/[0-9a-f-]{36}/[0-9a-f-]{36}\.(png|jpeg)"
+    # Your data exports, and archives uploaded to restore (Phase 13).
+    r"|(exports|imports)/[0-9a-f-]{36}\.zip"
     r")$"
 )
+# What an export carries: your files, not other exports.
+DATA_FOLDERS = ("documents/", "answers/")
 
 
 class StorageKeyError(ValueError):
@@ -46,8 +51,18 @@ def answer_image_key(
     return validate_key(f"users/{user_id}/answers/{attempt_id}/{question_id}.{ext}")
 
 
+def archive_key(user_id: uuid.UUID, job_id: uuid.UUID, kind: str) -> str:
+    """An export's ZIP, or an uploaded one waiting to be restored."""
+    folder = {"export": "exports", "restore": "imports"}[kind]
+    return validate_key(f"users/{user_id}/{folder}/{job_id}.zip")
+
+
 def document_prefix(user_id: uuid.UUID, document_id: uuid.UUID) -> str:
     return f"users/{user_id}/documents/{document_id}/"
+
+
+def user_prefix(user_id: uuid.UUID) -> str:
+    return f"users/{user_id}/"
 
 
 class StorageBackend(Protocol):
@@ -62,9 +77,16 @@ class StorageBackend(Protocol):
 
     async def exists(self, key: str) -> bool: ...
 
+    async def delete(self, key: str) -> None:
+        """Delete one object; a missing one is not an error."""
+
     async def delete_prefix(self, prefix: str) -> None:
         """Delete every object under a document's prefix."""
 
-    async def local_path(self, key: str) -> Path:
-        """A local filesystem path to the object, for parsers that need one.
-        Remote backends download to a temporary file."""
+    async def list_keys(self, prefix: str) -> list[str]:
+        """Every key under a user's prefix (``users/<uuid>/``), sorted."""
+
+    def local_copy(self, key: str) -> AbstractAsyncContextManager[Path]:
+        """The object as a local file, for parsers that need a path: the file
+        itself for local storage; a temporary download, removed on exit, for
+        a remote backend."""

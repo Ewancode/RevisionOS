@@ -28,12 +28,31 @@ rate_limits:
   push_test:
     max_attempts: 5
     window_seconds: 600
+  # Starting an export or a restore (each builds or reads a whole archive).
+  exports:
+    max_attempts: 6
+    window_seconds: 3600
 
 trash:
   # Deleted items can be restored for this long; after that the scheduler
   # empties them from the trash for good (daily, at purge_hour UTC; app/trash.py).
   purge_hour: 3
   retention_days: 30
+
+export:
+  # Your data as one ZIP (SPEC 50; app/export/). A finished export can be
+  # downloaded for this many days, then the scheduler deletes it.
+  keep_days: 7
+  # Building or restoring a large archive (all your PDFs) can take a while.
+  job_timeout_seconds: 1800
+  # Restoring reads an archive back into an empty account. Caps on what an
+  # uploaded archive may contain (it is unpacked entry by entry, never to disk
+  # by its own names):
+  max_restore_megabytes: 4096
+  max_restore_entries: 200000
+  max_restore_uncompressed_megabytes: 8192
+  # Data files compress well (repeated JSON keys); PDFs barely compress.
+  max_restore_compression_ratio: 200
 
 uploads:
   # Per-category size caps, in megabytes.

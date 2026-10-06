@@ -83,6 +83,7 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
         "coding_submissions",
         "tutor_hints",
         "push_subscriptions",
+        "data_jobs",
     } <= set(tables)
     assert enums == [
         "ai_interaction_status",
@@ -91,6 +92,8 @@ def test_upgrade_downgrade_round_trip(database_url: str) -> None:
         "coding_language",
         "confidence",
         "content_origin",
+        "data_job_kind",
+        "data_job_status",
         "document_status",
         "draft_kind",
         "draft_status",

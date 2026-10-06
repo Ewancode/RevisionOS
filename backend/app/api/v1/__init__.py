@@ -8,6 +8,7 @@ from app.api.v1 import (
     chat,
     coding,
     documents,
+    exports,
     health,
     learning,
     materials,
@@ -39,4 +40,5 @@ protected.include_router(practice.router)
 protected.include_router(planner.router)
 protected.include_router(analytics.router)
 protected.include_router(coding.router)
+protected.include_router(exports.router)
 router.include_router(protected)

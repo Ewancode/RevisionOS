@@ -1,10 +1,12 @@
 COMPOSE := docker compose -f infra/docker-compose.yml --env-file .env
+PROD := docker compose -f infra/docker-compose.prod.yml --env-file .env
 BACKEND := cd backend &&
 FRONTEND := cd frontend &&
 
 .PHONY: help dev down logs migrate migration create-user vapid-keys perf reindex eval-search eval-chat eval-practice eval-content \
         test test-backend test-frontend \
-        lint typecheck fmt api-client check
+        lint typecheck fmt api-client check \
+        runtimes db-docs prod-up prod-down prod-logs prod-create-user
 
 help:
 	@echo "make dev            Start db, redis, api, worker and frontend (Docker)"
@@ -24,6 +26,12 @@ help:
 	@echo "make typecheck      mypy + tsc"
 	@echo "make api-client     Regenerate the typed frontend API client"
 	@echo "make check          Everything CI runs"
+	@echo "make runtimes       Download the pinned Python and R runtimes (checksummed)"
+	@echo "make db-docs        Regenerate docs/database.md from the models"
+	@echo "make prod-up        Build and start the production stack (docs/deployment.md)"
+	@echo "make prod-down      Stop the production stack"
+	@echo "make prod-logs      Follow the production logs"
+	@echo "make prod-create-user  Create your account on the production stack"
 
 dev:
 	$(COMPOSE) up --build
@@ -88,3 +96,23 @@ api-client:
 	$(FRONTEND) pnpm gen:api
 
 check: lint typecheck test
+
+runtimes:
+	$(FRONTEND) sh scripts/fetch-runtimes.sh
+
+db-docs:
+	$(BACKEND) uv run python -m scripts.database_doc ../docs/database.md
+
+# --- production (run these on the server; docs/deployment.md) ----------------
+
+prod-up:
+	$(PROD) up -d --build
+
+prod-down:
+	$(PROD) down
+
+prod-logs:
+	$(PROD) logs -f --tail 100
+
+prod-create-user:
+	$(PROD) run --rm api python -m scripts.create_user

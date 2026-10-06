@@ -25,11 +25,14 @@ from app.workers.tasks import (
     process_document_job,
     reindex_document_job,
     retranscribe_page_job,
+    run_export_job,
+    run_restore_job,
     summarise_profile_job,
 )
 
 _config = get_config()
 _timeout = _config.platform.ingestion.job_timeout_seconds
+_export_timeout = _config.platform.export.job_timeout_seconds
 
 
 async def startup(ctx: dict[str, Any]) -> None:
@@ -65,6 +68,10 @@ class WorkerSettings:
         func(generate_draft_job, name="generate_draft", timeout=_timeout, max_tries=1),
         func(mark_attempt_job, name="mark_attempt", timeout=_timeout, max_tries=1),
         func(summarise_profile_job, name="summarise_profile", timeout=_timeout, max_tries=1),
+        # One try each: a half-done export is rebuilt by asking again, and a
+        # restore rolls back as a whole.
+        func(run_export_job, name="run_export", timeout=_export_timeout, max_tries=1),
+        func(run_restore_job, name="run_restore", timeout=_export_timeout, max_tries=1),
     ]
     on_startup = startup
     on_shutdown = shutdown

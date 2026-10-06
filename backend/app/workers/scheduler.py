@@ -3,7 +3,8 @@
 
 - Every few minutes it pushes reminders to your devices (planner.yaml
   notifications.push_every_minutes), when push is set up (VAPID keys in .env).
-- Daily it empties the trash of items deleted over 30 days ago (app/trash.py).
+- Daily it empties the trash of items deleted over 30 days ago (app/trash.py)
+  and deletes data exports older than a week (platform.yaml export.keep_days).
 """
 
 import logging
@@ -18,6 +19,7 @@ from app.core.logging import configure_logging
 from app.core.settings import get_settings
 from app.db.session import create_engine, create_session_factory
 from app.planner.push import create_sender, dispatch
+from app.services.exports import expire_exports
 from app.storage import create_storage
 from app.trash import purge
 
@@ -62,6 +64,11 @@ async def empty_trash(ctx: dict[str, Any]) -> dict[str, int]:
         return await purge(db, ctx["storage"], config.platform.trash.retention_days, utcnow())
 
 
+async def expire_old_exports(ctx: dict[str, Any]) -> int:
+    async with ctx["sessions"]() as db:
+        return await expire_exports(db, ctx["storage"], get_config().platform.export.keep_days)
+
+
 class SchedulerSettings:
     cron_jobs: ClassVar[list[Any]] = [
         cron(push_reminders, minute=set(range(0, 60, _every)), unique=True, timeout=240),
@@ -69,6 +76,13 @@ class SchedulerSettings:
             empty_trash,
             hour=get_config().platform.trash.purge_hour,
             minute=17,
+            unique=True,
+            timeout=600,
+        ),
+        cron(
+            expire_old_exports,
+            hour=get_config().platform.trash.purge_hour,
+            minute=27,
             unique=True,
             timeout=600,
         ),

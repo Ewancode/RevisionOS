@@ -7,6 +7,7 @@ import { useMakeYearCurrent, useRestore, useTrash, useYears } from "@/features/s
 import { useBudget } from "@/features/documents/queries";
 import { PushSettings } from "@/features/planner/PushSettings";
 import { usePreferences, useSetPreferences, type PreferencesIn } from "@/features/planner/queries";
+import { YourData } from "@/features/settings/YourData";
 import { SystemStatus } from "@/features/system/SystemStatus";
 import type { Theme } from "@/lib/theme";
 
@@ -342,6 +343,7 @@ export function SettingsPage() {
       <AiBudget />
       <Security />
       <TrashSection />
+      <YourData />
       <SystemStatus />
     </div>
   );

@@ -63,6 +63,9 @@
     "vitest": "^4.1.11"
   },
   "pnpm": {
+    "overrides": {
+      "katex": "$katex"
+    },
     "onlyBuiltDependencies": [
       "esbuild",
       "@tailwindcss/oxide"

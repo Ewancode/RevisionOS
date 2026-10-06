@@ -74,7 +74,7 @@ def current_user(context: AuthCtx) -> User:
 
 CurrentUser = Annotated[User, Depends(current_user)]
 
-LimitScope = Literal["ai", "uploads", "push_test"]
+LimitScope = Literal["ai", "uploads", "push_test", "exports"]
 
 
 def rate_limited(scope: LimitScope) -> Any:

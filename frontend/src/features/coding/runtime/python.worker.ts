@@ -1,5 +1,7 @@
 /**
- * Python in a Web Worker, with Pyodide loaded from its pinned CDN URL.
+ * Python in a Web Worker, with the pinned Pyodide served from this app's own
+ * origin. Packages come from Pyodide's CDN, each checked against the SHA-256
+ * in the (self-hosted) lock file before it is used.
  * Your code never leaves the browser. The harness (harness.py, also run by
  * the backend's tests under CPython) runs your code and then each test.
  */
@@ -23,7 +25,7 @@ interface Pyodide {
 }
 
 type Incoming =
-  | { type: "init"; baseUrl: string }
+  | { type: "init"; baseUrl: string; packageUrl: string }
   | { type: "run"; id: number; code: string; tests: { name: string; code: string }[]; mode: string; packages: string[] };
 
 const scope = self as unknown as {
@@ -33,17 +35,18 @@ const scope = self as unknown as {
 
 let pyodide: Promise<Pyodide> | null = null;
 
-async function load(baseUrl: string): Promise<Pyodide> {
-  const module = (await import(/* @vite-ignore */ `${baseUrl}pyodide.mjs`)) as {
-    loadPyodide(options: { indexURL: string }): Promise<Pyodide>;
+async function load(baseUrl: string, packageUrl: string): Promise<Pyodide> {
+  const indexURL = new URL(baseUrl, self.location.href).href;
+  const module = (await import(/* @vite-ignore */ `${indexURL}pyodide.mjs`)) as {
+    loadPyodide(options: { indexURL: string; packageBaseUrl: string }): Promise<Pyodide>;
   };
-  return module.loadPyodide({ indexURL: baseUrl });
+  return module.loadPyodide({ indexURL, packageBaseUrl: packageUrl });
 }
 
 scope.onmessage = async (event) => {
   const message = event.data;
   if (message.type === "init") {
-    pyodide ??= load(message.baseUrl);
+    pyodide ??= load(message.baseUrl, message.packageUrl);
     try {
       await pyodide;
       scope.postMessage({ type: "ready" });

@@ -2,11 +2,23 @@
 
 import asyncio
 import os
+import re
 import shutil
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from app.storage.base import StorageKeyError, validate_key
+
+_USER_PREFIX = re.compile(r"users/[0-9a-f-]{36}/")
+
+
+def _is_key(key: str) -> bool:
+    try:
+        validate_key(key)
+    except StorageKeyError:
+        return False
+    return True
 
 
 class LocalStorage:
@@ -65,9 +77,33 @@ class LocalStorage:
     async def exists(self, key: str) -> bool:
         return await asyncio.to_thread(self._path(key).is_file)
 
+    async def delete(self, key: str) -> None:
+        await asyncio.to_thread(self._path(key).unlink, True)
+
+    async def list_keys(self, prefix: str) -> list[str]:
+        base = self._user_prefix_path(prefix)
+
+        def walk() -> list[str]:
+            if not base.is_dir():
+                return []
+            keys = (
+                f"{prefix}{p.relative_to(base).as_posix()}"
+                for p in base.rglob("*")
+                if p.is_file() and not p.name.endswith(".tmp")
+            )
+            return sorted(k for k in keys if _is_key(k))
+
+        return await asyncio.to_thread(walk)
+
+    def _user_prefix_path(self, prefix: str) -> Path:
+        if not _USER_PREFIX.fullmatch(prefix):
+            raise StorageKeyError(f"invalid prefix: {prefix!r}")
+        return self.root / prefix
+
     async def delete_prefix(self, prefix: str) -> None:
         path = self._prefix_path(prefix)
         await asyncio.to_thread(shutil.rmtree, path, True)
 
-    async def local_path(self, key: str) -> Path:
-        return self._path(key)
+    @asynccontextmanager
+    async def local_copy(self, key: str) -> AsyncIterator[Path]:
+        yield self._path(key)

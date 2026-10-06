@@ -1,0 +1,49 @@
+# The production web server (docs/deployment.md): HTTPS with automatic
+# certificates, the built app and its code runtimes, and /api passed to the API.
+#
+# DOMAIN is your site's name (revision.example.com), or "localhost" to try the
+# production stack on this computer with Caddy's own local certificate.
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+	header -Server
+
+	# The API sets its own security headers (strict: it only returns JSON).
+	# Uploads have no size limit here: the API enforces its own.
+	handle /api/* {
+		reverse_proxy api:8000 {
+			# Progress updates are server-sent events: pass them on at once.
+			flush_interval -1
+		}
+	}
+
+	handle {
+		root * /srv
+		header {
+			Strict-Transport-Security "max-age=31536000; includeSubDomains"
+			X-Content-Type-Options nosniff
+			X-Frame-Options DENY
+			Referrer-Policy no-referrer
+			Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		}
+		# Scripts only from this origin (the Python and R runtimes included:
+		# see frontend/scripts/fetch-runtimes.sh); WebAssembly may compile;
+		# packages for them may be fetched from the two sources in
+		# backend/config/coding.yaml (a backend test keeps them in step).
+		@app not path /runtimes/webr/*
+		header @app Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https://cdn.jsdelivr.net https://repo.r-wasm.org; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; upgrade-insecure-requests"
+		# The R runtime's worker gets its CSP from its own script's response,
+		# and WebR (Emscripten) needs eval to link R's libraries. So eval is
+		# allowed for that worker only; the app's pages never get it.
+		@webr path /runtimes/webr/*
+		header @webr Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https://repo.r-wasm.org; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+		# Hashed build files and versioned runtimes never change.
+		@immutable path /assets/* /runtimes/*
+		header @immutable Cache-Control "public, max-age=31536000, immutable"
+		# These must be re-checked so a new version is picked up.
+		@fresh path / /index.html /sw.js /manifest.webmanifest /offline.html
+		header @fresh Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

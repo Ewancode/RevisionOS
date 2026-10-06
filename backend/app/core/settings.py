@@ -31,10 +31,16 @@ class Settings(BaseSettings):
 
     config_dir: Path = BACKEND_ROOT / "config"
 
-    # File storage (ARCHITECTURE.md section 6). "local" in development; an
-    # S3-compatible backend is added for deployment (Phase 13).
-    storage_backend: Literal["local"] = "local"
+    # File storage (ARCHITECTURE.md section 6): "local" disk, or "s3" for a
+    # private S3-compatible bucket when deployed (Cloudflare R2, Backblaze B2).
+    storage_backend: Literal["local", "s3"] = "local"
     storage_local_root: Path = BACKEND_ROOT.parent / "data" / "storage"
+    s3_bucket: str | None = None
+    # R2: https://<account id>.r2.cloudflarestorage.com; empty for AWS itself.
+    s3_endpoint_url: str | None = None
+    s3_region: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: SecretStr | None = None
     # Downloaded embedding models (about 70 MB for the default).
     model_cache_dir: Path = BACKEND_ROOT.parent / "data" / "models"
 

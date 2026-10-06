@@ -4,6 +4,7 @@ from app.models.ai import AIInteraction, AIUsage
 from app.models.chat import Conversation, Message, PendingAction
 from app.models.coding import CodingExercise, CodingSubmission, TutorHint
 from app.models.content import Document, DocumentPage
+from app.models.exports import DataJob
 from app.models.identity import AuditLog, AuthSession, User, UserSettings
 from app.models.learning import FlashcardReview, LearningProfileSnapshot, TopicMastery
 from app.models.planner import (
@@ -42,6 +43,7 @@ __all__ = [
     "CodingExercise",
     "CodingSubmission",
     "Conversation",
+    "DataJob",
     "Document",
     "DocumentPage",
     "Draft",

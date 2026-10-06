@@ -21,6 +21,7 @@ export function useRunner(language: Language) {
       try {
         const runner = runnerFor(language, {
           baseUrl: runtime.base_url,
+          packageUrl: runtime.package_url,
           timeoutMs: c.run_timeout_seconds * 1000,
           firstRunTimeoutMs: c.first_run_timeout_seconds * 1000,
           maxOutputChars: c.max_output_chars,

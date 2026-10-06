@@ -5,7 +5,7 @@ Date: 2026-10-05 · Status: Accepted (Phase 12; refines ARCHITECTURE.md sections
 ## Decision
 
 **Security changes** (details and severities in
-[security-audit.md](../security-audit.md)):
+[security.md](../security.md)):
 
 - **Per-account rate limits** on every route that calls Claude, uploads or
   sends a test push (`rate_limited(scope)` in `app/api/deps.py`; numbers in

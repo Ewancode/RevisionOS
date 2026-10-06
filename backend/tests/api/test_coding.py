@@ -92,8 +92,12 @@ async def test_an_exercise_never_sends_its_solution(
     listed = await _ok(await client.get(f"/api/v1/coding/exercises?module_id={module_id}"))
     assert [e["title"] for e in listed] == ["Median of a list"]
     config = await _ok(await client.get("/api/v1/coding/config"))
-    assert config["runtimes"]["python"]["base_url"].startswith("https://cdn.jsdelivr.net/pyodide/")
-    assert config["runtimes"]["r"]["base_url"].startswith("https://webr.r-wasm.org/")
+    # The runtimes come from this origin; only their packages from elsewhere.
+    python, r = config["runtimes"]["python"], config["runtimes"]["r"]
+    assert python["base_url"].startswith("/runtimes/pyodide/")
+    assert python["package_url"].startswith("https://cdn.jsdelivr.net/pyodide/")
+    assert r["base_url"].startswith("/runtimes/webr/")
+    assert r["package_url"] == "https://repo.r-wasm.org/"
 
 
 async def test_exercises_are_checked_without_running_them(

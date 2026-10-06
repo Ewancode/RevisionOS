@@ -25,6 +25,10 @@ coverage/
 
 # Runtime data (uploads, local storage backend)
 data/
+# Downloaded by frontend/scripts/fetch-runtimes.sh (pinned and checksummed)
+frontend/public/runtimes/
+# Database dumps from the production backup service
+backups/
 
 # Your own lecture files for local checks: university copyright, never committed
 samples/*

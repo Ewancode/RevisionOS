@@ -28,6 +28,8 @@ dependencies = [
     "sympy>=1.14.0",
     "fsrs>=6.3.2",
     "pywebpush>=2.5.0",
+    "genanki>=0.13",
+    "boto3>=1.35",
 ]
 
 [dependency-groups]
@@ -42,6 +44,8 @@ dev = [
     "fakeredis>=2.26",
     "types-openpyxl>=3.1.5.20260827",
     "hypothesis>=6.168.3",
+    "moto[s3]>=5.0",
+    "boto3-stubs[s3]>=1.35",
 ]
 
 [tool.uv]
@@ -68,7 +72,7 @@ files = ["app", "scripts", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["asyncpg.*", "arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*", "pywebpush.*", "py_vapid.*", "http_ece.*"]
+module = ["asyncpg.*", "genanki.*", "arq.*", "testcontainers.*", "pypandoc.*", "pillow_heif.*", "sympy.*", "pywebpush.*", "py_vapid.*", "http_ece.*"]
 ignore_missing_imports = true
 
 # PyMuPDF and SymPy ship without type hints; allow calling them where used.

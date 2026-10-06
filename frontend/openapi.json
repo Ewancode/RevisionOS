@@ -1208,6 +1208,122 @@
         "title": "DashboardOut",
         "type": "object"
       },
+      "DataJobOut": {
+        "properties": {
+          "counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counts"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "export",
+              "restore"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "size_bytes",
+          "counts",
+          "error_code",
+          "error_message",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "DataJobOut",
+        "type": "object"
+      },
       "DayActivity": {
         "properties": {
           "day": {
@@ -5692,11 +5808,16 @@
           "label": {
             "title": "Label",
             "type": "string"
+          },
+          "package_url": {
+            "title": "Package Url",
+            "type": "string"
           }
         },
         "required": [
           "label",
-          "base_url"
+          "base_url",
+          "package_url"
         ],
         "title": "RuntimeOut",
         "type": "object"
@@ -10510,6 +10631,153 @@
         "summary": "Update Exam",
         "tags": [
           "planner"
+        ]
+      }
+    },
+    "/api/v1/export": {
+      "get": {
+        "description": "Your ten most recent exports and restores.",
+        "operationId": "list_exports_api_v1_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DataJobOut"
+                  },
+                  "title": "Response List Exports Api V1 Export Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Exports",
+        "tags": [
+          "export"
+        ]
+      },
+      "post": {
+        "description": "Build a ZIP of everything in the background; poll GET /export/{id}.",
+        "operationId": "start_export_api_v1_export_post",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Start Export",
+        "tags": [
+          "export"
+        ]
+      }
+    },
+    "/api/v1/export/restore": {
+      "post": {
+        "description": "Upload an export (the raw ZIP as the request body) to restore it into\nthis account, which must be empty. Runs in the background.",
+        "operationId": "restore_export_api_v1_export_restore_post",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Restore Export",
+        "tags": [
+          "export"
+        ]
+      }
+    },
+    "/api/v1/export/{job_id}": {
+      "get": {
+        "operationId": "get_export_api_v1_export__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataJobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Export",
+        "tags": [
+          "export"
+        ]
+      }
+    },
+    "/api/v1/export/{job_id}/file": {
+      "get": {
+        "operationId": "download_export_api_v1_export__job_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download Export",
+        "tags": [
+          "export"
         ]
       }
     },

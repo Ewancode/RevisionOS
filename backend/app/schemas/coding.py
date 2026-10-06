@@ -17,6 +17,7 @@ Package = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9._-]{0,6
 class RuntimeOut(Output):
     label: str
     base_url: str
+    package_url: str
 
 
 class CodingConfigOut(Output):

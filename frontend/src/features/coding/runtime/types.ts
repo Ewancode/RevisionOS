@@ -37,7 +37,10 @@ export interface Runner {
 }
 
 export interface RunnerOptions {
+  /** The runtime itself, on this app's own origin. */
   baseUrl: string;
+  /** Where its packages come from. */
+  packageUrl: string;
   timeoutMs: number;
   firstRunTimeoutMs: number;
   maxOutputChars: number;
