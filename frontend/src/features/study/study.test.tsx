@@ -179,6 +179,13 @@ describe("drafts", () => {
   });
 });
 
+const activeExam = {
+  attempt_id: "a1",
+  title: "MATH101 mock exam",
+  started_at: "2026-10-02T10:00:00Z",
+  deadline: new Date(Date.now() + 30 * 60_000).toISOString(),
+};
+
 const attempt = {
   id: "a1",
   quiz: { id: "q1", module_id: "m1", kind: "mock", title: "MATH101 mock exam", time_limit_minutes: 60, created_at: "" },
@@ -267,6 +274,7 @@ describe("quizzes", () => {
     const { calls } = fakeApi({
       ...base,
       "GET /api/v1/attempts/a1": () => [200, current],
+      "GET /api/v1/attempts/active-exam": () => [200, current === attempt ? activeExam : null],
       "PUT /api/v1/attempts/a1/responses/qa": () => [204, null],
       "PUT /api/v1/attempts/a1/responses/qb": () => [204, null],
       "POST /api/v1/attempts/a1/submit": () => {
@@ -278,7 +286,9 @@ describe("quizzes", () => {
     const user = userEvent.setup();
     renderAt("/attempts/a1");
 
-    expect(await screen.findByRole("timer")).toHaveTextContent(/^\s*\d+:\d\d/);
+    // The timer sits in the top right (on every page while the exam is open).
+    const bar = await screen.findByRole("region", { name: "Mock exam" });
+    expect(within(bar).getByRole("timer")).toHaveTextContent(/^\s*\d+:\d\d/);
     expect(screen.getByText(/AI help is off/)).toBeInTheDocument();
     const [first] = screen.getAllByRole("radio");
     await user.click(screen.getAllByRole("radio")[1] ?? first!);
@@ -378,5 +388,78 @@ describe("flashcards", () => {
     expect(within(study).queryByText(/it converges/)).toBeNull();
     await user.click(within(study).getByRole("button", { name: "Reveal answer" }));
     expect(within(study).getByText(/it converges/)).toBeInTheDocument();
+  });
+});
+
+describe("the mock exam timer", () => {
+  it("stops the exam from the timer, saving the answer still being typed", async () => {
+    let submitted = false;
+    const { calls } = fakeApi({
+      ...base,
+      "GET /api/v1/attempts/a1": () => [200, submitted ? { ...attempt, status: "marking", submitted_at: "2026-10-02T10:05:00Z" } : attempt],
+      "GET /api/v1/attempts/active-exam": () => [200, submitted ? null : activeExam],
+      "PUT /api/v1/attempts/a1/responses/qa": () => [204, null],
+      "PUT /api/v1/attempts/a1/responses/qb": () => [204, null],
+      "POST /api/v1/attempts/a1/submit": () => {
+        submitted = true;
+        return [200, { ...attempt, status: "marking", submitted_at: "2026-10-02T10:05:00Z" }];
+      },
+    });
+    const user = userEvent.setup();
+    renderAt("/attempts/a1");
+    const bar = await screen.findByRole("region", { name: "Mock exam" });
+    expect(within(bar).queryByRole("link", { name: "Open" })).toBeNull(); // already here
+    await user.type(screen.getByRole("textbox", { name: "Your answer" }), "Half an answer");
+    // Straight away: the answer has not been saved yet.
+    await user.click(within(bar).getByRole("button", { name: /Stop/ }));
+    const confirm = await screen.findByRole("dialog", { name: "Stop the exam now?" });
+    await user.click(within(confirm).getByRole("button", { name: "Stop and submit" }));
+    await vi.waitFor(() => expect(calls.some((c) => c.path === "/api/v1/attempts/a1/submit")).toBe(true));
+    const saved = calls.filter((c) => c.path === "/api/v1/attempts/a1/responses/qb");
+    expect(saved.at(-1)?.body).toMatchObject({ response: { text: "Half an answer" } });
+    const submitAt = calls.findIndex((c) => c.path === "/api/v1/attempts/a1/submit");
+    expect(calls.findIndex((c) => c.path === "/api/v1/attempts/a1/responses/qb")).toBeLessThan(submitAt);
+    await vi.waitFor(() => expect(screen.queryByRole("region", { name: "Mock exam" })).toBeNull());
+  });
+
+  it("shows the timer on other pages, and stops the exam from there", async () => {
+    let submitted = false;
+    const { calls } = fakeApi({
+      ...base,
+      "GET /api/v1/attempts/a1": () => [200, { ...attempt, status: "marking", submitted_at: "2026-10-02T10:05:00Z" }],
+      "GET /api/v1/attempts/active-exam": () => [200, submitted ? null : activeExam],
+      "POST /api/v1/attempts/a1/submit": () => {
+        submitted = true;
+        return [200, { ...attempt, status: "marking" }];
+      },
+    });
+    const user = userEvent.setup();
+    const router = renderAt("/");
+    const bar = await screen.findByRole("region", { name: "Mock exam" });
+    expect(within(bar).getByText("MATH101 mock exam")).toBeInTheDocument();
+    expect(within(bar).getByRole("link", { name: "Open" })).toHaveAttribute("href", "/attempts/a1");
+    await user.click(within(bar).getByRole("button", { name: /Stop/ }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Stop and submit" }));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/attempts/a1"));
+    expect(calls.filter((c) => c.path === "/api/v1/attempts/a1/submit")).toHaveLength(1);
+  });
+  it("submits the exam by itself when time runs out", async () => {
+    let submitted = false;
+    const { calls } = fakeApi({
+      ...base,
+      "GET /api/v1/attempts/a1": () => [200, { ...attempt, status: "marking", submitted_at: "2026-10-02T11:00:00Z" }],
+      "GET /api/v1/attempts/active-exam": () => [
+        200,
+        submitted ? null : { ...activeExam, deadline: new Date(Date.now() + 1500).toISOString() },
+      ],
+      "POST /api/v1/attempts/a1/submit": () => {
+        submitted = true;
+        return [200, { ...attempt, status: "marking" }];
+      },
+    });
+    const router = renderAt("/");
+    await screen.findByRole("region", { name: "Mock exam" });
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/attempts/a1"), { timeout: 4000 });
+    expect(calls.filter((c) => c.path === "/api/v1/attempts/a1/submit")).toHaveLength(1);
   });
 });

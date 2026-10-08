@@ -22,6 +22,7 @@ import { Button } from "@/components/ui";
 import { useLogout, useSession } from "@/features/auth/session";
 import { NotificationBell } from "@/features/planner/NotificationBell";
 import { NewModuleDialog, YearDialog } from "@/features/structure/forms";
+import { ExamControlProvider, ExamTimer } from "@/features/study/ExamTimer";
 import { useModules, type Module } from "@/features/structure/queries";
 
 import { CommandPalette } from "./CommandPalette";
@@ -341,6 +342,7 @@ export function AppShell() {
   if (!session.data) return <Navigate to="/login" />;
   return (
     <ViewingYearProvider>
+      <ExamControlProvider>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-bg focus:px-3 focus:py-2 focus:shadow"
@@ -362,9 +364,11 @@ export function AppShell() {
         <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none md:px-10">
           <Outlet />
         </main>
+        <ExamTimer />
       </div>
       <CommandPalette open={palette} onOpenChange={setPalette} />
       <ShortcutsHelp open={help} onOpenChange={setHelp} />
+      </ExamControlProvider>
     </ViewingYearProvider>
   );
 }

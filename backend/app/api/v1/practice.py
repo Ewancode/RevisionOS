@@ -13,6 +13,7 @@ from app.api.deps import Client, Config, CurrentUser, DbSession, rate_limited
 from app.api.uploads import receive_to_file
 from app.practice.answers import Difficulty, QuestionType
 from app.schemas.practice import (
+    ActiveExam,
     AttemptListItem,
     AttemptOut,
     AttemptStarted,
@@ -163,6 +164,13 @@ async def list_attempts(
     """Your quizzes and mock exams in a module, newest first (all of them,
     including daily quizzes, without a module)."""
     return await quizzes.history(module_id)
+
+
+@router.get("/attempts/active-exam", response_model=ActiveExam | None)
+async def get_active_exam(quizzes: Quizzes) -> ActiveExam | None:
+    """The mock exam you have open (with its deadline), or null. The app
+    shows its timer on every page while one is open."""
+    return await quizzes.active_exam()
 
 
 @router.get("/attempts/{attempt_id}", response_model=AttemptOut)

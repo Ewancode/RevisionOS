@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Camera, CheckCircle2, CircleDashed, Clock, Gavel, Lightbulb, RefreshCw, XCircle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Camera, CheckCircle2, CircleDashed, Gavel, Lightbulb, RefreshCw, XCircle } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { Button, ErrorText, Modal } from "@/components/ui";
 import { HintLadder } from "@/features/coding/HintLadder";
 import { useQuestionHints } from "@/features/coding/queries";
+import { useExamFinisher } from "@/features/study/ExamTimer";
 import type { ApiError } from "@/lib/api/client";
 
 import {
@@ -246,33 +247,6 @@ function WrittenAnswer({
   );
 }
 
-function Countdown({ deadline, onTimeUp }: { deadline: string; onTimeUp: () => void }) {
-  const [left, setLeft] = useState(() => new Date(deadline).getTime() - Date.now());
-  const fired = useRef(false);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const ms = new Date(deadline).getTime() - Date.now();
-      setLeft(ms);
-      if (ms <= 0 && !fired.current) {
-        fired.current = true;
-        onTimeUp();
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [deadline, onTimeUp]);
-  const seconds = Math.max(0, Math.floor(left / 1000));
-  const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  return (
-    <p
-      role="timer"
-      aria-label={`Time left: ${text}`}
-      className={`flex items-center gap-1 font-mono text-sm ${seconds < 300 ? "text-danger" : ""}`}
-    >
-      <Clock size={14} /> {text}
-    </p>
-  );
-}
-
 function Answering({ attempt }: { attempt: Attempt }) {
   const { save, submit } = useAttemptActions(attempt.id);
   const [responses, setResponses] = useState<Record<string, Response>>(() =>
@@ -296,11 +270,29 @@ function Answering({ attempt }: { attempt: Attempt }) {
   };
   const unanswered = attempt.items.filter((i) => responses[i.question_id] === null).length;
 
+  /** Save every answer (including any still waiting to be saved), then submit. */
+  const finish = async () => {
+    Object.values(timers.current).forEach(clearTimeout);
+    track(null);
+    await Promise.all(
+      attempt.items.map((i) =>
+        save.mutateAsync({
+          questionId: i.question_id,
+          body: { response: responses[i.question_id] ?? null, time_ms: Math.round(spent.current[i.question_id] ?? 0) },
+        }),
+      ),
+    );
+    await submit.mutateAsync();
+  };
+  // The exam timer (top right) stops the exam, or ends it at the deadline, through this.
+  useExamFinisher(attempt.id, finish);
+
   return (
     <div className="flex flex-col gap-4">
       {attempt.mode === "exam" && (
         <p className="rounded-md bg-surface px-3 py-2 text-sm">
-          Exam conditions: AI help is off until you submit, and the exam submits itself when time runs out.
+          Exam conditions: AI help is off until you submit. The timer is in the top right: stop the exam there,
+          or it submits itself when time runs out.
         </p>
       )}
       <ol className="flex flex-col gap-4">
@@ -353,16 +345,7 @@ function Answering({ attempt }: { attempt: Attempt }) {
             variant="primary"
             disabled={submit.isPending}
             onClick={async () => {
-              Object.values(timers.current).forEach(clearTimeout);
-              await Promise.all(
-                attempt.items.map((i) =>
-                  save.mutateAsync({
-                    questionId: i.question_id,
-                    body: { response: responses[i.question_id] ?? null, time_ms: Math.round(spent.current[i.question_id] ?? 0) },
-                  }),
-                ),
-              );
-              await submit.mutateAsync();
+              await finish();
               setConfirming(false);
             }}
           >
@@ -596,7 +579,6 @@ function Results({ attempt }: { attempt: Attempt }) {
 
 export function AttemptPage({ attemptId }: { attemptId: string }) {
   const attempt = useAttempt(attemptId);
-  const { submit } = useAttemptActions(attemptId);
   if (attempt.isPending) return <p className="text-sm text-muted">Loading…</p>;
   if (attempt.isError) return <ErrorText error={attempt.error} />;
   const a = attempt.data;
@@ -619,12 +601,6 @@ export function AttemptPage({ attemptId }: { attemptId: string }) {
           )}
           <h1 className="text-2xl font-semibold tracking-tight">{a.quiz.title}</h1>
         </div>
-        {a.status === "in_progress" && a.deadline && (
-          <Countdown
-            deadline={a.deadline}
-            onTimeUp={() => submit.mutate(undefined, { onSettled: () => void attempt.refetch() })}
-          />
-        )}
       </header>
       {a.status === "in_progress" ? <Answering attempt={a} /> : <Results attempt={a} />}
     </div>

@@ -40,6 +40,7 @@ from app.practice.answers import (
     public_view,
 )
 from app.schemas.practice import (
+    ActiveExam,
     AttemptItem,
     AttemptListItem,
     AttemptOut,
@@ -351,6 +352,23 @@ class QuizService(ScopedService):
         ]
 
     # --- answering ------------------------------------------------------------------------
+
+    async def active_exam(self) -> ActiveExam | None:
+        """Your open mock exam, if any. One past its deadline is submitted
+        here (as anywhere else it is looked at), so it no longer counts."""
+        attempt = await active_exam(self.db, self.user_id)
+        if attempt is None:
+            return None
+        if _expired(attempt, self.config):
+            await submit_attempt(self.db, self.config, self.jobs, attempt)
+            return None
+        quiz = await self.db.get(Quiz, attempt.quiz_id)
+        return ActiveExam(
+            attempt_id=attempt.id,
+            title=quiz.title if quiz else "Mock exam",
+            started_at=attempt.started_at,
+            deadline=attempt.deadline,
+        )
 
     async def attempt(self, attempt_id: uuid.UUID) -> QuizAttempt:
         attempt = await self.db.scalar(

@@ -752,6 +752,47 @@ async def test_a_mock_exam_turns_ai_off_and_closes_at_its_deadline(
     assert chat.status_code == 200
 
 
+async def test_the_open_mock_exam_is_found_for_the_timer(
+    client: httpx.AsyncClient,
+    course: dict[str, str],
+    scripted: ScriptedClaude,
+    queue: RecordingQueue,
+    deps: Deps,
+    db: AsyncSession,
+) -> None:
+    """Every page shows the timer of an open mock exam (GET /attempts/active-exam)."""
+    assert (await client.get("/api/v1/attempts/active-exam")).json() is None
+    ids = await _bank(client, course, scripted, queue, deps)
+    practice = await _start(client, course, [ids["multiple_choice"]])
+    assert (await client.get("/api/v1/attempts/active-exam")).json() is None  # not an exam
+    await client.post(f"/api/v1/attempts/{practice}/submit")
+
+    attempt = await _start(
+        client, course, [ids["multiple_choice"]], kind="mock", time_limit_minutes=30
+    )
+    active = await _get(client, "/api/v1/attempts/active-exam")
+    exam = await _get(client, f"/api/v1/attempts/{attempt}")
+    assert active["attempt_id"] == attempt and active["deadline"] == exam["deadline"]
+    assert active["title"] == exam["quiz"]["title"]
+
+    # Stopping it early is submitting it: then there is no open exam.
+    assert (await client.post(f"/api/v1/attempts/{attempt}/submit")).status_code == 200
+    assert (await client.get("/api/v1/attempts/active-exam")).json() is None
+
+    # One past its deadline is submitted when the timer asks, and is gone.
+    late = await _start(
+        client, course, [ids["multiple_choice"]], kind="mock", time_limit_minutes=30
+    )
+    await db.execute(
+        update(QuizAttempt)
+        .where(QuizAttempt.id == uuid.UUID(late))
+        .values(deadline=datetime.now(UTC) - timedelta(minutes=5))
+    )
+    await db.commit()
+    assert (await client.get("/api/v1/attempts/active-exam")).json() is None
+    assert (await _get(client, f"/api/v1/attempts/{late}"))["submitted_at"] is not None
+
+
 # --- photos of working --------------------------------------------------------------------------
 
 

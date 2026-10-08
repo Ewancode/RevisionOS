@@ -317,6 +317,15 @@ class AttemptListItem(Output):
     questions: int
 
 
+class ActiveExam(Output):
+    """The mock exam you have open, for the timer shown on every page."""
+
+    attempt_id: uuid.UUID
+    title: str
+    started_at: datetime
+    deadline: datetime | None
+
+
 class AttemptStarted(Output):
     quiz: QuizOut
     attempt_id: uuid.UUID

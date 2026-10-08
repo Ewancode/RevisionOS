@@ -270,8 +270,15 @@ describe("notifications", () => {
     const user = userEvent.setup();
     const router = renderAt("/");
     await user.click(await screen.findByRole("button", { name: "Notifications, 1 unread" }));
-    const panel = screen.getByRole("region", { name: "Notifications" });
-    await user.click(within(panel).getByRole("button", { name: /exam is in 7 days/ }));
+    // The panel floats outside the sidebar (a popover), so nothing clips it.
+    const panel = await screen.findByRole("dialog", { name: "Notifications" });
+    expect(panel.closest("nav")).toBeNull();
+    // Escape closes it; the bell opens it again.
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Notifications" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Notifications, 1 unread" }));
+    const reopened = await screen.findByRole("dialog", { name: "Notifications" });
+    await user.click(within(reopened).getByRole("button", { name: /exam is in 7 days/ }));
     await vi.waitFor(() => expect(router.state.location.pathname).toBe("/planner"));
     expect(calls.some((c) => c.path === "/api/v1/notifications/7/read")).toBe(true);
   });

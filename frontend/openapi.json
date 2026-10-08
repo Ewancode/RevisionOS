@@ -1,6 +1,45 @@
 {
   "components": {
     "schemas": {
+      "ActiveExam": {
+        "description": "The mock exam you have open, for the timer shown on every page.",
+        "properties": {
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "title",
+          "started_at",
+          "deadline"
+        ],
+        "title": "ActiveExam",
+        "type": "object"
+      },
       "AttemptItem": {
         "properties": {
           "correct_answer": {
@@ -8098,6 +8137,36 @@
           }
         },
         "summary": "List Attempts",
+        "tags": [
+          "practice"
+        ]
+      }
+    },
+    "/api/v1/attempts/active-exam": {
+      "get": {
+        "description": "The mock exam you have open (with its deadline), or null. The app\nshows its timer on every page while one is open.",
+        "operationId": "get_active_exam_api_v1_attempts_active_exam_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActiveExam"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Active Exam Api V1 Attempts Active Exam Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Active Exam",
         "tags": [
           "practice"
         ]
