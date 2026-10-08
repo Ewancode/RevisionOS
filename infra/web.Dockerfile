@@ -1,7 +1,7 @@
 # The web server image: the built app, the pinned Python and R runtimes, and
 # Caddy. Build context: frontend/ (the Caddyfile is mounted by
 # docker-compose.prod.yml).
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
