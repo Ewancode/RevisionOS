@@ -42,7 +42,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           # package.json (with its packageManager pin) lives in frontend/.
           package_json_file: frontend/package.json
@@ -77,7 +77,7 @@ jobs:
       - name: pip-audit
         working-directory: backend
         run: uv export --frozen --no-hashes --format requirements-txt > /tmp/req.txt && uvx pip-audit -r /tmp/req.txt
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           # package.json (with its packageManager pin) lives in frontend/.
           package_json_file: frontend/package.json
